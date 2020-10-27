@@ -1,0 +1,34 @@
+{
+  "name": "metavault",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "description": "MetaVault Contracts and ABI",
+  "scripts": {
+    "compile": "truffle compile",
+    "testrpc": "ganache-cli --deterministic --gasLimit 10000000",
+    "test": "truffle test",
+    "test:verbose": "VERBOSE=true truffle test",
+    "coverage": "yarn solidity-coverage",
+    "lint": "eslint .",
+    "lint:contracts": "solhint contracts/*.sol",
+    "flat:contracts": "sol-merger \"./contracts/*.sol\" ./build",
+    "flat:contracts-metavault": "sol-merger \"./contracts/metavault/*.sol\" ./build/metavault"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yaxis-project/metavault"
+  },
+  "bugs": {
+    "url": "https://github.com/yaxis-project/metavault/issues"
+  },
+  "homepage": "https://github.com/yaxis-project/metavault#readme",
+  "dependencies": {
+    "@openzeppelin/contracts": "^3.1.0",
+    "@openzeppelin/test-helpers": "^0.5.6",
+    "sleep": "^6.3.0",
+    "truffle": "^5.1.41",
+    "truffle-flattener": "^1.4.4",
+    "web3-utils": "^1.2.11"
+  }
+}
