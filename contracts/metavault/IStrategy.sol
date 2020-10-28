@@ -8,6 +8,7 @@ interface IStrategy {
     function withdraw(address) external;
     function withdraw(uint) external;
     function skim() external;
+    function harvest() external;
     function withdrawAll() external returns (uint);
     function balanceOf() external view returns (uint);
     function withdrawFee(uint) external view returns (uint); // pJar: 0.5% (50/10000)

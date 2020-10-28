@@ -9,7 +9,7 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import "@openzeppelin/contracts/GSN/Context.sol";
 
-import "./IVaultMaster.sol";
+import "./IVaultManager.sol";
 import "./IController.sol";
 import "./IConverter.sol";
 import "./IMetaVault.sol";
@@ -33,7 +33,7 @@ contract yAxisMetaVault is ERC20, IMetaVault {
     address public governance;
     address public controller;
     uint public insurance;
-    IVaultMaster public vaultMaster;
+    IVaultManager public vaultManager;
     IConverter public converter;
 
     struct UserInfo {
@@ -96,9 +96,9 @@ contract yAxisMetaVault is ERC20, IMetaVault {
         converter = _converter;
     }
 
-    function setVaultMaster(IVaultMaster _vaultMaster) public {
+    function setVaultManager(IVaultManager _vaultManager) public {
         require(msg.sender == governance, "!governance");
-        vaultMaster = _vaultMaster;
+        vaultManager = _vaultManager;
     }
 
     function setEarnLowerlimit(uint _earnLowerlimit) public {
@@ -244,10 +244,10 @@ contract yAxisMetaVault is ERC20, IMetaVault {
     }
 
     function _deposit(address _mintTo, uint _pool, uint _amount) internal returns (uint _shares) {
-        if (address(vaultMaster) != address(0)) {
+        if (address(vaultManager) != address(0)) {
             // expected 0.1% of deposits go into an insurance fund (or auto-compounding if called by controller) in-case of negative profits to protect withdrawals
             // it is updated by governance (community vote)
-            uint _insuranceFee = vaultMaster.insuranceFee();
+            uint _insuranceFee = vaultManager.insuranceFee();
             if (_insuranceFee > 0) {
                 uint _insurance = _amount.mul(_insuranceFee).div(10000);
                 _amount = _amount.sub(_insurance);
@@ -355,10 +355,10 @@ contract yAxisMetaVault is ERC20, IMetaVault {
             r = r.mul(10000 - _withdrawFee).div(10000);
         }
 
-        if (address(vaultMaster) != address(0)) {
+        if (address(vaultManager) != address(0)) {
             // expected 0.1% of withdrawal go back to vault (for auto-compounding) to protect withdrawals
             // it is updated by governance (community vote)
-            uint _withdrawalProtectionFee = vaultMaster.withdrawalProtectionFee();
+            uint _withdrawalProtectionFee = vaultManager.withdrawalProtectionFee();
             if (_withdrawalProtectionFee > 0) {
                 uint _withdrawalProtection = r.mul(_withdrawalProtectionFee).div(10000);
                 r = r.sub(_withdrawalProtection);

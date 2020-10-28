@@ -9,8 +9,7 @@ import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 
 import "../IStableSwap3Pool.sol";
 import "../IMetaVault.sol";
-import "../IVaultMaster.sol";
-import "../IProfitSharer.sol";
+import "../IVaultManager.sol";
 
 import "../../interfaces/PickleJar.sol";
 import "../../interfaces/PickleMasterChef.sol";
@@ -59,15 +58,15 @@ contract StrategyPickle3Crv {
     address public governance;
     address public controller;
     address public strategist;
-    IVaultMaster public vaultMaster;
+    IVaultManager public vaultManager;
     IStableSwap3Pool public stableSwap3Pool;
 
     mapping(address => mapping(address => address[])) public uniswapPaths; // [input -> output] => uniswap_path
     mapping(address => mapping(address => address)) public balancerPools; // [input -> output] => balancer_pool
 
-    constructor(address _controller, IVaultMaster _vaultMaster) public {
+    constructor(address _controller, IVaultManager _vaultManager) public {
         controller = _controller;
-        vaultMaster = _vaultMaster;
+        vaultManager = _vaultManager;
         governance = msg.sender;
         strategist = msg.sender;
         IERC20(want).safeApprove(address(pickleJar), type(uint256).max);
@@ -105,8 +104,20 @@ contract StrategyPickle3Crv {
     function deposit() public {
         uint _wantBal = IERC20(want).balanceOf(address(this));
         if (_wantBal > 0) {
-            pickleMasterChef.deposit(poolId, _wantBal);
+            // deposit 3crv to pickleJar
+            pickleJar.depositAll();
         }
+
+        uint _p3crvBal = IERC20(p3crv).balanceOf(address(this));
+        if (_p3crvBal > 0) {
+            // stake p3crv to pickleMasterChef
+            pickleMasterChef.deposit(poolId, _p3crvBal);
+        }
+    }
+
+    function skim() external {
+        uint _balance = IERC20(want).balanceOf(address(this));
+        IERC20(want).safeTransfer(controller, _balance);
     }
 
     // Controller only function for creating additional rewards from dust
@@ -115,8 +126,7 @@ contract StrategyPickle3Crv {
 
         require(want != address(_asset), "want");
         require(p3crv != address(_asset), "p3crv");
-        require(weth != address(_asset), "weth");
-        require(dai != address(_asset), "dai");
+
         balance = _asset.balanceOf(address(this));
         _asset.safeTransfer(controller, balance);
     }
@@ -172,7 +182,7 @@ contract StrategyPickle3Crv {
 
     function _swapTokens(address _input, address _output, uint256 _amount) internal {
         address _pool = balancerPools[_input][_output];
-        if (_pool != address(0)) { // use balancer/value_liquid pool
+        if (_pool != address(0)) { // use Balancer
             Balancer(_pool).swapExactAmountIn(_input, _amount, _output, 1, type(uint256).max);
         } else { // use Uniswap
             address[] memory path = uniswapPaths[_input][_output];
@@ -205,24 +215,23 @@ contract StrategyPickle3Crv {
         uint256 _wethBal = IERC20(weth).balanceOf(address(this));
 
         if (_wethBal > 0) {
-            address profitSharer = vaultMaster.profitSharer();
-            address performanceReward = vaultMaster.performanceReward();
+            address stakingPool = vaultManager.stakingPool();
+            address performanceReward = vaultManager.performanceReward();
 
-            if (vaultMaster.stakingPoolShareFee() > 0 && profitSharer != address(0)) {
-                address _yax = vaultMaster.yax();
-                uint256 _stakingPoolShareFee = _wethBal.mul(vaultMaster.stakingPoolShareFee()).div(10000);
+            if (vaultManager.stakingPoolShareFee() > 0 && stakingPool != address(0)) {
+                address _yax = vaultManager.yax();
+                uint256 _stakingPoolShareFee = _wethBal.mul(vaultManager.stakingPoolShareFee()).div(10000);
                 _swapTokens(weth, _yax, _stakingPoolShareFee);
-                IERC20(_yax).safeTransfer(profitSharer, IERC20(_yax).balanceOf(address(this)));
-                IProfitSharer(profitSharer).shareProfit();
+                IERC20(_yax).safeTransfer(stakingPool, IERC20(_yax).balanceOf(address(this)));
             }
 
-            if (vaultMaster.gasFee() > 0 && performanceReward != address(0)) {
-                uint256 _gasFee = _wethBal.mul(vaultMaster.gasFee()).div(10000);
+            if (vaultManager.gasFee() > 0 && performanceReward != address(0)) {
+                uint256 _gasFee = _wethBal.mul(vaultManager.gasFee()).div(10000);
                 IERC20(weth).safeTransfer(performanceReward, _gasFee);
             }
 
             _wethBal = IERC20(weth).balanceOf(address(this));
-            _swapTokens(weth, dai, _wethBal);
+            _swapTokens(weth, usdc, _wethBal);
             _addLiquidity();
 
             uint _want = IERC20(want).balanceOf(address(this));
@@ -236,16 +245,21 @@ contract StrategyPickle3Crv {
         if (withdrawalFee > 0) {
             _amount = _amount.mul(10000).div(10000 - withdrawalFee);
         }
+
+        // unstake p3crv from pickleMasterChef
         uint _ratio = pickleJar.getRatio();
         _amount = _amount.mul(1e18).div(_ratio);
         uint _before = pickleJar.balanceOf(address(this));
         pickleMasterChef.withdraw(poolId, _amount);
         uint _after = pickleJar.balanceOf(address(this));
         _amount = _after.sub(_before);
+
+        // withdraw 3crv from pickleJar
         _before = IERC20(want).balanceOf(address(this));
         pickleJar.withdrawAll();
         _after = IERC20(want).balanceOf(address(this));
         _amount = _after.sub(_before);
+
         return _amount;
     }
 

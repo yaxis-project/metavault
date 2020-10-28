@@ -2,7 +2,7 @@
 
 pragma solidity 0.6.12;
 
-interface IVaultMaster {
+interface IVaultManager {
     function yax() external view returns (address);
     function vaults(address) external view returns (bool);
     function controllers(address) external view returns (bool);
