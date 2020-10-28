@@ -4,6 +4,9 @@ const yAxisMetaVault = artifacts.require('yAxisMetaVault');
 const yAxisMetaVaultMaster = artifacts.require('yAxisMetaVaultMaster');
 const StableSwap3PoolConverter = artifacts.require('StableSwap3PoolConverter');
 
+const StrategyControllerV1 = artifacts.require('StrategyControllerV1');
+const StrategyPickle3Crv = artifacts.require('StrategyPickle3Crv');
+
 const MockERC20 = artifacts.require('MockERC20');
 const MockStableSwap3Pool = artifacts.require('MockStableSwap3Pool');
 
@@ -21,7 +24,7 @@ async function advanceBlocks(blocks) {
     }
 }
 
-contract('metavault', async (accounts) => {
+contract('strategy_pickle3_crv.test', async (accounts) => {
     const { toWei } = web3.utils;
     const { fromWei } = web3.utils;
     const alice = accounts[0];
@@ -48,6 +51,9 @@ contract('metavault', async (accounts) => {
 
     let mcontroller;
     let MCONTROLLER;
+
+    let mstrategy;
+    let MSTRATEGY;
 
     before(async () => {
         yax = await MockERC20.new('yAxis', 'YAX', 18);

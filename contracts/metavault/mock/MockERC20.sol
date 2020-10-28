@@ -75,11 +75,17 @@ contract MockERC20 {
         emit Transfer(address(0), dst, amt);
     }
 
+    function _burn(address dst, uint amt) internal {
+        _balance[dst] = sub(_balance[dst], amt);
+        _totalSupply = sub(_totalSupply, amt);
+        emit Transfer(dst, address(0), amt);
+    }
+
     function allowance(address src, address dst) external view returns (uint) {
         return _allowance[src][dst];
     }
 
-    function balanceOf(address whom) external view returns (uint) {
+    function balanceOf(address whom) public view returns (uint) {
         return _balance[whom];
     }
 
@@ -99,10 +105,8 @@ contract MockERC20 {
     }
 
     function burn(uint amt) public returns (bool) {
-        require(_balance[address(this)] >= amt, "!bal");
-        _balance[address(this)] = sub(_balance[address(this)], amt);
-        _totalSupply = sub(_totalSupply, amt);
-        emit Transfer(address(this), address(0), amt);
+        require(_balance[msg.sender] >= amt, "!bal");
+        _burn(msg.sender, amt);
         return true;
     }
 

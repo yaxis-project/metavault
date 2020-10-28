@@ -18,7 +18,7 @@ contract StrategyControllerV1 {
     using SafeMath for uint256;
 
     address public governance;
-    address public onesplit;
+    address public onesplit = address(0x50FDA034C0Ce7a8f7EFDAebDA7Aa7cA21CC1267e);
     address public rewards;
 
     // Vault to strategy mapping
@@ -32,13 +32,13 @@ contract StrategyControllerV1 {
     mapping(address => bool) public isVault;
     mapping(address => bool) public isStrategy;
 
-    uint public split = 500;
+    uint public split = 100; // 1%
     uint public constant max = 10000;
 
     constructor(address _rewards) public {
-        governance = msg.sender;
         onesplit = address(0x50FDA034C0Ce7a8f7EFDAebDA7Aa7cA21CC1267e);
         rewards = _rewards;
+        governance = msg.sender;
     }
 
     function setSplit(uint _split) external {

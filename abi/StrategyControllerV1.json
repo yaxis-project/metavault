@@ -3,7 +3,7 @@
     "inputs": [
       {
         "internalType": "address",
-        "name": "_yax",
+        "name": "_rewards",
         "type": "address"
       }
     ],
@@ -16,27 +16,19 @@
         "internalType": "address",
         "name": "",
         "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
       }
     ],
-    "name": "controllers",
+    "name": "converters",
     "outputs": [
       {
-        "internalType": "bool",
+        "internalType": "address",
         "name": "",
-        "type": "bool"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "gasFee",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
+        "type": "address"
       }
     ],
     "stateMutability": "view",
@@ -56,8 +48,46 @@
     "type": "function"
   },
   {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "name": "isStrategy",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "name": "isVault",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
     "inputs": [],
-    "name": "insuranceFee",
+    "name": "max",
     "outputs": [
       {
         "internalType": "uint256",
@@ -70,7 +100,7 @@
   },
   {
     "inputs": [],
-    "name": "performanceReward",
+    "name": "onesplit",
     "outputs": [
       {
         "internalType": "address",
@@ -83,7 +113,7 @@
   },
   {
     "inputs": [],
-    "name": "profitSharer",
+    "name": "rewards",
     "outputs": [
       {
         "internalType": "address",
@@ -96,20 +126,7 @@
   },
   {
     "inputs": [],
-    "name": "stakingPool",
-    "outputs": [
-      {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "stakingPoolShareFee",
+    "name": "split",
     "outputs": [
       {
         "internalType": "uint256",
@@ -131,19 +148,6 @@
     "name": "strategies",
     "outputs": [
       {
-        "internalType": "bool",
-        "name": "",
-        "type": "bool"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "treasuryWallet",
-    "outputs": [
-      {
         "internalType": "address",
         "name": "",
         "type": "address"
@@ -163,38 +167,38 @@
     "name": "vaults",
     "outputs": [
       {
-        "internalType": "bool",
-        "name": "",
-        "type": "bool"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "withdrawalProtectionFee",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "yax",
-    "outputs": [
-      {
         "internalType": "address",
         "name": "",
         "type": "address"
       }
     ],
     "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "_split",
+        "type": "uint256"
+      }
+    ],
+    "name": "setSplit",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_onesplit",
+        "type": "address"
+      }
+    ],
+    "name": "setOneSplit",
+    "outputs": [],
+    "stateMutability": "nonpayable",
     "type": "function"
   },
   {
@@ -214,24 +218,21 @@
     "inputs": [
       {
         "internalType": "address",
-        "name": "_profitSharer",
+        "name": "_input",
         "type": "address"
-      }
-    ],
-    "name": "setProfitSharer",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
+      },
       {
         "internalType": "address",
-        "name": "_yax",
+        "name": "_output",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "_converter",
         "type": "address"
       }
     ],
-    "name": "setYax",
+    "name": "setConverter",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -244,12 +245,17 @@
         "type": "address"
       },
       {
+        "internalType": "address",
+        "name": "_strategy",
+        "type": "address"
+      },
+      {
         "internalType": "bool",
-        "name": "_status",
+        "name": "_withdrawAll",
         "type": "bool"
       }
     ],
-    "name": "setVaultStatus",
+    "name": "setStrategy",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -258,16 +264,35 @@
     "inputs": [
       {
         "internalType": "address",
-        "name": "_controller",
+        "name": "_vault",
+        "type": "address"
+      }
+    ],
+    "name": "want",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_vault",
         "type": "address"
       },
       {
-        "internalType": "bool",
-        "name": "_status",
-        "type": "bool"
+        "internalType": "uint256",
+        "name": "_amount",
+        "type": "uint256"
       }
     ],
-    "name": "setControllerStatus",
+    "name": "earn",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -280,12 +305,50 @@
         "type": "address"
       },
       {
-        "internalType": "bool",
-        "name": "_status",
-        "type": "bool"
+        "internalType": "uint256",
+        "name": "_amount",
+        "type": "uint256"
       }
     ],
-    "name": "setStrategyStatus",
+    "name": "withdrawFee",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_vault",
+        "type": "address"
+      }
+    ],
+    "name": "balanceOf",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_strategy",
+        "type": "address"
+      }
+    ],
+    "name": "withdrawAll",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -294,97 +357,6 @@
     "inputs": [
       {
         "internalType": "address",
-        "name": "_stakingPool",
-        "type": "address"
-      }
-    ],
-    "name": "setStakingPool",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "_treasuryWallet",
-        "type": "address"
-      }
-    ],
-    "name": "setTreasuryWallet",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "_performanceReward",
-        "type": "address"
-      }
-    ],
-    "name": "setPerformanceReward",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "_stakingPoolShareFee",
-        "type": "uint256"
-      }
-    ],
-    "name": "setStakingPoolShareFee",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "_gasFee",
-        "type": "uint256"
-      }
-    ],
-    "name": "setGasFee",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "_insuranceFee",
-        "type": "uint256"
-      }
-    ],
-    "name": "setInsuranceFee",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "_withdrawalProtectionFee",
-        "type": "uint256"
-      }
-    ],
-    "name": "setWithdrawalProtectionFee",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "contract IERC20",
         "name": "_token",
         "type": "address"
       },
@@ -392,14 +364,128 @@
         "internalType": "uint256",
         "name": "_amount",
         "type": "uint256"
+      }
+    ],
+    "name": "inCaseTokensGetStuck",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_strategy",
+        "type": "address"
       },
       {
         "internalType": "address",
-        "name": "_to",
+        "name": "_token",
         "type": "address"
       }
     ],
-    "name": "governanceRecoverUnsupported",
+    "name": "inCaseStrategyGetStruck",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_strategy",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "_token",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "parts",
+        "type": "uint256"
+      }
+    ],
+    "name": "getExpectedReturn",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "expected",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_vault",
+        "type": "address"
+      }
+    ],
+    "name": "claimInsurance",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_strategy",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "parts",
+        "type": "uint256"
+      }
+    ],
+    "name": "delegatedHarvest",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_strategy",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "_token",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "parts",
+        "type": "uint256"
+      }
+    ],
+    "name": "harvest",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_vault",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_amount",
+        "type": "uint256"
+      }
+    ],
+    "name": "withdraw",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"

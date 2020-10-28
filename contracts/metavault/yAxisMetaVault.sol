@@ -125,9 +125,12 @@ contract yAxisMetaVault is ERC20, IMetaVault {
     function claimInsurance() external override {
         if (msg.sender == controller) {
             // claim by controller for auto-compounding
+            token3CRV.safeTransfer(controller, insurance);
+        } else {
+            // claim by governance for insurance
+            require(msg.sender == governance, "!authorized");
+            token3CRV.safeTransfer(treasuryWallet, insurance);
         }
-        require(msg.sender == governance, "!authorized");
-        token3CRV.safeTransfer(controller, insurance);
         insurance = 0;
     }
 
