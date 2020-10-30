@@ -97,7 +97,7 @@ contract StableSwap3PoolConverter is IConverter {
 
     function convert_rate(address _input, address _output, uint _inputAmount) external override view returns (uint _outputAmount) {
         if (_output == address(token3CRV)) { // convert to 3CRV
-            uint[] memory amounts = new uint[](3);
+            uint[3] memory amounts;
             for (uint8 i = 0; i < 3; i++) {
                 if (_input == address(tokens[i])) {
                     amounts[i] = _inputAmount;
@@ -139,7 +139,7 @@ contract StableSwap3PoolConverter is IConverter {
         _output.safeTransfer(msg.sender, dy);
     }
 
-    function calc_token_amount(uint[] memory amounts, bool deposit) external override view returns (uint _shareAmount) {
+    function calc_token_amount(uint[3] calldata amounts, bool deposit) external override view returns (uint _shareAmount) {
         _shareAmount = stableSwap3Pool.calc_token_amount(amounts, deposit);
     }
 

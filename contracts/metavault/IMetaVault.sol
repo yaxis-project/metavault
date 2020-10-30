@@ -20,7 +20,7 @@ interface IMetaVault {
     function available() external view returns (uint);
     function withdrawFee(uint _amount) external view returns (uint);
     function earn() external;
-    function calc_token_amount_deposit(uint[] memory amounts) external view returns (uint);
+    function calc_token_amount_deposit(uint[3] calldata amounts) external view returns (uint);
     function calc_token_amount_withdraw(uint _shares, address _output) external view returns (uint);
     function convert_rate(address _input, uint _amount) external view returns (uint);
     function deposit(uint _amount, address _input, uint _min_mint_amount, bool _isStake) external;

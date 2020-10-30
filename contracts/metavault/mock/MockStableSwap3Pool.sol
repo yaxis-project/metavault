@@ -62,7 +62,7 @@ contract MockStableSwap3Pool is IStableSwap3Pool {
         inputTokens[uint8(i)].safeTransfer(msg.sender, _outputAmount);
     }
 
-    function calc_token_amount(uint[] memory amounts, bool) public override view returns (uint) {
+    function calc_token_amount(uint[3] calldata amounts, bool) public override view returns (uint) {
         uint _shareAmount = 0;
         for (uint8 i = 0; i < 3; ++i) {
             _shareAmount = _shareAmount.add(amounts[i].mul(RATE[i]).mul(PRECISION_MUL[i]).div(10000));

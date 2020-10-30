@@ -61,9 +61,9 @@
   {
     "inputs": [
       {
-        "internalType": "uint256[]",
+        "internalType": "uint256[3]",
         "name": "amounts",
-        "type": "uint256[]"
+        "type": "uint256[3]"
       },
       {
         "internalType": "bool",

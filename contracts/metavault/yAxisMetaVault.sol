@@ -175,7 +175,7 @@ contract yAxisMetaVault is ERC20, IMetaVault {
         }
     }
 
-    function calc_token_amount_deposit(uint[] memory amounts) external override view returns (uint) {
+    function calc_token_amount_deposit(uint[3] calldata amounts) external override view returns (uint) {
         return converter.calc_token_amount(amounts, true);
     }
 
