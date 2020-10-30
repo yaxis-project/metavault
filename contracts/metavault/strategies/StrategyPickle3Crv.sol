@@ -37,34 +37,48 @@ contract StrategyPickle3Crv {
 
     Uni public unirouter = Uni(0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D);
 
-    address public want = address(0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490);
+    address public want = address(0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490); // supposed to be 3CRV
     address public p3crv = address(0x1BB74b5DdC1f4fC91D6f9E7906cf68bc93538e33);
 
-    // used for pickle -> weth -> dai -> 3crv route
+    // used for pickle -> weth -> [stableForAddLiquidity] -> 3crv route
     address public pickle = address(0x429881672B9AE42b8EbA0E26cD9C73711b891Ca5);
     address public weth = address(0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2);
+    address public t3crv = address(0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490);
+
+    // for add_liquidity via curve.fi to get back 3CRV (set stableForAddLiquidity for the best stable coin used in the route)
     address public dai = address(0x6B175474E89094C44Da98b954EedeAC495271d0F);
     address public usdc = address(0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48);
     address public usdt = address(0xdAC17F958D2ee523a2206206994597C13D831ec7);
-    address public t3crv = address(0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490);
 
-    PickleJar public pickleJar = PickleJar(p3crv);
+    PickleJar public pickleJar;
     PickleMasterChef public pickleMasterChef = PickleMasterChef(0xbD17B1ce622d73bD438b9E658acA5996dc394b0d);
     uint public poolId = 14;
 
-    uint public withdrawalFee = 50;
-    uint constant public withdrawalMax = 10000;
+    uint public withdrawalFee = 50; // over 10000 - 0.5%
 
     address public governance;
     address public controller;
     address public strategist;
     IVaultManager public vaultManager;
     IStableSwap3Pool public stableSwap3Pool;
+    address public stableForAddLiquidity;
 
     mapping(address => mapping(address => address[])) public uniswapPaths; // [input -> output] => uniswap_path
     mapping(address => mapping(address => address)) public balancerPools; // [input -> output] => balancer_pool
 
-    constructor(address _controller, IVaultManager _vaultManager) public {
+    constructor(address _want, address _p3crv, address _pickle, address _weth, address _t3crv,
+        address _dai, address _usdc, address _usdt,
+        IStableSwap3Pool _stableSwap3Pool, address _controller, IVaultManager _vaultManager) public {
+        want = _want;
+        p3crv = _p3crv;
+        pickle = _pickle;
+        weth = _weth;
+        t3crv = _t3crv;
+        dai = _dai;
+        usdc = _usdc;
+        usdt = _usdt;
+        stableSwap3Pool = _stableSwap3Pool;
+        pickleJar = PickleJar(_p3crv);
         controller = _controller;
         vaultManager = _vaultManager;
         governance = msg.sender;
@@ -89,13 +103,29 @@ contract StrategyPickle3Crv {
         withdrawalFee = _withdrawalFee;
     }
 
+    function setStableForLiquidity(address _stableForAddLiquidity) external {
+        require(msg.sender == governance || msg.sender == strategist, "!authorized");
+        stableForAddLiquidity = _stableForAddLiquidity;
+    }
+
+    function setPickleMasterChef(PickleMasterChef _pickleMasterChef) external {
+        require(msg.sender == governance, "!governance");
+        pickleMasterChef = _pickleMasterChef;
+        IERC20(p3crv).safeApprove(address(pickleMasterChef), type(uint256).max);
+    }
+
+    function setPoolId(uint _poolId) external {
+        require(msg.sender == governance, "!governance");
+        poolId = _poolId;
+    }
+
     function approveForSpender(IERC20 _token, address _spender, uint _amount) external {
-        require(msg.sender == controller || msg.sender == governance || msg.sender == strategist, "!authorized");
+        require(msg.sender == controller || msg.sender == governance, "!authorized");
         _token.safeApprove(_spender, _amount);
     }
 
     function setUnirouter(Uni _unirouter) external {
-        require(msg.sender == governance || msg.sender == strategist, "!authorized");
+        require(msg.sender == governance, "!governance");
         unirouter = _unirouter;
         IERC20(weth).safeApprove(address(unirouter), type(uint256).max);
         IERC20(pickle).safeApprove(address(unirouter), type(uint256).max);
@@ -125,7 +155,6 @@ contract StrategyPickle3Crv {
         require(msg.sender == controller || msg.sender == governance || msg.sender == strategist, "!authorized");
 
         require(want != address(_asset), "want");
-        require(p3crv != address(_asset), "p3crv");
 
         balance = _asset.balanceOf(address(this));
         _asset.safeTransfer(controller, balance);
@@ -182,15 +211,18 @@ contract StrategyPickle3Crv {
 
     function _swapTokens(address _input, address _output, uint256 _amount) internal {
         address _pool = balancerPools[_input][_output];
-        if (_pool != address(0)) { // use Balancer
+        if (_pool != address(0)) { // use ValueLiquid
+            // swapExactAmountIn(tokenIn, tokenAmountIn, tokenOut, minAmountOut, maxPrice)
             Balancer(_pool).swapExactAmountIn(_input, _amount, _output, 1, type(uint256).max);
         } else { // use Uniswap
             address[] memory path = uniswapPaths[_input][_output];
             if (path.length == 0) {
+                // path: _input -> _output
                 path = new address[](2);
                 path[0] = _input;
                 path[1] = _output;
             }
+            // swapExactTokensForTokens(amountIn, amountOutMin, path, to, deadline)
             unirouter.swapExactTokensForTokens(_amount, 1, path, address(this), now.add(1800));
         }
     }
@@ -207,7 +239,7 @@ contract StrategyPickle3Crv {
     }
 
     function harvest() external {
-        require(msg.sender == strategist || msg.sender == governance, "!authorized");
+        require(msg.sender == controller || msg.sender == strategist || msg.sender == governance, "!authorized");
         claimReward();
         uint _pickleBal = IERC20(pickle).balanceOf(address(this));
 
@@ -231,7 +263,7 @@ contract StrategyPickle3Crv {
             }
 
             _wethBal = IERC20(weth).balanceOf(address(this));
-            _swapTokens(weth, usdc, _wethBal);
+            _swapTokens(weth, stableForAddLiquidity, _wethBal);
             _addLiquidity();
 
             uint _want = IERC20(want).balanceOf(address(this));
@@ -242,13 +274,13 @@ contract StrategyPickle3Crv {
     }
 
     function _withdrawSome(uint _amount) internal returns (uint) {
-        if (withdrawalFee > 0) {
-            _amount = _amount.mul(10000).div(10000 - withdrawalFee);
-        }
-
         // unstake p3crv from pickleMasterChef
         uint _ratio = pickleJar.getRatio();
         _amount = _amount.mul(1e18).div(_ratio);
+        (uint _stakedAmount,) = pickleMasterChef.userInfo(poolId, address(this));
+        if (_amount > _stakedAmount) {
+            _amount = _stakedAmount;
+        }
         uint _before = pickleJar.balanceOf(address(this));
         pickleMasterChef.withdraw(poolId, _amount);
         uint _after = pickleJar.balanceOf(address(this));
@@ -256,7 +288,7 @@ contract StrategyPickle3Crv {
 
         // withdraw 3crv from pickleJar
         _before = IERC20(want).balanceOf(address(this));
-        pickleJar.withdrawAll();
+        pickleJar.withdraw(_amount);
         _after = IERC20(want).balanceOf(address(this));
         _amount = _after.sub(_before);
 
@@ -278,8 +310,8 @@ contract StrategyPickle3Crv {
                .add(balanceOfPool());
     }
 
-    function withdrawFee(uint) external view returns (uint) {
-        return withdrawalFee;
+    function withdrawFee(uint _amount) external view returns (uint) {
+        return _amount.mul(withdrawalFee).div(10000);
     }
 
     function setGovernance(address _governance) external {

@@ -1,7 +1,7 @@
 const {expectRevert, time} = require('@openzeppelin/test-helpers');
 
 const yAxisMetaVault = artifacts.require('yAxisMetaVault');
-const yAxisMetaVaultMaster = artifacts.require('yAxisMetaVaultMaster');
+const yAxisMetaVaultManager = artifacts.require('yAxisMetaVaultManager');
 const StableSwap3PoolConverter = artifacts.require('StableSwap3PoolConverter');
 
 const MockERC20 = artifacts.require('MockERC20');
@@ -37,8 +37,8 @@ contract('metavault.test', async (accounts) => {
     let mvault;
     let MVAULT;
 
-    let vmaster;
-    let VMASTER;
+    let vmanager;
+    let VMANAGER;
 
     let stableSwap3Pool;
     let STABLESWAP3POOL;
@@ -69,19 +69,19 @@ contract('metavault.test', async (accounts) => {
         MVAULT = mvault.address;
 
         // constructor (IERC20 _yax)
-        vmaster = await yAxisMetaVaultMaster.new(YAX);
-        VMASTER = vmaster.address;
+        vmanager = await yAxisMetaVaultManager.new(YAX);
+        VMANAGER = vmanager.address;
 
         // constructor (IERC20 _tokenDAI, IERC20 _tokenUSDC, IERC20 _tokenUSDT, IERC20 _token3CRV)
         stableSwap3Pool = await MockStableSwap3Pool.new(DAI, USDC, USDT, T3CRV);
         STABLESWAP3POOL = stableSwap3Pool.address;
 
-        // constructor (IERC20 _tokenDAI, IERC20 _tokenUSDC, IERC20 _tokenUSDT, IERC20 _token3CRV, IStableSwap3Pool _stableSwap3Pool, IVaultMaster _vaultMaster)
-        converter = await StableSwap3PoolConverter.new(DAI, USDC, USDT, T3CRV, STABLESWAP3POOL, VMASTER);
+        // constructor (IERC20 _tokenDAI, IERC20 _tokenUSDC, IERC20 _tokenUSDT, IERC20 _token3CRV, IStableSwap3Pool _stableSwap3Pool, IVaultManager _vaultMaster)
+        converter = await StableSwap3PoolConverter.new(DAI, USDC, USDT, T3CRV, STABLESWAP3POOL, VMANAGER);
         CONVERTER = converter.address;
 
         await mvault.setConverter(CONVERTER);
-        await vmaster.setVaultStatus(MVAULT, true);
+        await vmanager.setVaultStatus(MVAULT, true);
 
         await dai.approve(MVAULT, MAX, {from: bob});
         await usdc.approve(MVAULT, MAX, {from: bob});

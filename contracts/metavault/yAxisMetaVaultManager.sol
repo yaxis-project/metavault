@@ -14,7 +14,7 @@ contract yAxisMetaVaultManager {
     mapping(address => bool) public controllers;
     mapping(address => bool) public strategies;
 
-    address public stakingPool;
+    address public stakingPool = 0x362Db1c17db4C79B51Fe6aD2d73165b1fe9BaB4a; // this pool will be set up later, so at first we set it to treasury
     address public treasuryWallet = 0x362Db1c17db4C79B51Fe6aD2d73165b1fe9BaB4a;
     address public performanceReward = 0x5661bF295f48F499A70857E8A6450066a8D16400; // set to deploy wallet at start
 
@@ -22,7 +22,7 @@ contract yAxisMetaVaultManager {
     uint256 public stakingPoolShareFee = 2000; // 20% of profit go back to staking pool
     uint256 public gasFee = 100; // 1% of profit paid for deployment and execution (gas) fee
     uint256 public insuranceFee = 0; // % of deposits go into an insurance fund (or auto-compounding if called by controller) in-case of negative profits to protect withdrawals
-    uint256 public withdrawalProtectionFee = 0; // % of withdrawal go back to vault (for auto-compounding) to protect withdrawals
+    uint256 public withdrawalProtectionFee = 10; // % of withdrawal go back to vault (for auto-compounding) to protect withdrawals
 
     constructor (address _yax) public {
         yax = _yax;

@@ -27,14 +27,16 @@ contract yAxisMetaVault is ERC20, IMetaVault {
     uint public min = 9500;
     uint public constant max = 10000;
 
-    uint public earnLowerlimit;
-    uint public totalDepositCap;
+    uint public earnLowerlimit = 5 ether; // minimum to invest is 5 3CRV
+    uint public totalDepositCap = 10000000 ether; // initial cap set at 10 million dollar
 
     address public governance;
     address public controller;
     uint public insurance;
     IVaultManager public vaultManager;
     IConverter public converter;
+
+    bool public acceptContractDepositor = false; // dont accept contract at beginning
 
     struct UserInfo {
         uint amount;
@@ -66,6 +68,16 @@ contract yAxisMetaVault is ERC20, IMetaVault {
         yaxPerBlock = _yaxPerBlock;
         lastRewardBlock = (_startBlock > block.number) ? _startBlock : block.number;
         governance = msg.sender;
+    }
+
+    /**
+     * @dev Throws if called by a contract and we are not allowing.
+     */
+    modifier checkContract() {
+        if (!acceptContractDepositor) {
+            require(!address(msg.sender).isContract() && msg.sender == tx.origin, "Sorry we do not accept contract!");
+        }
+        _;
     }
 
     // Ignore insurance fund for balance calculations
@@ -111,6 +123,11 @@ contract yAxisMetaVault is ERC20, IMetaVault {
         totalDepositCap = _totalDepositCap;
     }
 
+    function setAcceptContractDepositor(bool _acceptContractDepositor) public {
+        require(msg.sender == governance, "!governance");
+        acceptContractDepositor = _acceptContractDepositor;
+    }
+
     function setYaxPerBlock(uint _yaxPerBlock) public {
         require(msg.sender == governance, "!governance");
         updateReward();
@@ -123,12 +140,11 @@ contract yAxisMetaVault is ERC20, IMetaVault {
     }
 
     function claimInsurance() external override {
-        if (msg.sender == controller) {
-            // claim by controller for auto-compounding
-            token3CRV.safeTransfer(controller, insurance);
-        } else {
+        // if claim by controller for auto-compounding (current insurance will stay to increase sharePrice)
+        // otherwise send the fund to treasuryWallet
+        if (msg.sender != controller) {
             // claim by governance for insurance
-            require(msg.sender == governance, "!authorized");
+            require(msg.sender == governance, "!governance");
             token3CRV.safeTransfer(treasuryWallet, insurance);
         }
         insurance = 0;
@@ -150,9 +166,12 @@ contract yAxisMetaVault is ERC20, IMetaVault {
 
     function earn() public override {
         if (controller != address(0)) {
-            uint _bal = available();
-            token3CRV.safeTransfer(controller, _bal);
-            IController(controller).earn(address(token3CRV), _bal);
+            IController _contrl = IController(controller);
+            if (_contrl.investEnabled()) {
+                uint _bal = available();
+                token3CRV.safeTransfer(controller, _bal);
+                _contrl.earn(address(token3CRV), _bal);
+            }
         }
     }
 
@@ -165,14 +184,18 @@ contract yAxisMetaVault is ERC20, IMetaVault {
         if (_withdrawFee > 0) {
             _shares = _shares.mul(10000 - _withdrawFee).div(10000);
         }
-        return converter.calc_token_amount_withdraw(_shares, _output);
+        uint r = (balance().mul(_shares)).div(totalSupply());
+        if (_output == address(token3CRV)) {
+            return r;
+        }
+        return converter.calc_token_amount_withdraw(r, _output);
     }
 
     function convert_rate(address _input, uint _amount) external override view returns (uint) {
         return converter.convert_rate(_input, address(token3CRV), _amount);
     }
 
-    function deposit(uint _amount, address _input, uint _min_mint_amount, bool _isStake) external override {
+    function deposit(uint _amount, address _input, uint _min_mint_amount, bool _isStake) external override checkContract {
         require(_amount > 0, "!_amount");
         uint _pool = balance();
         uint _before = token3CRV.balanceOf(address(this));
@@ -198,7 +221,7 @@ contract yAxisMetaVault is ERC20, IMetaVault {
 
     // Transfers tokens of all kinds
     // 0: DAI, 1: USDT, 2: USDC, 3: 3CRV
-    function depositAll(uint[4] calldata _amounts, uint _min_mint_amount, bool _isStake) external {
+    function depositAll(uint[4] calldata _amounts, uint _min_mint_amount, bool _isStake) external checkContract {
         uint _pool = balance();
         uint _before = token3CRV.balanceOf(address(this));
         bool hasStables = false;
@@ -350,11 +373,6 @@ contract yAxisMetaVault is ERC20, IMetaVault {
         uint r = (balance().mul(_shares)).div(totalSupply());
         _burn(msg.sender, _shares);
 
-        uint _withdrawFee = withdrawFee(r);
-        if (_withdrawFee > 0) {
-            r = r.mul(10000 - _withdrawFee).div(10000);
-        }
-
         if (address(vaultManager) != address(0)) {
             // expected 0.1% of withdrawal go back to vault (for auto-compounding) to protect withdrawals
             // it is updated by governance (community vote)
@@ -368,13 +386,13 @@ contract yAxisMetaVault is ERC20, IMetaVault {
         // Check balance
         uint b = token3CRV.balanceOf(address(this));
         if (b < r) {
-            uint _withdraw = r.sub(b);
+            uint _toWithdraw = r.sub(b);
             if (controller != address(0)) {
-                IController(controller).withdraw(address(token3CRV), _withdraw);
+                IController(controller).withdraw(address(token3CRV), _toWithdraw);
             }
             uint _after = token3CRV.balanceOf(address(this));
             uint _diff = _after.sub(b);
-            if (_diff < _withdraw) {
+            if (_diff < _toWithdraw) {
                 r = b.add(_diff);
             }
         }
@@ -406,6 +424,7 @@ contract yAxisMetaVault is ERC20, IMetaVault {
     function governanceRecoverUnsupported(IERC20 _token, uint _amount, address _to) external {
         require(msg.sender == governance, "!governance");
         require(address(_token) != address(token3CRV) || balance().sub(_amount) >= totalSupply(), "cant withdraw 3CRV more than MVLT supply");
+        require(address(_token) != address(this), "cant withdraw shares");
         _token.transfer(_to, _amount);
     }
 }

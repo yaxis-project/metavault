@@ -53,7 +53,7 @@ contract MockPickleJar is MockERC20 {
         t3crv.transfer(msg.sender, r);
     }
 
-    function getRatio() public view returns (uint) {
+    function getRatio() public pure returns (uint) {
         return 1010000000000000000; // +1%
     }
 }

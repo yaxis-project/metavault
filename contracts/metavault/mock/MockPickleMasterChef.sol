@@ -3,15 +3,15 @@
 pragma solidity 0.6.12;
 
 interface IERC20 {
-    function totalSupply() external view returns (uint256);
-    function balanceOf(address account) external view returns (uint256);
-    function transfer(address recipient, uint256 amount) external returns (bool);
-    function allowance(address owner, address spender) external view returns (uint256);
-    function approve(address spender, uint256 amount) external returns (bool);
-    function transferFrom(address sender, address recipient, uint256 amount) external returns (bool);
+    function totalSupply() external view returns (uint);
+    function balanceOf(address account) external view returns (uint);
+    function transfer(address recipient, uint amount) external returns (bool);
+    function allowance(address owner, address spender) external view returns (uint);
+    function approve(address spender, uint amount) external returns (bool);
+    function transferFrom(address sender, address recipient, uint amount) external returns (bool);
 
-    event Transfer(address indexed from, address indexed to, uint256 value);
-    event Approval(address indexed owner, address indexed spender, uint256 value);
+    event Transfer(address indexed from, address indexed to, uint value);
+    event Approval(address indexed owner, address indexed spender, uint value);
 }
 
 contract MockPickleMasterChef {
@@ -19,30 +19,28 @@ contract MockPickleMasterChef {
     IERC20 public lpToken;
 
     struct UserInfo {
-        uint256 amount; // How many LP tokens the user has provided.
-        uint256 rewardDebt; // Reward debt. See explanation below.
+        uint amount; // How many LP tokens the user has provided.
+        uint rewardDebt; // Reward debt. See explanation below.
     }
 
-    mapping(uint256 => mapping(address => UserInfo)) public userInfo;
+    mapping(uint => mapping(address => UserInfo)) public userInfo;
 
     constructor(IERC20 _pickleToken, IERC20 _lpToken) public {
         pickleToken = _pickleToken;
         lpToken = _lpToken;
     }
 
-    function deposit(uint256 _pid, uint256 _amount) external {
+    function deposit(uint _pid, uint _amount) external {
         lpToken.transferFrom(msg.sender, address(this), _amount);
-        if (_amount == 0) {
-            // claim
-            pickleToken.transfer(msg.sender, pickleToken.balanceOf(address(this)) / 10);
-        }
         UserInfo storage user = userInfo[_pid][msg.sender];
+        pickleToken.transfer(msg.sender, user.amount / 10); // always get 10% of deposited amount
         user.amount = user.amount + _amount;
     }
 
-    function withdraw(uint256 _pid, uint256 _amount) external {
+    function withdraw(uint _pid, uint _amount) external {
         lpToken.transfer(msg.sender, _amount);
         UserInfo storage user = userInfo[_pid][msg.sender];
+        pickleToken.transfer(msg.sender, user.amount / 10); // always get 10% of deposited amount
         user.amount = user.amount - _amount;
     }
 
@@ -50,7 +48,10 @@ contract MockPickleMasterChef {
         return pickleToken.balanceOf(address(this)) / 10;
     }
 
-    function emergencyWithdraw(uint) external {
-        lpToken.transfer(msg.sender, lpToken.balanceOf(address(this)) / 10);
+    function emergencyWithdraw(uint _pid) external {
+        UserInfo storage user = userInfo[_pid][msg.sender];
+        lpToken.transfer(msg.sender, user.amount);
+        user.amount = 0;
+        user.rewardDebt = 0;
     }
 }

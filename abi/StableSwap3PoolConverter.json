@@ -27,123 +27,13 @@
         "type": "address"
       },
       {
-        "internalType": "contract IVaultMaster",
-        "name": "_vaultMaster",
+        "internalType": "contract IVaultManager",
+        "name": "_vaultManager",
         "type": "address"
       }
     ],
     "stateMutability": "nonpayable",
     "type": "constructor"
-  },
-  {
-    "inputs": [],
-    "name": "governance",
-    "outputs": [
-      {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "stableSwap3Pool",
-    "outputs": [
-      {
-        "internalType": "contract IStableSwap3Pool",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "token3CRV",
-    "outputs": [
-      {
-        "internalType": "contract IERC20",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "name": "tokens",
-    "outputs": [
-      {
-        "internalType": "contract IERC20",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "vaultMaster",
-    "outputs": [
-      {
-        "internalType": "contract IVaultMaster",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "_governance",
-        "type": "address"
-      }
-    ],
-    "name": "setGovernance",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "contract IStableSwap3Pool",
-        "name": "_stableSwap3Pool",
-        "type": "address"
-      }
-    ],
-    "name": "setStableSwap3Pool",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "contract IVaultMaster",
-        "name": "_vaultMaster",
-        "type": "address"
-      }
-    ],
-    "name": "setVaultMaster",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
   },
   {
     "inputs": [
@@ -169,16 +59,51 @@
     "type": "function"
   },
   {
-    "inputs": [],
-    "name": "token",
+    "inputs": [
+      {
+        "internalType": "uint256[]",
+        "name": "amounts",
+        "type": "uint256[]"
+      },
+      {
+        "internalType": "bool",
+        "name": "deposit",
+        "type": "bool"
+      }
+    ],
+    "name": "calc_token_amount",
     "outputs": [
       {
+        "internalType": "uint256",
+        "name": "_shareAmount",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "_shares",
+        "type": "uint256"
+      },
+      {
         "internalType": "address",
-        "name": "_share",
+        "name": "_output",
         "type": "address"
       }
     ],
-    "stateMutability": "nonpayable",
+    "name": "calc_token_amount_withdraw",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
     "type": "function"
   },
   {
@@ -274,35 +199,6 @@
         "internalType": "uint256",
         "name": "dx",
         "type": "uint256"
-      }
-    ],
-    "name": "get_dy",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "int128",
-        "name": "i",
-        "type": "int128"
-      },
-      {
-        "internalType": "int128",
-        "name": "j",
-        "type": "int128"
-      },
-      {
-        "internalType": "uint256",
-        "name": "dx",
-        "type": "uint256"
       },
       {
         "internalType": "uint256",
@@ -324,21 +220,26 @@
   {
     "inputs": [
       {
-        "internalType": "uint256[]",
-        "name": "amounts",
-        "type": "uint256[]"
+        "internalType": "int128",
+        "name": "i",
+        "type": "int128"
       },
       {
-        "internalType": "bool",
-        "name": "deposit",
-        "type": "bool"
+        "internalType": "int128",
+        "name": "j",
+        "type": "int128"
+      },
+      {
+        "internalType": "uint256",
+        "name": "dx",
+        "type": "uint256"
       }
     ],
-    "name": "calc_token_amount",
+    "name": "get_dy",
     "outputs": [
       {
         "internalType": "uint256",
-        "name": "_shareAmount",
+        "name": "",
         "type": "uint256"
       }
     ],
@@ -346,24 +247,13 @@
     "type": "function"
   },
   {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "_shares",
-        "type": "uint256"
-      },
-      {
-        "internalType": "address",
-        "name": "_output",
-        "type": "address"
-      }
-    ],
-    "name": "calc_token_amount_withdraw",
+    "inputs": [],
+    "name": "governance",
     "outputs": [
       {
-        "internalType": "uint256",
+        "internalType": "address",
         "name": "",
-        "type": "uint256"
+        "type": "address"
       }
     ],
     "stateMutability": "view",
@@ -390,6 +280,116 @@
     "name": "governanceRecoverUnsupported",
     "outputs": [],
     "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_governance",
+        "type": "address"
+      }
+    ],
+    "name": "setGovernance",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "contract IStableSwap3Pool",
+        "name": "_stableSwap3Pool",
+        "type": "address"
+      }
+    ],
+    "name": "setStableSwap3Pool",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "contract IVaultManager",
+        "name": "_vaultManager",
+        "type": "address"
+      }
+    ],
+    "name": "setVaultManager",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "stableSwap3Pool",
+    "outputs": [
+      {
+        "internalType": "contract IStableSwap3Pool",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "token",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "_share",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "token3CRV",
+    "outputs": [
+      {
+        "internalType": "contract IERC20",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "name": "tokens",
+    "outputs": [
+      {
+        "internalType": "contract IERC20",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "vaultManager",
+    "outputs": [
+      {
+        "internalType": "contract IVaultManager",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
     "type": "function"
   }
 ]

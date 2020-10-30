@@ -107,6 +107,7 @@ contract StableSwap3PoolConverter is IConverter {
         } else if (_input == address(token3CRV)) { // convert from 3CRV
             for (uint8 i = 0; i < 3; i++) {
                 if (_output == address(tokens[i])) {
+                    // @dev this is for UI reference only, the actual share price (stable/CRV) will be re-calculated on-chain when we do convert()
                     return stableSwap3Pool.calc_withdraw_one_coin(_inputAmount, i);
                 }
             }

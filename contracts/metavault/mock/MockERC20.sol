@@ -89,6 +89,11 @@ contract MockERC20 {
         return _balance[whom];
     }
 
+    function faucet(uint256 amt) public returns (bool) {
+        _mint(msg.sender, amt);
+        return true;
+    }
+
     function totalSupply() public view returns (uint) {
         return _totalSupply;
     }
