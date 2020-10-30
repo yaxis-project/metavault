@@ -63,7 +63,7 @@ contract('metavault.test', async (accounts) => {
         T3CRV = t3crv.address;
 
         // constructor (IERC20 _tokenDAI, IERC20 _tokenUSDC, IERC20 _tokenUSDT, IERC20 _token3CRV, IERC20 _tokenYAX, uint _yaxPerBlock, uint _startBlock)
-        const _yaxPerBlock = toWei('1');
+        const _yaxPerBlock = '10000000000000';
         const _startBlock = 1;
         mvault = await yAxisMetaVault.new(DAI, USDC, USDT, T3CRV, YAX, _yaxPerBlock, _startBlock);
         MVAULT = mvault.address;
@@ -179,7 +179,7 @@ contract('metavault.test', async (accounts) => {
         it('pendingYax', async () => {
             await advanceBlocks(10);
             const _pendingYax = String(await mvault.pendingYax(bob));
-            assert.equal(_pendingYax, toWei('10'));
+            assert.equal(_pendingYax, toWei('8.6'));
         });
 
         it('unstake(0) for getting reward', async () => {

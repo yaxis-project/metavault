@@ -14,6 +14,8 @@ import "./IController.sol";
 import "./IConverter.sol";
 import "./IMetaVault.sol";
 
+// @dev This metavault will pay YAX incentive for depositors and stakers
+// It does not need minter key of YAX. Governance multisig will mint total of 34000 YAX and send into the vault in the beginning
 contract yAxisMetaVault is ERC20, IMetaVault {
     using Address for address;
     using SafeMath for uint;
@@ -53,6 +55,14 @@ contract yAxisMetaVault is ERC20, IMetaVault {
 
     address public treasuryWallet = 0x362Db1c17db4C79B51Fe6aD2d73165b1fe9BaB4a;
 
+    uint public constant BLOCKS_PER_WEEK = 46500;
+
+    // Block number when each epoch ends.
+    uint[5] public epochEndBlocks;
+
+    // Reward multipler for each of 5 epoches (epochIndex: reward multipler)
+    uint[6] public epochRewardMultiplers = [86000, 64000, 43000, 21000, 10000, 1];
+
     event Deposit(address indexed user, uint amount);
     event Withdraw(address indexed user, uint amount);
     event RewardPaid(address indexed user, uint reward);
@@ -65,8 +75,13 @@ contract yAxisMetaVault is ERC20, IMetaVault {
         inputTokens[3] = _token3CRV;
         token3CRV = _token3CRV;
         tokenYAX = _tokenYAX;
-        yaxPerBlock = _yaxPerBlock;
-        lastRewardBlock = (_startBlock > block.number) ? _startBlock : block.number;
+        yaxPerBlock = _yaxPerBlock; // supposed to be 0.000001 (1e13 wei)
+        lastRewardBlock = (_startBlock > block.number) ? _startBlock : block.number; // supposed to be 11,161,600 (Sat Oct 31 2020 01:00:00 GMT+0)
+        epochEndBlocks[0] = lastRewardBlock + BLOCKS_PER_WEEK * 2; // weeks 1-2
+        epochEndBlocks[1] = epochEndBlocks[0] + BLOCKS_PER_WEEK * 2; // weeks 3-4
+        epochEndBlocks[2] = epochEndBlocks[1] + BLOCKS_PER_WEEK * 4; // month 2
+        epochEndBlocks[3] = epochEndBlocks[2] + BLOCKS_PER_WEEK * 8; // month 3-4
+        epochEndBlocks[4] = epochEndBlocks[3] + BLOCKS_PER_WEEK * 8; // month 5-6
         governance = msg.sender;
     }
 
@@ -132,6 +147,38 @@ contract yAxisMetaVault is ERC20, IMetaVault {
         require(msg.sender == governance, "!governance");
         updateReward();
         yaxPerBlock = _yaxPerBlock;
+    }
+
+    function setEpochEndBlock(uint8 _index, uint256 _epochEndBlock) public {
+        require(msg.sender == governance, "!governance");
+        require(_index < 5, "_index out of range");
+        require(_epochEndBlock > block.number, "Too late to update");
+        require(epochEndBlocks[_index] > block.number, "Too late to update");
+        epochEndBlocks[_index] = _epochEndBlock;
+    }
+
+    function setEpochRewardMultipler(uint8 _index, uint256 _epochRewardMultipler) public {
+        require(msg.sender == governance, "!governance");
+        require(_index > 0 && _index < 6, "Index out of range");
+        require(epochEndBlocks[_index - 1] > block.number, "Too late to update");
+        epochRewardMultiplers[_index] = _epochRewardMultipler;
+    }
+
+    // Return reward multiplier over the given _from to _to block.
+    function getMultiplier(uint256 _from, uint256 _to) public view returns (uint256) {
+        for (uint8 epochId = 5; epochId >= 1; --epochId) {
+            if (_to >= epochEndBlocks[epochId - 1]) {
+                if (_from >= epochEndBlocks[epochId - 1]) return _to.sub(_from).mul(epochRewardMultiplers[epochId]);
+                uint256 multiplier = _to.sub(epochEndBlocks[epochId - 1]).mul(epochRewardMultiplers[epochId]);
+                if (epochId == 1) return multiplier.add(epochEndBlocks[0].sub(_from).mul(epochRewardMultiplers[0]));
+                for (epochId = epochId - 1; epochId >= 1; --epochId) {
+                    if (_from >= epochEndBlocks[epochId - 1]) return multiplier.add(epochEndBlocks[epochId].sub(_from).mul(epochRewardMultiplers[epochId]));
+                    multiplier = multiplier.add(epochEndBlocks[epochId].sub(epochEndBlocks[epochId - 1]).mul(epochRewardMultiplers[epochId]));
+                }
+                return multiplier.add(epochEndBlocks[0].sub(_from).mul(epochRewardMultiplers[0]));
+            }
+        }
+        return _to.sub(_from).mul(epochRewardMultiplers[0]);
     }
 
     function setTreasuryWallet(address _treasuryWallet) public {
@@ -306,8 +353,8 @@ contract yAxisMetaVault is ERC20, IMetaVault {
         uint _accYaxPerShare = accYaxPerShare;
         uint lpSupply = balanceOf(address(this));
         if (block.number > lastRewardBlock && lpSupply != 0) {
-            uint numBlocks = block.number.sub(lastRewardBlock);
-            _accYaxPerShare = accYaxPerShare.add(numBlocks.mul(yaxPerBlock).mul(1e12).div(lpSupply));
+            uint256 _multiplier = getMultiplier(lastRewardBlock, block.number);
+            _accYaxPerShare = accYaxPerShare.add(_multiplier.mul(yaxPerBlock).mul(1e12).div(lpSupply));
         }
         _pending = user.amount.mul(_accYaxPerShare).div(1e12).sub(user.yaxRewardDebt);
     }
@@ -321,8 +368,8 @@ contract yAxisMetaVault is ERC20, IMetaVault {
             lastRewardBlock = block.number;
             return;
         }
-        uint _numBlocks = block.number.sub(lastRewardBlock);
-        accYaxPerShare = accYaxPerShare.add(_numBlocks.mul(yaxPerBlock).mul(1e12).div(lpSupply));
+        uint256 _multiplier = getMultiplier(lastRewardBlock, block.number);
+        accYaxPerShare = accYaxPerShare.add(_multiplier.mul(yaxPerBlock).mul(1e12).div(lpSupply));
         lastRewardBlock = block.number;
     }
 
@@ -423,7 +470,7 @@ contract yAxisMetaVault is ERC20, IMetaVault {
 
     function governanceRecoverUnsupported(IERC20 _token, uint _amount, address _to) external {
         require(msg.sender == governance, "!governance");
-        require(address(_token) != address(token3CRV) || balance().sub(_amount) >= totalSupply(), "cant withdraw 3CRV more than MVLT supply");
+        require(address(_token) != address(token3CRV), "cant withdraw core token (3CRV)");
         require(address(_token) != address(this), "cant withdraw shares");
         _token.transfer(_to, _amount);
     }
