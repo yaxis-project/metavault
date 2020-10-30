@@ -76,7 +76,7 @@ contract yAxisMetaVault is ERC20, IMetaVault {
         token3CRV = _token3CRV;
         tokenYAX = _tokenYAX;
         yaxPerBlock = _yaxPerBlock; // supposed to be 0.000001 (1e13 wei)
-        lastRewardBlock = (_startBlock > block.number) ? _startBlock : block.number; // supposed to be 11,161,600 (Sat Oct 31 2020 01:00:00 GMT+0)
+        lastRewardBlock = (_startBlock > block.number) ? _startBlock : block.number; // supposed to be 11,163,000 (Sat Oct 31 2020 06:30:00 GMT+0)
         epochEndBlocks[0] = lastRewardBlock + BLOCKS_PER_WEEK * 2; // weeks 1-2
         epochEndBlocks[1] = epochEndBlocks[0] + BLOCKS_PER_WEEK * 2; // weeks 3-4
         epochEndBlocks[2] = epochEndBlocks[1] + BLOCKS_PER_WEEK * 4; // month 2
@@ -468,10 +468,14 @@ contract yAxisMetaVault is ERC20, IMetaVault {
         tokenYAX.safeTransfer(_to, (_tokenBal < _amount) ? _tokenBal : _amount);
     }
 
-    function governanceRecoverUnsupported(IERC20 _token, uint _amount, address _to) external {
+    // Only allows to earn some extra yield from non-core tokens
+    function earnExtra(address _token) public {
         require(msg.sender == governance, "!governance");
-        require(address(_token) != address(token3CRV), "cant withdraw core token (3CRV)");
-        require(address(_token) != address(this), "cant withdraw shares");
-        _token.transfer(_to, _amount);
+        require(address(_token) != address(token3CRV), "3crv");
+        require(address(_token) != address(this), "mlvt");
+        uint _amount = IERC20(_token).balanceOf(address(this));
+        require(converter.convert_rate(_token, address(token3CRV), _amount) > 0, "rate=0");
+        IERC20(_token).safeTransfer(address(converter), _amount);
+        converter.convert(_token, address(token3CRV), _amount);
     }
 }
