@@ -211,8 +211,7 @@ contract StrategyPickle3Crv {
 
     function _swapTokens(address _input, address _output, uint256 _amount) internal {
         address _pool = balancerPools[_input][_output];
-        if (_pool != address(0)) { // use ValueLiquid
-            // swapExactAmountIn(tokenIn, tokenAmountIn, tokenOut, minAmountOut, maxPrice)
+        if (_pool != address(0)) { // use balancer/vliquid
             Balancer(_pool).swapExactAmountIn(_input, _amount, _output, 1, type(uint256).max);
         } else { // use Uniswap
             address[] memory path = uniswapPaths[_input][_output];
@@ -222,7 +221,6 @@ contract StrategyPickle3Crv {
                 path[0] = _input;
                 path[1] = _output;
             }
-            // swapExactTokensForTokens(amountIn, amountOutMin, path, to, deadline)
             unirouter.swapExactTokensForTokens(_amount, 1, path, address(this), now.add(1800));
         }
     }
@@ -307,7 +305,7 @@ contract StrategyPickle3Crv {
 
     function balanceOf() public view returns (uint) {
         return balanceOfWant()
-               .add(balanceOfPool());
+        .add(balanceOfPool());
     }
 
     function withdrawFee(uint _amount) external view returns (uint) {

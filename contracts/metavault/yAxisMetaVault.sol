@@ -75,7 +75,7 @@ contract yAxisMetaVault is ERC20, IMetaVault {
         inputTokens[3] = _token3CRV;
         token3CRV = _token3CRV;
         tokenYAX = _tokenYAX;
-        yaxPerBlock = _yaxPerBlock; // supposed to be 0.000001 (1e13 wei)
+        yaxPerBlock = _yaxPerBlock; // supposed to be 0.000001 YAX (1000000000000 = 1e12 wei)
         lastRewardBlock = (_startBlock > block.number) ? _startBlock : block.number; // supposed to be 11,163,000 (Sat Oct 31 2020 06:30:00 GMT+0)
         epochEndBlocks[0] = lastRewardBlock + BLOCKS_PER_WEEK * 2; // weeks 1-2
         epochEndBlocks[1] = epochEndBlocks[0] + BLOCKS_PER_WEEK * 2; // weeks 3-4
@@ -468,7 +468,7 @@ contract yAxisMetaVault is ERC20, IMetaVault {
         tokenYAX.safeTransfer(_to, (_tokenBal < _amount) ? _tokenBal : _amount);
     }
 
-    // Only allows to earn some extra yield from non-core tokens
+    // Only allows to earn some extra yield from non-core tokens - and auto-compounding the bought 3CRV
     function earnExtra(address _token) public {
         require(msg.sender == governance, "!governance");
         require(address(_token) != address(token3CRV), "3crv");

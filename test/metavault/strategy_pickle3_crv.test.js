@@ -2,6 +2,8 @@ const {expectRevert, time} = require('@openzeppelin/test-helpers');
 
 const yAxisMetaVault = artifacts.require('yAxisMetaVault');
 const yAxisMetaVaultManager = artifacts.require('yAxisMetaVaultManager');
+const yAxisMetaVaultStrategists = artifacts.require('yAxisMetaVaultStrategists');
+
 const StableSwap3PoolConverter = artifacts.require('StableSwap3PoolConverter');
 
 const StrategyControllerV1 = artifacts.require('StrategyControllerV1');
@@ -319,8 +321,15 @@ contract('strategy_pickle3_crv.test', async (accounts) => {
                 await printBalances('\n=== BEFORE harvest => auto-reinvest ===');
             }
             assert.approximately(Number(await pickle.balanceOf(MSTRATEGY)), Number(toWei('0.9424752475247525')), 10 ** -12);
-            await mcontroller.harvestStrategy(MSTRATEGY);
+            const strategists = await yAxisMetaVaultStrategists.new();
+            await strategists.setController(MCONTROLLER);
+            await strategists.setStrategy(MSTRATEGY);
+            await strategists.addStrategist(bob);
+            await mcontroller.setStrategist(strategists.address);
+            await strategists.harvestDefaultController({from: bob});
             assert.approximately(Number(await pickle.balanceOf(MSTRATEGY)), Number(toWei('1.4716419307269704')), 10 ** -12);
+            await mstrategy.setStrategist(strategists.address);
+            await strategists.harvestDefaultStrategy({from: bob});
             if (verbose) {
                 await printBalances('\n=== AFTER harvest => auto-reinvest ===');
             }

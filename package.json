@@ -13,7 +13,8 @@
     "lint": "eslint .",
     "lint:contracts": "solhint contracts/*.sol",
     "flat:contracts": "sol-merger \"./contracts/*.sol\" ./build",
-    "flat:contracts-metavault": "sol-merger \"./contracts/metavault/*.sol\" ./build/metavault"
+    "flat:contracts-metavault": "sol-merger \"./contracts/metavault/*.sol\" ./build/metavault",
+    "flat:contracts-metavault-subfolder": "sol-merger \"./contracts/metavault/*/*.sol\" ./build/metavault/subfolder"
   },
   "repository": {
     "type": "git",
