@@ -55,7 +55,7 @@ contract StrategyCurve3Crv {
     uint public withdrawalFee = 0; // over 10000
 
     address public governance;
-    address public timelock = address(0xC1d40e197563dF727a4d3134E8BD1DeF4B498C6f);
+    address public timelock = address(0x66C5c16d13a38461648c1D097f219762D374B412);
 
     address public controller;
     address public strategist;
@@ -164,19 +164,6 @@ contract StrategyCurve3Crv {
 
         balance = _asset.balanceOf(address(this));
         _asset.safeTransfer(controller, balance);
-    }
-
-    function withdrawToController(uint _amount) external {
-        require(msg.sender == controller || msg.sender == governance || msg.sender == strategist, "!authorized");
-        require(controller != address(0), "!controller"); // additional protection so we don't burn the funds
-
-        uint _balance = IERC20(want).balanceOf(address(this));
-        if (_balance < _amount) {
-            _amount = _withdrawSome(_amount.sub(_balance));
-            _amount = _amount.add(_balance);
-        }
-
-        IERC20(want).safeTransfer(controller, _amount);
     }
 
     // Withdraw partial funds, normally used with a vault withdrawal
