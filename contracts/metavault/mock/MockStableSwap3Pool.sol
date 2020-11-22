@@ -31,6 +31,10 @@ contract MockStableSwap3Pool is IStableSwap3Pool {
         return RATE[0].add(RATE[1]).add(RATE[2]).mul(1e18).div(30000);
     }
 
+    function balances(uint _index) external override view returns (uint) {
+        return inputTokens[_index].balanceOf(address(this));
+    }
+
     function get_dy(int128 i, int128 j, uint dx) public override view returns (uint) {
         return dx.mul(RATE[uint8(i)]).mul(PRECISION_MUL[uint8(i)]).div(RATE[uint8(j)]).div(PRECISION_MUL[uint8(j)]);
     }
