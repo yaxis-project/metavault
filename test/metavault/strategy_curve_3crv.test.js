@@ -250,7 +250,7 @@ contract('strategy_curve_3crv.test', async (accounts) => {
             }
             await mvault.withdraw(toWei('5'), DAI, {from: bob});
             assert.equal(String(await mvault.balanceOf(bob)), toWei('0'));
-            assert.ok(Number.parseFloat(await dai.balanceOf(bob)) >= Number.parseFloat(toWei('1')), "less DAI then expected!");
+            assert.ok(Number.parseFloat(await dai.balanceOf(bob)) >= Number.parseFloat(toWei('994.99')), "less DAI then expected!");
             if (verbose) {
                 await printBalances('\n=== AFTER bob withdraw DAI ===');
             }
@@ -263,7 +263,7 @@ contract('strategy_curve_3crv.test', async (accounts) => {
             await mvault.withdrawAll(T3CRV, {from: bob});
             assert.equal(String(await mvault.balanceOf(bob)), toWei('0'));
             assert.equal(String(await t3crv.balanceOf(MCONTROLLER)), toWei('0'));
-            assert.equal(String(await t3crv.balanceOf(MSTRATEGY)), toWei('120.0282'));
+            assert.equal(String(await t3crv.balanceOf(MSTRATEGY)), toWei('0'));
             assert.equal(String(await mvault.totalSupply()), toWei('0'));
             assert.ok(Number.parseFloat(await t3crv.balanceOf(bob)) >= Number.parseFloat(toWei('1005')), "less T3CRV then expected!");
             if (verbose) {
@@ -287,9 +287,9 @@ contract('strategy_curve_3crv.test', async (accounts) => {
             }
             const _amount = toWei('10');
             await mvault.deposit(_amount, DAI, 1, true, {from: bob});
-            assert.approximately(Number(await mstrategy.balanceOfPool()), Number(toWei('123.54579')), 10 ** -12);
-            assert.approximately(Number(await mcontroller.balanceOf(T3CRV)), Number(toWei('123.54579')), 10 ** -12);
-            assert.approximately(Number(await mvault.getPricePerFullShare()), Number(toWei('12.978862275449103')), 10 ** -12);
+            assert.approximately(Number(await mstrategy.balanceOfPool()), Number(toWei('9.519')), 10 ** 12);
+            assert.approximately(Number(await mcontroller.balanceOf(T3CRV)), Number(toWei('9.519')), 10 ** 12);
+            assert.approximately(Number(await mvault.getPricePerFullShare()), Number(toWei('1.0')), 10 ** -12);
             if (verbose) {
                 await printBalances('\n=== AFTER bob deposit 10 USDT ===');
             }
@@ -302,9 +302,9 @@ contract('strategy_curve_3crv.test', async (accounts) => {
             assert.approximately(Number(await crv.balanceOf(MSTRATEGY)), Number(toWei('0')), 10 ** -12);
             await mcontroller.harvestStrategy(MSTRATEGY);
             assert.approximately(Number(await crv.balanceOf(MSTRATEGY)), Number(toWei('0')), 10 ** -12);
-            assert.approximately(Number(await mstrategy.balanceOfPool()), Number(toWei('338.06397')), 10 ** -12);
-            assert.approximately(Number(await mcontroller.balanceOf(T3CRV)), Number(toWei('338.06397')), 10 ** -12);
-            assert.approximately(Number(await mvault.getPricePerFullShare()), Number(toWei('34.3878622754491')), 10 ** 6);
+            assert.approximately(Number(await mstrategy.balanceOfPool()), Number(toWei('224.03718')), 10 ** 12);
+            assert.approximately(Number(await mcontroller.balanceOf(T3CRV)), Number(toWei('224.03718')), 10 ** 12);
+            assert.approximately(Number(await mvault.getPricePerFullShare()), Number(toWei('22.409')), 10 ** 6);
             if (verbose) {
                 await printBalances('\n=== AFTER harvest => auto-reinvest ===');
             }

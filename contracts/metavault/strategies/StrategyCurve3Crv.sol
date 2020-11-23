@@ -14,6 +14,7 @@ import "../../interfaces/Balancer.sol";
 import "../IStableSwap3Pool.sol";
 import "../IMetaVault.sol";
 import "../IVaultManager.sol";
+import "../IStrategy.sol";
 
 /*
 
@@ -29,7 +30,7 @@ import "../IVaultManager.sol";
 
 */
 
-contract StrategyCurve3Crv {
+contract StrategyCurve3Crv is IStrategy {
     using SafeERC20 for IERC20;
     using Address for address;
     using SafeMath for uint;
@@ -49,7 +50,7 @@ contract StrategyCurve3Crv {
     Mintr public crvMintr = Mintr(0xd061D61a4d941c39E5453435B6345Dc261C2fcE0);
     IStableSwap3Pool public stableSwap3Pool = IStableSwap3Pool(0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7);
 
-    address public want = address(0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490); // 3Crv
+    address private want_ = address(0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490); // 3Crv
     Gauge public gauge = Gauge(0xbFcF63294aD7105dEa65aA58F8AE5BE2D9d0952A); // 3Crv Gauge
 
     uint public withdrawalFee = 0; // over 10000
@@ -68,7 +69,7 @@ contract StrategyCurve3Crv {
         address _dai, address _usdc, address _usdt,
         Gauge _gauge, Mintr _crvMintr,
         IStableSwap3Pool _stableSwap3Pool, address _controller, IVaultManager _vaultManager) public {
-        want = _want;
+        if (_want != address(0)) want_ = _want;
         if (_crv != address(0)) crv = _crv;
         if (_weth != address(0)) weth = _weth;
         if (_t3crv != address(0)) t3crv = _t3crv;
@@ -76,13 +77,13 @@ contract StrategyCurve3Crv {
         if (_usdc != address(0)) usdc = _usdc;
         if (_usdt != address(0)) usdt = _usdt;
         if (address(_stableSwap3Pool) != address(0)) stableSwap3Pool = _stableSwap3Pool;
-        gauge = _gauge;
+        if (address(_gauge) != address(0)) gauge = _gauge;
         if (address(_crvMintr) != address(0)) crvMintr = _crvMintr;
         controller = _controller;
         vaultManager = _vaultManager;
         governance = msg.sender;
         strategist = msg.sender;
-        IERC20(want).safeApprove(address(gauge), type(uint256).max);
+        IERC20(want_).safeApprove(address(gauge), type(uint256).max);
         IERC20(weth).safeApprove(address(unirouter), type(uint256).max);
         IERC20(crv).safeApprove(address(unirouter), type(uint256).max);
         IERC20(dai).safeApprove(address(stableSwap3Pool), type(uint256).max);
@@ -91,34 +92,12 @@ contract StrategyCurve3Crv {
         IERC20(t3crv).safeApprove(address(stableSwap3Pool), type(uint256).max);
     }
 
-    function getMostPremium() public view returns (address, uint256)
-    {
-        uint256[] memory balances = new uint256[](3);
-        balances[0] = stableSwap3Pool.balances(0); // DAI
-        balances[1] = stableSwap3Pool.balances(1).mul(10**12); // USDC
-        balances[2] = stableSwap3Pool.balances(2).mul(10**12); // USDT
-
-        // DAI
-        if (balances[0] < balances[1] && balances[0] < balances[2]) {
-            return (dai, 0);
-        }
-
-        // USDC
-        if (balances[1] < balances[0] && balances[1] < balances[2]) {
-            return (usdc, 1);
-        }
-
-        // USDT
-        if (balances[2] < balances[0] && balances[2] < balances[1]) {
-            return (usdt, 2);
-        }
-
-        // If they're somehow equal, we just want DAI
-        return (dai, 0);
-    }
-
     function getName() public pure returns (string memory) {
         return "StrategyCurve3Crv";
+    }
+
+    function want() external override view returns (address) {
+        return want_;
     }
 
     function setStrategist(address _strategist) external {
@@ -132,7 +111,7 @@ contract StrategyCurve3Crv {
     }
 
     function approveForSpender(IERC20 _token, address _spender, uint _amount) external {
-        require(msg.sender == controller || msg.sender == governance, "!authorized");
+        require(msg.sender == governance, "!authorized");
         _token.safeApprove(_spender, _amount);
     }
 
@@ -143,56 +122,55 @@ contract StrategyCurve3Crv {
         IERC20(crv).safeApprove(address(unirouter), type(uint256).max);
     }
 
-    function deposit() public {
-        uint _wantBal = IERC20(want).balanceOf(address(this));
+    function deposit() public override {
+        uint _wantBal = IERC20(want_).balanceOf(address(this));
         if (_wantBal > 0) {
-            // deposit [want] to Gauge
+            // deposit [want_] to Gauge
             gauge.deposit(_wantBal);
         }
     }
 
-    function skim() external {
-        uint _balance = IERC20(want).balanceOf(address(this));
-        IERC20(want).safeTransfer(controller, _balance);
+    function skim() external override {
+        uint _balance = IERC20(want_).balanceOf(address(this));
+        IERC20(want_).safeTransfer(controller, _balance);
     }
 
     // Controller only function for creating additional rewards from dust
-    function withdraw(IERC20 _asset) external returns (uint balance) {
+    function withdraw(address _asset) external override {
         require(msg.sender == controller || msg.sender == governance || msg.sender == strategist, "!authorized");
 
-        require(want != address(_asset), "want");
+        require(want_ != _asset, "want_");
 
-        balance = _asset.balanceOf(address(this));
-        _asset.safeTransfer(controller, balance);
+        IERC20 _assetToken = IERC20(_asset);
+        uint _balance = _assetToken.balanceOf(address(this));
+        _assetToken.safeTransfer(controller, _balance);
     }
 
     // Withdraw partial funds, normally used with a vault withdrawal
-    function withdraw(uint _amount) external returns (uint) {
+    function withdraw(uint _amount) external override {
         require(msg.sender == controller || msg.sender == governance || msg.sender == strategist, "!authorized");
 
-        uint _balance = IERC20(want).balanceOf(address(this));
+        uint _balance = IERC20(want_).balanceOf(address(this));
         if (_balance < _amount) {
             _amount = _withdrawSome(_amount.sub(_balance));
             _amount = _amount.add(_balance);
         }
 
-        address _vault = IController(controller).vaults(address(want));
+        address _vault = IController(controller).vaults(address(want_));
         require(_vault != address(0), "!vault"); // additional protection so we don't burn the funds
-        IERC20(want).safeTransfer(_vault, _balance);
-
-        return _amount;
+        IERC20(want_).safeTransfer(_vault, _amount);
     }
 
     // Withdraw all funds, normally used when migrating strategies
-    function withdrawAll() external returns (uint _balance) {
+    function withdrawAll() external override returns (uint _balance) {
         require(msg.sender == controller || msg.sender == governance || msg.sender == strategist, "!authorized");
         _withdrawAll();
 
-        _balance = IERC20(want).balanceOf(address(this));
+        _balance = IERC20(want_).balanceOf(address(this));
 
-        address _vault = IController(controller).vaults(address(want));
+        address _vault = IController(controller).vaults(address(want_));
         require(_vault != address(0), "!vault"); // additional protection so we don't burn the funds
-        IERC20(want).safeTransfer(_vault, _balance);
+        IERC20(want_).safeTransfer(_vault, _balance);
     }
 
     function claimReward() public {
@@ -228,7 +206,28 @@ contract StrategyCurve3Crv {
         stableSwap3Pool.add_liquidity(amounts, 1);
     }
 
-    function harvest() external {
+    function getMostPremium() public view returns (address, uint256) {
+        uint256[] memory balances = new uint256[](3);
+        balances[0] = stableSwap3Pool.balances(0); // DAI
+        balances[1] = stableSwap3Pool.balances(1).mul(10**12); // USDC
+        balances[2] = stableSwap3Pool.balances(2).mul(10**12); // USDT
+
+        if (balances[0] < balances[1] && balances[0] < balances[2]) { // DAI
+            return (dai, 0);
+        }
+
+        if (balances[1] < balances[0] && balances[1] < balances[2]) { // USDC
+            return (usdc, 1);
+        }
+
+        if (balances[2] < balances[0] && balances[2] < balances[1]) { // USDT
+            return (usdt, 2);
+        }
+
+        return (dai, 0); // If they're somehow equal, we just want_ DAI
+    }
+
+    function harvest() external override {
         require(msg.sender == controller || msg.sender == strategist || msg.sender == governance, "!authorized");
         claimReward();
         uint _crvBal = IERC20(crv).balanceOf(address(this));
@@ -253,12 +252,11 @@ contract StrategyCurve3Crv {
             }
 
             _wethBal = IERC20(weth).balanceOf(address(this));
-            // stablecoin we want to convert to
-            (address _stableCoin,) = getMostPremium();
+            (address _stableCoin,) = getMostPremium(); // stablecoin we want_ to convert to
             _swapTokens(weth, _stableCoin, _wethBal);
             _addLiquidity();
 
-            uint _want = IERC20(want).balanceOf(address(this));
+            uint _want = IERC20(want_).balanceOf(address(this));
             if (_want > 0) {
                 deposit(); // auto re-invest
             }
@@ -266,32 +264,31 @@ contract StrategyCurve3Crv {
     }
 
     function _withdrawSome(uint _amount) internal returns (uint) {
-        uint _before = IERC20(want).balanceOf(address(this));
+        uint _before = IERC20(want_).balanceOf(address(this));
         gauge.withdraw(_amount);
-        uint _after = IERC20(want).balanceOf(address(this));
+        uint _after = IERC20(want_).balanceOf(address(this));
         _amount = _after.sub(_before);
 
         return _amount;
     }
 
     function balanceOfWant() public view returns (uint) {
-        return IERC20(want).balanceOf(address(this));
+        return IERC20(want_).balanceOf(address(this));
     }
 
     function balanceOfPool() public view returns (uint) {
         return gauge.balanceOf(address(this));
     }
 
-    function balanceOf() public view returns (uint) {
-        return balanceOfWant()
-        .add(balanceOfPool());
+    function balanceOf() external override view returns (uint) {
+        return balanceOfWant().add(balanceOfPool());
     }
 
     function claimable_tokens() external view returns (uint) {
         return gauge.claimable_tokens(address(this));
     }
 
-    function withdrawFee(uint _amount) external view returns (uint) {
+    function withdrawFee(uint _amount) external override view returns (uint) {
         return _amount.mul(withdrawalFee).div(10000);
     }
 
