@@ -173,7 +173,7 @@ contract StrategyCurve3Crv is IStrategy {
         IERC20(want_).safeTransfer(_vault, _balance);
     }
 
-    function claimReward() public {
+    function _claimReward() internal {
         crvMintr.mint(address(gauge));
     }
 
@@ -229,7 +229,7 @@ contract StrategyCurve3Crv is IStrategy {
 
     function harvest() external override {
         require(msg.sender == controller || msg.sender == strategist || msg.sender == governance, "!authorized");
-        claimReward();
+        _claimReward();
         uint _crvBal = IERC20(crv).balanceOf(address(this));
 
         _swapTokens(crv, weth, _crvBal);
