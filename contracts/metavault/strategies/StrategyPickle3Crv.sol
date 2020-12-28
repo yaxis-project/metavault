@@ -10,6 +10,7 @@ import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import "../IStableSwap3Pool.sol";
 import "../IMetaVault.sol";
 import "../IVaultManager.sol";
+import "../IController.sol";
 
 import "../../interfaces/PickleJar.sol";
 import "../../interfaces/PickleMasterChef.sol";

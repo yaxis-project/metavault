@@ -10,4 +10,6 @@ interface IController {
     function earn(address, uint) external;
     function withdrawFee(address, uint) external view returns (uint); // pJar: 0.5% (50/10000)
     function investEnabled() external view returns (bool);
+    // note that some strategies do not allow controller to harvest
+    function harvestStrategy(address _strategy) external;
 }
