@@ -126,25 +126,28 @@ contract('metavault.test', async (accounts) => {
         console.log('-------------------');
     }
 
+    beforeEach(async () => {
+        if (verbose) {
+            await printBalances('\n=== BEFORE ===');
+        }
+    });
+
+    afterEach(async () => {
+        if (verbose) {
+            await printBalances('\n=== AFTER ===');
+        }
+    });
+
     describe('vault should work', () => {
         it('deposit', async () => {
-            if (verbose) {
-                await printBalances('\n=== BEFORE deposit ===');
-            }
             const _amount = toWei('10');
             await expectRevert(mvault.deposit(_amount, DAI, toWei('100'), true, {from: bob}),
                 'slippage');
             await mvault.deposit(_amount, DAI, 1, true, {from: bob});
             assert.equal(String(await dai.balanceOf(bob)), toWei('990'));
-            if (verbose) {
-                await printBalances('\n=== AFTER deposit ===');
-            }
         });
 
         it('depositAll', async () => {
-            if (verbose) {
-                await printBalances('\n=== BEFORE depositAll ===');
-            }
             const _amounts = ['0', '10000000', '10000000', toWei('10')];
             // function depositAll(uint[4] calldata _amounts, uint _min_mint_amount, bool _isStake) external {
             await mvault.depositAll(_amounts, 1, true, {from: bob});
@@ -153,15 +156,11 @@ contract('metavault.test', async (accounts) => {
             assert.equal(String(await usdt.balanceOf(bob)), '990000000');
             assert.equal(String(await t3crv.balanceOf(bob)), toWei('990'));
             if (verbose) {
-                await printBalances('\n=== AFTER depositAll ===');
                 await printStakeInfo('bob', bob);
             }
         });
 
         it('stakeShares', async () => {
-            if (verbose) {
-                await printBalances('\n=== BEFORE stakeShares ===');
-            }
             const _amount = '10000000';
             await mvault.deposit(_amount, USDC, 1, false, {from: bob});
             const _shares = String(await mvault.balanceOf(bob));
@@ -171,7 +170,6 @@ contract('metavault.test', async (accounts) => {
             const userInfo = await mvault.userInfo(bob);
             assert.equal(String(userInfo.amount), toWei('50'));
             if (verbose) {
-                await printBalances('\n=== AFTER stakeShares ===');
                 await printStakeInfo('bob', bob);
             }
         });
@@ -183,85 +181,46 @@ contract('metavault.test', async (accounts) => {
         });
 
         it('unstake(0) for getting reward', async () => {
-            if (verbose) {
-                await printBalances('\n=== BEFORE unstake(0) ===');
-            }
             const _before = Number.parseInt(await yax.balanceOf(bob));
             await advanceBlocks(10);
             await mvault.unstake(0, {from: bob});
             const _after = Number.parseInt(await yax.balanceOf(bob));
             assert.ok(_before < _after, "getting zero rewards!");
-            if (verbose) {
-                await printBalances('\n=== AFTER unstake(0) ===');
-            }
         });
 
         it('unstake', async () => {
-            if (verbose) {
-                await printBalances('\n=== BEFORE unstake ===');
-            }
             await mvault.unstake(toWei('20'), {from: bob});
             const userInfo = await mvault.userInfo(bob);
             assert.equal(String(userInfo.amount), toWei('30'));
-            if (verbose) {
-                await printBalances('\n=== AFTER unstake ===');
-            }
         });
 
         it('withdraw T3CRV', async () => {
-            if (verbose) {
-                await printBalances('\n=== BEFORE withdraw T3CRV ===');
-            }
             await mvault.withdraw(toWei('5'), T3CRV, {from: bob});
             assert.equal(String(await mvault.balanceOf(bob)), toWei('15'));
             assert.equal(String(await t3crv.balanceOf(bob)), toWei('995'));
-            if (verbose) {
-                await printBalances('\n=== AFTER withdraw T3CRV ===');
-            }
         });
 
         it('withdraw DAI', async () => {
-            if (verbose) {
-                await printBalances('\n=== BEFORE withdraw DAI ===');
-            }
             await mvault.withdraw(toWei('5'), DAI, {from: bob});
             assert.equal(String(await mvault.balanceOf(bob)), toWei('10'));
             assert.ok(Number.parseFloat(await dai.balanceOf(bob)) >= Number.parseFloat(toWei('994.99')), "less DAI then expected!");
-            if (verbose) {
-                await printBalances('\n=== AFTER withdraw DAI ===');
-            }
         });
 
         it('withdraw USDT', async () => {
-            if (verbose) {
-                await printBalances('\n=== BEFORE withdraw USDT ===');
-            }
             await mvault.withdraw(toWei('5'), USDT, {from: bob});
             assert.equal(String(await mvault.balanceOf(bob)), toWei('5'));
             assert.ok(Number.parseFloat(await usdt.balanceOf(bob)) >= Number.parseFloat('995000000'), "less USDT then expected!");
-            if (verbose) {
-                await printBalances('\n=== AFTER withdraw USDT ===');
-            }
         });
 
         it('withdraw need unstake', async () => {
-            if (verbose) {
-                await printBalances('\n=== BEFORE withdraw need unstake ===');
-            }
             await mvault.withdraw(toWei('10'), USDC, {from: bob});
             assert.equal(String(await mvault.balanceOf(bob)), toWei('0'));
             const userInfo = await mvault.userInfo(bob);
             assert.equal(String(userInfo.amount), toWei('25'));
             assert.ok(Number.parseFloat(await usdc.balanceOf(bob)) >= Number.parseFloat('990000000'), "less USDC then expected!");
-            if (verbose) {
-                await printBalances('\n=== AFTER withdraw need unstake ===');
-            }
         });
 
         it('withdrawAll to USDC', async () => {
-            if (verbose) {
-                await printBalances('\n=== BEFORE withdrawAll to USDC ===');
-            }
             const _amount = '5000000';
             await mvault.deposit(_amount, USDC, 1, false, {from: bob});
             assert.ok(Number.parseFloat(await mvault.balanceOf(bob)) >= Number.parseFloat(toWei('4.99')), "less MVLT then expected!");
@@ -270,9 +229,6 @@ contract('metavault.test', async (accounts) => {
             assert.equal(String(userInfo.amount), '0');
             assert.equal(String(await mvault.balanceOf(bob)), '0');
             assert.ok(Number.parseFloat(await usdc.balanceOf(bob)) >= Number.parseFloat('1015000000'), "less USDC then expected!");
-            if (verbose) {
-                await printBalances('\n=== AFTER withdrawAll to USDC ===');
-            }
         });
     });
 
@@ -283,17 +239,11 @@ contract('metavault.test', async (accounts) => {
         });
 
         it('exchange DAI to USDC', async () => {
-            if (verbose) {
-                await printBalances('\n=== BEFORE exchange DAI to USDC ===');
-            }
             await converter.setGovernance(bob);
             await dai.transfer(CONVERTER, toWei('10'), {from: bob});
             await converter.exchange(0, 1, toWei('10'), 1, {from: bob});
             assert.ok(Number.parseFloat(await dai.balanceOf(bob)) >= Number.parseFloat(toWei('984.99')), "less DAI then expected!");
             assert.ok(Number.parseFloat(await usdc.balanceOf(bob)) >= Number.parseFloat('1025000000'), "less USDC then expected!");
-            if (verbose) {
-                await printBalances('\n=== AFTER exchange DAI to USDC ===');
-            }
         });
     });
 });

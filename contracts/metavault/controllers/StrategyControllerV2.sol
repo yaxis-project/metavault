@@ -8,6 +8,7 @@ import "../IController.sol";
 import "../IMetaVault.sol";
 import "../IStrategy.sol";
 import "../IStrategyControllerConverter.sol";
+import "../IVaultManager.sol";
 
 /**
  * @title StrategyControllerV2
@@ -19,9 +20,7 @@ contract StrategyControllerV2 is IController {
     using SafeMath for uint256;
 
     bool public globalInvestEnabled;
-    address public governance;
-    address public strategist;
-    address public harvester;
+    IVaultManager public vaultManager;
 
     struct TokenStrategy {
         address[] strategies;
@@ -38,6 +37,8 @@ contract StrategyControllerV2 is IController {
     mapping(address => address) public override vaults;
     // vault => token
     mapping(address => address) public vaultTokens;
+    // token => fee
+    mapping(address => uint256) internal withdrawalFees;
 
     /**
      * @notice Logged when earn is called for a strategy
@@ -76,10 +77,8 @@ contract StrategyControllerV2 is IController {
     /**
      * @notice Sets the governance, strategist, and harvester to the deployer
      */
-    constructor() public {
-        governance = msg.sender;
-        strategist = msg.sender;
-        harvester = msg.sender;
+    constructor(address _vaultManager) public {
+        vaultManager = IVaultManager(_vaultManager);
         globalInvestEnabled = true;
     }
 
@@ -98,8 +97,7 @@ contract StrategyControllerV2 is IController {
         address _token,
         address _strategy,
         uint256 _cap
-    ) external {
-        require(msg.sender == governance, "!governance");
+    ) external onlyGovernance {
         // ensure the strategy hasn't been added
         require(!tokenStrategies[_token].active[_strategy], "active");
         address _want = IStrategy(_strategy).want();
@@ -129,30 +127,9 @@ contract StrategyControllerV2 is IController {
      * the gains to everyone in the vault.
      * @param _vault The address of the vault
      */
-    function claimInsurance(address _vault) external {
-        require(msg.sender == governance, "!governance");
+    function claimInsurance(address _vault) external onlyGovernance {
         IMetaVault(_vault).claimInsurance();
         emit InsuranceClaimed(_vault);
-    }
-
-    /**
-     * @notice Sets the address of governance
-     * @dev Only callable by governance
-     * @param _governance The new address of governance
-     */
-    function setGovernance(address _governance) external {
-        require(msg.sender == governance, "!governance");
-        governance = _governance;
-    }
-
-    /**
-     * @notice Sets the address of the strategist
-     * @dev Only callable by governance
-     * @param _strategist The new address of the strategist
-     */
-    function setStrategist(address _strategist) public {
-        require(msg.sender == governance, "!governance");
-        strategist = _strategist;
     }
 
     /**
@@ -165,10 +142,15 @@ contract StrategyControllerV2 is IController {
      * @param _strategy The address of the strategy
      * @param _token The address of the token
      */
-    function inCaseStrategyGetStuck(address _strategy, address _token) external {
-        require(msg.sender == strategist || msg.sender == governance, "!strategist");
+    function inCaseStrategyGetStuck(
+        address _strategy,
+        address _token
+    ) external onlyStrategist {
         IStrategy(_strategy).withdraw(_token);
-        IERC20(_token).safeTransfer(governance, IERC20(_token).balanceOf(address(this)));
+        IERC20(_token).safeTransfer(
+            vaultManager.governance(),
+            IERC20(_token).balanceOf(address(this))
+        );
     }
 
     /**
@@ -177,9 +159,11 @@ contract StrategyControllerV2 is IController {
      * @param _token The address of the token
      * @param _amount The amount that will be withdrawn
      */
-    function inCaseTokensGetStuck(address _token, uint256 _amount) external {
-        require(msg.sender == strategist || msg.sender == governance, "!strategist");
-        IERC20(_token).safeTransfer(governance, _amount);
+    function inCaseTokensGetStuck(
+        address _token,
+        uint256 _amount
+    ) external onlyStrategist {
+        IERC20(_token).safeTransfer(vaultManager.governance(), _amount);
     }
 
     /**
@@ -191,8 +175,7 @@ contract StrategyControllerV2 is IController {
     function removeStrategy(
         address _token,
         address _strategy
-    ) external {
-        require(msg.sender == strategist || msg.sender == governance, "!strategist");
+    ) external onlyStrategist {
         TokenStrategy storage tokenStrategy = tokenStrategies[_token];
         // ensure the strategy is already added
         require(tokenStrategy.active[_strategy], "!active");
@@ -230,8 +213,7 @@ contract StrategyControllerV2 is IController {
         address _token,
         address _strategy1,
         address _strategy2
-    ) external {
-        require(msg.sender == strategist || msg.sender == governance, "!strategist");
+    ) external onlyStrategist {
         TokenStrategy storage tokenStrategy = tokenStrategies[_token];
         // ensure the strategies are already added
         require(tokenStrategy.active[_strategy1]
@@ -262,8 +244,7 @@ contract StrategyControllerV2 is IController {
         address _token,
         address _strategy,
         uint256 _cap
-    ) external {
-        require(msg.sender == strategist || msg.sender == governance, "!strategist");
+    ) external onlyStrategist {
         require(tokenStrategies[_token].active[_strategy], "!active");
         tokenStrategies[_token].caps[_strategy] = _cap;
         uint256 _balance = IStrategy(_strategy).balanceOf();
@@ -285,19 +266,8 @@ contract StrategyControllerV2 is IController {
         address _input,
         address _output,
         address _converter
-    ) public {
-        require(msg.sender == strategist || msg.sender == governance, "!strategist");
+    ) public onlyStrategist {
         converters[_input][_output] = _converter;
-    }
-
-    /**
-     * @notice Sets the address of the harvester
-     * @dev Only callable by governance or the strategist
-     * @param _harvester The new address of the harvester
-     */
-    function setHarvester(address _harvester) public {
-        require(msg.sender == strategist || msg.sender == governance, "!strategist");
-        harvester = _harvester;
     }
 
     /**
@@ -305,8 +275,7 @@ contract StrategyControllerV2 is IController {
      * @dev Only callable by governance or strategist
      * @param _investEnabled The new bool of the invest enabled flag
      */
-    function setInvestEnabled(bool _investEnabled) public {
-        require(msg.sender == strategist || msg.sender == governance, "!strategist");
+    function setInvestEnabled(bool _investEnabled) public onlyStrategist {
         globalInvestEnabled = _investEnabled;
     }
 
@@ -316,11 +285,22 @@ contract StrategyControllerV2 is IController {
      * @param _token The address of the token
      * @param _vault The address of the vault
      */
-    function setVault(address _token, address _vault) public {
-        require(msg.sender == strategist || msg.sender == governance, "!strategist");
+    function setVault(address _token, address _vault) public onlyStrategist {
         require(vaults[_token] == address(0), "vault");
         vaults[_token] = _vault;
         vaultTokens[_vault] = _token;
+    }
+
+    /**
+     * @notice Sets the withdrawal fee for a given token
+     * @param _token The address of the token
+     * @param _withdrawalFee The withdrawal fee
+     */
+    function setWithdrawalFee(
+        address _token,
+        uint256 _withdrawalFee
+    ) external onlyStrategist {
+        withdrawalFees[_token] = _withdrawalFee;
     }
 
     /**
@@ -328,8 +308,7 @@ contract StrategyControllerV2 is IController {
      * @dev Only callable by governance or the strategist
      * @param _strategy The address of the strategy
      */
-    function withdrawAll(address _strategy) external {
-        require(msg.sender == strategist || msg.sender == governance, "!strategist");
+    function withdrawAll(address _strategy) external onlyStrategist {
         // WithdrawAll sends 'want' to 'vault'
         IStrategy(_strategy).withdrawAll();
     }
@@ -343,13 +322,7 @@ contract StrategyControllerV2 is IController {
      * @dev Only callable by governance, the strategist, or the harvester
      * @param _strategy The address of the strategy
      */
-    function harvestStrategy(address _strategy) external override {
-        require(
-            msg.sender == harvester ||
-            msg.sender == strategist ||
-            msg.sender == governance,
-            "!harvester"
-        );
+    function harvestStrategy(address _strategy) external override onlyHarvester {
         IStrategy(_strategy).harvest();
         emit Harvest(_strategy);
     }
@@ -364,8 +337,7 @@ contract StrategyControllerV2 is IController {
      * @param _token The address of the token
      * @param _amount The amount that will be invested
      */
-    function earn(address _token, uint256 _amount) public override {
-        require(msg.sender == vaults[_token], "!vault");
+    function earn(address _token, uint256 _amount) public override onlyVault(_token) {
         // get the first strategy that will accept the deposit
         address _strategy = getBestStrategyEarn(_token, _amount);
         // get the want token of the strategy
@@ -394,8 +366,7 @@ contract StrategyControllerV2 is IController {
      * @param _token The address of the token
      * @param _amount The amount that will be withdrawn
      */
-    function withdraw(address _token, uint256 _amount) external override {
-        require(msg.sender == vaults[_token], "!vault");
+    function withdraw(address _token, uint256 _amount) external override onlyVault(_token) {
         (
             address[] memory _strategies,
             uint256[] memory _amounts
@@ -467,9 +438,6 @@ contract StrategyControllerV2 is IController {
 
     /**
      * @notice Returns the fee for withdrawing a specified amount
-     * @dev If the withdraw amount is greater than the first strategy given
-     * by getBestStrategyWithdraw, this function will loop over strategies
-     * and sum the fees before returning.
      * @param _token The address of the token
      * @param _amount The amount that will be withdrawn
      */
@@ -477,16 +445,7 @@ contract StrategyControllerV2 is IController {
         address _token,
         uint256 _amount
     ) external view override returns (uint256 _fee) {
-        (
-            address[] memory _strategies,
-            uint256[] memory _amounts
-        ) = getBestStrategyWithdraw(_token, _amount);
-        for (uint i = 0; i < _strategies.length; i++) {
-            if (_strategies[i] == address(0)) {
-                break;
-            }
-            _fee = _fee.add(IStrategy(_strategies[i]).withdrawFee(_amounts[i]));
-        }
+        return withdrawalFees[_token].mul(_amount);
     }
 
     /**
@@ -558,5 +517,33 @@ contract StrategyControllerV2 is IController {
                 break;
             }
         }
+    }
+
+    modifier onlyGovernance() {
+        require(msg.sender == vaultManager.governance(), "!governance");
+        _;
+    }
+
+    modifier onlyStrategist() {
+        require(msg.sender == vaultManager.strategist()
+             || msg.sender == vaultManager.governance(),
+             "!strategist"
+        );
+        _;
+    }
+
+    modifier onlyHarvester() {
+        require(
+            msg.sender == vaultManager.harvester() ||
+            msg.sender == vaultManager.strategist() ||
+            msg.sender == vaultManager.governance(),
+            "!harvester"
+        );
+        _;
+    }
+
+    modifier onlyVault(address _token) {
+        require(msg.sender == vaults[_token], "!vault");
+        _;
     }
 }

@@ -4,29 +4,37 @@ pragma solidity 0.6.12;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-contract yAxisMetaVaultManager {
-    address public governance;
+import "./IVaultManager.sol";
 
-    address public profitSharer;
-    address public yax; // YAX
+contract yAxisMetaVaultManager is IVaultManager {
+    address public override governance;
+    address public override harvester;
+    address public override stakingPool;
+    address public override strategist;
+    address public override treasury;
+    address public override yax;
 
-    mapping(address => bool) public vaults;
-    mapping(address => bool) public controllers;
-    mapping(address => bool) public strategies;
+    /**
+     *  The following fees are all mutable.
+     *  They are updated by governance (community vote).
+     */
+    uint256 public override insuranceFee;
+    uint256 public override stakingPoolShareFee;
+    uint256 public override treasuryBalance;
+    uint256 public override treasuryFee;
+    uint256 public override withdrawalProtectionFee;
 
-    address public stakingPool = 0x362Db1c17db4C79B51Fe6aD2d73165b1fe9BaB4a; // this pool will be set up later, so at first we set it to treasury
-    address public treasuryWallet = 0x362Db1c17db4C79B51Fe6aD2d73165b1fe9BaB4a;
-    address public performanceReward = 0x5661bF295f48F499A70857E8A6450066a8D16400; // set to deploy wallet at start
+    mapping(address => bool) public override vaults;
 
-    /** The following fees are all mutable. They are updated by governance (community vote) with Timelock **/
-    uint256 public stakingPoolShareFee = 2000; // 20% of profit go back to staking pool
-    uint256 public gasFee = 100; // 1% of profit paid for deployment and execution (gas) fee
-    uint256 public insuranceFee = 0; // % of deposits go into an insurance fund (or auto-compounding if called by controller) in-case of negative profits to protect withdrawals
-    uint256 public withdrawalProtectionFee = 10; // % of withdrawal go back to vault (for auto-compounding) to protect withdrawals
-
-    constructor (address _yax) public {
+    constructor(address _yax) public {
         yax = _yax;
         governance = msg.sender;
+        strategist = msg.sender;
+        harvester = msg.sender;
+        stakingPoolShareFee = 2000;
+        treasuryBalance = 20000e18;
+        treasuryFee = 500;
+        withdrawalProtectionFee = 10;
     }
 
     function setGovernance(address _governance) external {
@@ -34,9 +42,9 @@ contract yAxisMetaVaultManager {
         governance = _governance;
     }
 
-    function setProfitSharer(address _profitSharer) external {
+    function setStrategist(address _strategist) external {
         require(msg.sender == governance, "!governance");
-        profitSharer = _profitSharer;
+        strategist = _strategist;
     }
 
     function setYax(address _yax) external {
@@ -44,34 +52,9 @@ contract yAxisMetaVaultManager {
         yax = _yax;
     }
 
-    function setVaultStatus(address _vault, bool _status) external {
-        require(msg.sender == governance, "!governance");
-        vaults[_vault] = _status;
-    }
-
-    function setControllerStatus(address _controller, bool _status) external {
-        require(msg.sender == governance, "!governance");
-        controllers[_controller] = _status;
-    }
-
-    function setStrategyStatus(address _strategy, bool _status) external {
-        require(msg.sender == governance, "!governance");
-        strategies[_strategy] = _status;
-    }
-
     function setStakingPool(address _stakingPool) public {
         require(msg.sender == governance, "!governance");
         stakingPool = _stakingPool;
-    }
-
-    function setTreasuryWallet(address _treasuryWallet) public {
-        require(msg.sender == governance, "!governance");
-        treasuryWallet = _treasuryWallet;
-    }
-
-    function setPerformanceReward(address _performanceReward) public{
-        require(msg.sender == governance, "!governance");
-        performanceReward = _performanceReward;
     }
 
     function setStakingPoolShareFee(uint256 _stakingPoolShareFee) public {
@@ -80,10 +63,20 @@ contract yAxisMetaVaultManager {
         stakingPoolShareFee = _stakingPoolShareFee;
     }
 
-    function setGasFee(uint256 _gasFee) public {
+    function setTreasury(address _treasury) public {
         require(msg.sender == governance, "!governance");
-        require(_gasFee <= 500, "_gasFee over 5%");
-        gasFee = _gasFee;
+        treasury = _treasury;
+    }
+
+    function setTreasuryBalance(uint256 _treasuryBalance) public {
+        require(msg.sender == governance, "!governance");
+        treasuryBalance = _treasuryBalance;
+    }
+
+    function setTreasuryFee(uint256 _treasuryFee) public {
+        require(msg.sender == governance, "!governance");
+        require(_treasuryFee <= 2000, "_treasuryFee over 20%");
+        treasuryFee = _treasuryFee;
     }
 
     function setInsuranceFee(uint256 _insuranceFee) public {
@@ -101,5 +94,30 @@ contract yAxisMetaVaultManager {
     function governanceRecoverUnsupported(IERC20 _token, uint _amount, address _to) external {
         require(msg.sender == governance, "!governance");
         _token.transfer(_to, _amount);
+    }
+
+    function setHarvester(address _harvester) external {
+        require(msg.sender == strategist || msg.sender == governance, "!strategist");
+        harvester = _harvester;
+    }
+
+    function setVaultStatus(address _vault, bool _status) external {
+        require(msg.sender == strategist || msg.sender == governance, "!strategist");
+        vaults[_vault] = _status;
+    }
+
+    function getHarvestFeeInfo()
+        external
+        view
+        override
+        returns (address, address, uint256, address, uint256)
+    {
+        return (
+            yax,
+            stakingPool,
+            stakingPoolShareFee,
+            treasury,
+            IERC20(yax).balanceOf(treasury) >= treasuryBalance ? 0 : treasuryFee
+        );
     }
 }

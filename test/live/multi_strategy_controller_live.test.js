@@ -8,6 +8,7 @@ const {
 
 const yAxisMetaVault = artifacts.require('yAxisMetaVault');
 const yAxisMetaVaultManager = artifacts.require('yAxisMetaVaultManager');
+const yAxisMetaVaultHarvester = artifacts.require('yAxisMetaVaultHarvester');
 
 const StableSwap3PoolConverter = artifacts.require('StableSwap3PoolConverter');
 
@@ -16,14 +17,13 @@ const StrategyControllerV2 = artifacts.require('StrategyControllerV2');
 const StrategyCurve3Crv = artifacts.require('StrategyCurve3Crv');
 const StrategyPickle3Crv = artifacts.require('StrategyPickle3Crv');
 
-const MockPickleJar = artifacts.require('MockPickleJar');
-const MockPickleMasterChef = artifacts.require('MockPickleMasterChef');
-const MockCurveGauge = artifacts.require('MockCurveGauge');
-const MockCurveMinter = artifacts.require('MockCurveMinter');
+const PickleJar = artifacts.require('PickleJar');
+const PickleMasterChef = artifacts.require('PickleMasterChef');
+const Gauge = artifacts.require('Gauge');
+const Mintr = artifacts.require('Mintr');
 
 const MockERC20 = artifacts.require('MockERC20');
-const MockStableSwap3Pool = artifacts.require('MockStableSwap3Pool');
-const MockUniswapRouter = artifacts.require('MockUniswapRouter');
+const IStableSwap3Pool = artifacts.require('IStableSwap3Pool');
 
 const verbose = process.env.VERBOSE;
 
@@ -60,6 +60,9 @@ contract('multi_strategy_controller_live.test', async (accounts) => {
     let vmanager;
     let VMANAGER;
 
+    let vharvester;
+    let VHARVESTER;
+
     let stableSwap3Pool;
     let STABLESWAP3POOL;
 
@@ -94,9 +97,33 @@ contract('multi_strategy_controller_live.test', async (accounts) => {
     let UNIROUTER;
 
     before(async () => {
-        await send.ether(bob, deployer, ether('100'));
-        await send.ether(bob, multisig, ether('100'));
-        await send.ether(bob, timelock, ether('100'));
+        await network.provider.request({
+            method: 'hardhat_reset',
+            params: [{
+                forking: {
+                    jsonRpcUrl: `https://mainnet.infura.io/v3/${process.env.INFURA_PROJECT_ID}`
+                }
+            }]
+        });
+        await network.provider.request({
+            method: "hardhat_impersonateAccount",
+            params: [ bob ]}
+        );
+        await network.provider.request({
+            method: "hardhat_impersonateAccount",
+            params: [ deployer ]}
+        );
+        await network.provider.request({
+            method: "hardhat_impersonateAccount",
+            params: [ multisig ]}
+        );
+        await network.provider.request({
+            method: "hardhat_impersonateAccount",
+            params: [ timelock ]}
+        );
+        await send.ether(bob, deployer, ether('100'), {from: bob});
+        await send.ether(bob, multisig, ether('100'), {from: bob});
+        await send.ether(bob, timelock, ether('100'), {from: bob});
         YAX = '0xb1dC9124c395c1e97773ab855d66E879f053A289';
         DAI = '0x6B175474E89094C44Da98b954EedeAC495271d0F';
         USDC = '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48';
@@ -107,7 +134,6 @@ contract('multi_strategy_controller_live.test', async (accounts) => {
         PICKLE = '0x429881672B9AE42b8EbA0E26cD9C73711b891Ca5';
 
         MVAULT = '0xBFbEC72F2450eF9Ab742e4A27441Fa06Ca79eA6a';
-        VMANAGER = '0x9cD645330E64b07810Dde54dEe1240060071f6aa';
         STRATEGISTS = '0x738080868c83D65582d51bA63CC9f23064F92E41';
         STABLESWAP3POOL = '0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7';
         OLDCONTROLLER = '0x2ebE1461D2Fc6dabF079882CFc51e5013BbA49B6';
@@ -129,17 +155,91 @@ contract('multi_strategy_controller_live.test', async (accounts) => {
 
         mvault = await yAxisMetaVault.at(MVAULT);
         oldController = await StrategyControllerV1.at(OLDCONTROLLER);
-        vmanager = await yAxisMetaVaultManager.at(YAX);
-        stableSwap3Pool = await MockStableSwap3Pool.at(STABLESWAP3POOL);
+        stableSwap3Pool = await IStableSwap3Pool.at(STABLESWAP3POOL);
         converter = await StableSwap3PoolConverter.at(CONVERTER);
-        gauge = await MockCurveGauge.at(GAUGE);
-        minter = await MockCurveMinter.at(MINTER);
-        pjar = await MockPickleJar.at(PJAR);
-        pchef = await MockPickleMasterChef.at(PCHEF);
+        gauge = await Gauge.at(GAUGE);
+        minter = await Mintr.at(MINTER);
+        pjar = await PickleJar.at(PJAR);
+        pchef = await PickleMasterChef.at(PCHEF);
 
-        mcontroller = await StrategyControllerV2.new({from: deployer});
+        await dai.approve(MVAULT, MAX, {from: bob});
+        await usdc.approve(MVAULT, MAX, {from: bob});
+        await usdt.approve(MVAULT, MAX, {from: bob});
+        await t3crv.approve(MVAULT, MAX, {from: bob});
+        await mvault.approve(MVAULT, MAX, {from: bob});
+    });
+
+    after(async () => {
+        await network.provider.request({
+          method: "hardhat_stopImpersonatingAccount",
+          params: [ bob ]
+        });
+        await network.provider.request({
+          method: "hardhat_stopImpersonatingAccount",
+          params: [ deployer ]
+        });
+        await network.provider.request({
+          method: "hardhat_stopImpersonatingAccount",
+          params: [ multisig ]
+        });
+        await network.provider.request({
+          method: "hardhat_stopImpersonatingAccount",
+          params: [ timelock ]
+        });
+        await network.provider.request({
+            method: 'hardhat_reset',
+            params: []
+        });
+    })
+
+    async function printBalances(title) {
+        console.log(title);
+        console.log('mvault T3CRV:       ', fromWei(await t3crv.balanceOf(MVAULT)));
+        console.log('mvault MVLT:        ', fromWei(await mvault.balanceOf(MVAULT)));
+        console.log('mvault Supply:      ', fromWei(await mvault.totalSupply()));
+        console.log('--------------------');
+        if (typeof(MCONTROLLER) != 'undefined') {
+            console.log('mcontroller T3CRV:  ', fromWei(await t3crv.balanceOf(MCONTROLLER)));
+            console.log('oldController T3CRV:', fromWei(await t3crv.balanceOf(OLDCONTROLLER)));
+            console.log('mstrategy T3CRV:    ', fromWei(await mstrategyCrv.balanceOf()));
+            console.log('mstrategy PICKLE:   ', fromWei(await mstrategyPickle.balanceOf()));
+            console.log('pjar T3CRV:         ', fromWei(await t3crv.balanceOf(PJAR)));
+            console.log('pchef PJAR:         ', fromWei(await pjar.balanceOf(PCHEF)));
+            console.log('--------------------');
+        }
+        console.log(
+            'bob balances:        %s DAI/ %s USDC/ %s USDT/ %s T3CRV/ %s YAX',
+            fromWei(await dai.balanceOf(bob)),
+            fromWeiWithDecimals(await usdc.balanceOf(bob), 6),
+            fromWeiWithDecimals(await usdt.balanceOf(bob), 6),
+            fromWei(await t3crv.balanceOf(bob)),
+            fromWei(await yax.balanceOf(bob))
+        );
+        console.log('bob MVLT:           ', fromWei(await mvault.balanceOf(bob)));
+        console.log('--------------------');
+    }
+
+    beforeEach(async () => {
+        if (verbose) {
+            await printBalances('\n====== BEFORE ======');
+        }
+    });
+
+    afterEach(async () => {
+        if (verbose) {
+            await printBalances('\n====== AFTER ======');
+        }
+    });
+
+    it('should deploy new contracts', async () => {
+        vmanager = await yAxisMetaVaultManager.new(YAX, {from: deployer});
+        VMANAGER = vmanager.address;
+
+        vharvester = await yAxisMetaVaultHarvester.new(VMANAGER, {from: deployer});
+        VHARVESTER = vharvester.address;
+
+        mcontroller = await StrategyControllerV2.new(VMANAGER, {from: deployer});
         MCONTROLLER = mcontroller.address;
-
 
         mstrategyCrv = await StrategyCurve3Crv.new(
             T3CRV,
@@ -173,50 +273,6 @@ contract('multi_strategy_controller_live.test', async (accounts) => {
             {from: deployer}
         );
         MSTRATEGYPICKLE = mstrategyPickle.address;
-
-
-        await dai.approve(MVAULT, MAX, {from: bob});
-        await usdc.approve(MVAULT, MAX, {from: bob});
-        await usdt.approve(MVAULT, MAX, {from: bob});
-        await t3crv.approve(MVAULT, MAX, {from: bob});
-        await mvault.approve(MVAULT, MAX, {from: bob});
-    });
-
-    async function printBalances(title) {
-        console.log(title);
-        console.log('mvault T3CRV:       ', fromWei(await t3crv.balanceOf(MVAULT)));
-        console.log('mvault MVLT:        ', fromWei(await mvault.balanceOf(MVAULT)));
-        console.log('mvault Supply:      ', fromWei(await mvault.totalSupply()));
-        console.log('--------------------');
-        console.log('mcontroller T3CRV:  ', fromWei(await t3crv.balanceOf(MCONTROLLER)));
-        console.log('oldController T3CRV:', fromWei(await t3crv.balanceOf(OLDCONTROLLER)));
-        console.log('mstrategy T3CRV:    ', fromWei(await mstrategyCrv.balanceOf()));
-        console.log('mstrategy PICKLE:   ', fromWei(await mstrategyPickle.balanceOf()));
-        console.log('pjar T3CRV:         ', fromWei(await t3crv.balanceOf(PJAR)));
-        console.log('pchef PJAR:         ', fromWei(await pjar.balanceOf(PCHEF)));
-        console.log('--------------------');
-        console.log(
-            'bob balances:        %s DAI/ %s USDC/ %s USDT/ %s T3CRV/ %s YAX',
-            fromWei(await dai.balanceOf(bob)),
-            fromWeiWithDecimals(await usdc.balanceOf(bob), 6),
-            fromWeiWithDecimals(await usdt.balanceOf(bob), 6),
-            fromWei(await t3crv.balanceOf(bob)),
-            fromWei(await yax.balanceOf(bob))
-        );
-        console.log('bob MVLT:           ', fromWei(await mvault.balanceOf(bob)));
-        console.log('--------------------');
-    }
-
-    beforeEach(async () => {
-        if (verbose) {
-            await printBalances('\n====== BEFORE ======');
-        }
-    });
-
-    afterEach(async () => {
-        if (verbose) {
-            await printBalances('\n====== AFTER ======');
-        }
     });
 
     it('should prepare the old controller and vault', async () => {
@@ -227,24 +283,28 @@ contract('multi_strategy_controller_live.test', async (accounts) => {
         );
     });
 
-    it('should setup the new strategies', async () => {
-        await mstrategyPickle.setStableForLiquidity(DAI, {from: deployer});
-        await mstrategyCrv.setGovernance(multisig, {from: deployer});
-        await mstrategyPickle.setGovernance(multisig, {from: deployer});
+    it('should setup the vault manager', async () => {
+        await vmanager.setHarvester(VHARVESTER, {from: deployer});
+        await vmanager.setStrategist(multisig, {from: deployer});
+        await vmanager.setGovernance(timelock, {from: deployer});
+    });
+
+    it('should setup the new strategies and harvester', async () => {
+        await mstrategyPickle.setStableForLiquidity(DAI, {from: multisig});
+        await vharvester.setHarvester(deployer, true, {from: multisig});
+        await vharvester.addStrategy(T3CRV, MSTRATEGYCRV, 86400, {from: multisig});
+        await vharvester.addStrategy(T3CRV, MSTRATEGYPICKLE, 43200, {from: multisig});
     });
 
     it('should setup the new controller', async () => {
-        await mcontroller.setVault(T3CRV, MVAULT, {from: deployer});
-        await mcontroller.addStrategy(T3CRV, MSTRATEGYCRV, 0, {from: deployer});
+        await mcontroller.setVault(T3CRV, MVAULT, {from: multisig});
+        await mcontroller.addStrategy(T3CRV, MSTRATEGYCRV, 0, {from: timelock});
         await mcontroller.addStrategy(
             T3CRV,
             MSTRATEGYPICKLE,
             ether('2000000'),
-            {from: deployer}
+            {from: timelock}
         );
-        await mcontroller.setHarvester(STRATEGISTS, {from: deployer});
-        await mcontroller.setStrategist(multisig, {from: deployer});
-        await mcontroller.setGovernance(timelock, {from: deployer});
     });
 
     it('should set the new controller on the vault', async () => {
