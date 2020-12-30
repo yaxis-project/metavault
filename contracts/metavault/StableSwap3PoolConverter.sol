@@ -1,4 +1,6 @@
 // SPDX-License-Identifier: MIT
+// solhint-disable func-name-mixedcase
+// solhint-disable var-name-mixedcase
 
 pragma solidity 0.6.12;
 
@@ -23,7 +25,14 @@ contract StableSwap3PoolConverter is IConverter {
     IStableSwap3Pool public stableSwap3Pool;
     IVaultManager public vaultManager;
 
-    constructor (IERC20 _tokenDAI, IERC20 _tokenUSDC, IERC20 _tokenUSDT, IERC20 _token3CRV, IStableSwap3Pool _stableSwap3Pool, IVaultManager _vaultManager) public {
+    constructor(
+        IERC20 _tokenDAI,
+        IERC20 _tokenUSDC,
+        IERC20 _tokenUSDT,
+        IERC20 _token3CRV,
+        IStableSwap3Pool _stableSwap3Pool,
+        IVaultManager _vaultManager
+    ) public {
         tokens[0] = _tokenDAI;
         tokens[1] = _tokenUSDC;
         tokens[2] = _tokenUSDT;
@@ -65,8 +74,15 @@ contract StableSwap3PoolConverter is IConverter {
         _share = address(token3CRV);
     }
 
-    function convert(address _input, address _output, uint _inputAmount) external override returns (uint _outputAmount) {
-        require(msg.sender == governance || vaultManager.vaults(msg.sender), "!(governance||vault)");
+    function convert(
+        address _input,
+        address _output,
+        uint _inputAmount
+    ) external override returns (uint _outputAmount) {
+        require(msg.sender == governance
+             || vaultManager.vaults(msg.sender),
+             "!(governance||vault)"
+        );
         if (_output == address(token3CRV)) { // convert to 3CRV
             uint[3] memory amounts;
             for (uint8 i = 0; i < 3; i++) {
@@ -95,7 +111,11 @@ contract StableSwap3PoolConverter is IConverter {
         return 0;
     }
 
-    function convert_rate(address _input, address _output, uint _inputAmount) external override view returns (uint _outputAmount) {
+    function convert_rate(
+        address _input,
+        address _output,
+        uint _inputAmount
+    ) external override view returns (uint _outputAmount) {
         if (_output == address(token3CRV)) { // convert to 3CRV
             uint[3] memory amounts;
             for (uint8 i = 0; i < 3; i++) {
@@ -107,7 +127,8 @@ contract StableSwap3PoolConverter is IConverter {
         } else if (_input == address(token3CRV)) { // convert from 3CRV
             for (uint8 i = 0; i < 3; i++) {
                 if (_output == address(tokens[i])) {
-                    // @dev this is for UI reference only, the actual share price (stable/CRV) will be re-calculated on-chain when we do convert()
+                    // @dev this is for UI reference only, the actual share price
+                    // (stable/CRV) will be re-calculated on-chain when we do convert()
                     return stableSwap3Pool.calc_withdraw_one_coin(_inputAmount, i);
                 }
             }
@@ -116,8 +137,13 @@ contract StableSwap3PoolConverter is IConverter {
     }
 
     // 0: DAI, 1: USDC, 2: USDT
-    function convert_stables(uint[3] calldata amounts) external override returns (uint _shareAmount) {
-        require(msg.sender == governance || vaultManager.vaults(msg.sender), "!(governance||vault)");
+    function convert_stables(
+        uint[3] calldata amounts
+    ) external override returns (uint _shareAmount) {
+        require(msg.sender == governance
+            || vaultManager.vaults(msg.sender),
+            "!(governance||vault)"
+        );
         uint _before = token3CRV.balanceOf(address(this));
         stableSwap3Pool.add_liquidity(amounts, 1);
         uint _after = token3CRV.balanceOf(address(this));
@@ -129,8 +155,16 @@ contract StableSwap3PoolConverter is IConverter {
         return stableSwap3Pool.get_dy(i, j, dx);
     }
 
-    function exchange(int128 i, int128 j, uint dx, uint min_dy) external override returns (uint dy) {
-        require(msg.sender == governance || vaultManager.vaults(msg.sender), "!(governance||vault)");
+    function exchange(
+        int128 i,
+        int128 j,
+        uint dx,
+        uint min_dy
+    ) external override returns (uint dy) {
+        require(msg.sender == governance
+            || vaultManager.vaults(msg.sender),
+            "!(governance||vault)"
+        );
         IERC20 _output = tokens[uint8(j)];
         uint _before = _output.balanceOf(address(this));
         stableSwap3Pool.exchange(i, j, dx, min_dy);
@@ -139,7 +173,10 @@ contract StableSwap3PoolConverter is IConverter {
         _output.safeTransfer(msg.sender, dy);
     }
 
-    function calc_token_amount(uint[3] calldata amounts, bool deposit) external override view returns (uint _shareAmount) {
+    function calc_token_amount(
+        uint[3] calldata amounts,
+        bool deposit
+    ) external override view returns (uint _shareAmount) {
         _shareAmount = stableSwap3Pool.calc_token_amount(amounts, deposit);
     }
 

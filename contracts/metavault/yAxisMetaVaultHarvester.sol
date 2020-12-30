@@ -13,7 +13,7 @@ import "./IVaultManager.sol";
  * harvest on all strategies for any given token. It has its own
  * permissions for harvesters (set by the strategist or governance).
  */
-contract yAxisMetaVaultHarvester {
+contract yAxisMetaVaultHarvester { // solhint-disable-line contract-name-camelcase
     using SafeMath for uint256;
 
     IVaultManager public vaultManager;
@@ -182,6 +182,7 @@ contract yAxisMetaVaultHarvester {
             _strategies[k-1] = strategy;
             strategies[_token].addresses = _strategies;
         }
+        // solhint-disable-next-line not-rely-on-time
         strategies[_token].lastCalled = block.timestamp;
     }
 
@@ -208,6 +209,7 @@ contract yAxisMetaVaultHarvester {
     function canHarvest(address _token) public view returns (bool) {
         Strategy storage strategy = strategies[_token];
         if (strategy.addresses.length == 0 ||
+            // solhint-disable-next-line not-rely-on-time
             strategy.lastCalled > block.timestamp.sub(strategy.timeout)) {
             return false;
         }

@@ -2,8 +2,7 @@ require('@nomiclabs/hardhat-truffle5');
 
 module.exports = {
     networks: {
-        hardhat: {
-        }
+        hardhat: {}
     },
     solidity: {
         version: '0.6.12',
@@ -16,9 +15,9 @@ module.exports = {
     },
     paths: {
         sources: './contracts',
-        tests: './test',
+        tests: './test'
     },
     mocha: {
         timeout: 20000
     }
-}
+};

@@ -1,14 +1,7 @@
-const {
-    constants,
-    ether,
-    expectEvent,
-    expectRevert,
-    time
-} = require('@openzeppelin/test-helpers');
+const { constants, ether, expectRevert } = require('@openzeppelin/test-helpers');
 
 const yAxisMetaVault = artifacts.require('yAxisMetaVault');
 const yAxisMetaVaultManager = artifacts.require('yAxisMetaVaultManager');
-const yAxisMetaVaultHarvester = artifacts.require('yAxisMetaVaultHarvester');
 
 const StableSwap3PoolConverter = artifacts.require('StableSwap3PoolConverter');
 
@@ -26,7 +19,6 @@ const MockStableSwap3Pool = artifacts.require('MockStableSwap3Pool');
 const MockUniswapRouter = artifacts.require('MockUniswapRouter');
 
 contract('yAxisMetaVaultManager', async (accounts) => {
-    const {fromWei} = web3.utils;
     const deployer = accounts[0];
     const treasury = accounts[1];
     const stakingPool = accounts[2];
@@ -44,9 +36,6 @@ contract('yAxisMetaVaultManager', async (accounts) => {
     let vmanager;
     let VMANAGER;
 
-    let vharvester;
-    let VHARVESTER;
-
     let stableSwap3Pool;
     let STABLESWAP3POOL;
 
@@ -58,6 +47,9 @@ contract('yAxisMetaVaultManager', async (accounts) => {
 
     let minter;
     let MINTER;
+
+    let pickle;
+    let PICKLE;
 
     let pjar;
     let PJAR;
@@ -102,7 +94,15 @@ contract('yAxisMetaVaultManager', async (accounts) => {
         // constructor (IERC20 _tokenDAI, IERC20 _tokenUSDC, IERC20 _tokenUSDT, IERC20 _token3CRV, IERC20 _tokenYAX, uint _yaxPerBlock, uint _startBlock)
         const _yaxPerBlock = ether('1');
         const _startBlock = 1;
-        mvault = await yAxisMetaVault.new(DAI, USDC, USDT, T3CRV, YAX, _yaxPerBlock, _startBlock);
+        mvault = await yAxisMetaVault.new(
+            DAI,
+            USDC,
+            USDT,
+            T3CRV,
+            YAX,
+            _yaxPerBlock,
+            _startBlock
+        );
         MVAULT = mvault.address;
 
         // constructor (IERC20 _yax)
@@ -114,7 +114,14 @@ contract('yAxisMetaVaultManager', async (accounts) => {
         STABLESWAP3POOL = stableSwap3Pool.address;
 
         // constructor (IERC20 _tokenDAI, IERC20 _tokenUSDC, IERC20 _tokenUSDT, IERC20 _token3CRV, IStableSwap3Pool _stableSwap3Pool, IVaultManager _vaultMaster)
-        converter = await StableSwap3PoolConverter.new(DAI, USDC, USDT, T3CRV, STABLESWAP3POOL, VMANAGER);
+        converter = await StableSwap3PoolConverter.new(
+            DAI,
+            USDC,
+            USDT,
+            T3CRV,
+            STABLESWAP3POOL,
+            VMANAGER
+        );
         CONVERTER = converter.address;
 
         gauge = await MockCurveGauge.new(T3CRV);
@@ -138,20 +145,55 @@ contract('yAxisMetaVaultManager', async (accounts) => {
         mcontroller = await StrategyControllerV2.new(VMANAGER);
         MCONTROLLER = mcontroller.address;
 
-        vharvester = await yAxisMetaVaultHarvester.new(VMANAGER, MCONTROLLER);
-        VHARVESTER = vharvester.address;
-
         // constructor(address _want, address _crv, address _weth, address _t3crv,
         //         address _dai, address _usdc, address _usdt,
         //         Gauge _gauge, Mintr _crvMintr,
         //         IStableSwap3Pool _stableSwap3Pool, address _controller, IVaultManager _vaultManager)
-        mstrategyCrv = await StrategyCurve3Crv.new(T3CRV, CRV, WETH, T3CRV, DAI, USDC, USDT, GAUGE, MINTER, STABLESWAP3POOL, MCONTROLLER, VMANAGER);
+        mstrategyCrv = await StrategyCurve3Crv.new(
+            T3CRV,
+            CRV,
+            WETH,
+            T3CRV,
+            DAI,
+            USDC,
+            USDT,
+            GAUGE,
+            MINTER,
+            STABLESWAP3POOL,
+            MCONTROLLER,
+            VMANAGER
+        );
         MSTRATEGYCRV = mstrategyCrv.address;
-        mstrategyCrv2 = await StrategyCurve3Crv.new(T3CRV, CRV, WETH, T3CRV, DAI, USDC, USDT, GAUGE, MINTER, STABLESWAP3POOL, MCONTROLLER, VMANAGER);
+        mstrategyCrv2 = await StrategyCurve3Crv.new(
+            T3CRV,
+            CRV,
+            WETH,
+            T3CRV,
+            DAI,
+            USDC,
+            USDT,
+            GAUGE,
+            MINTER,
+            STABLESWAP3POOL,
+            MCONTROLLER,
+            VMANAGER
+        );
         MSTRATEGYCRV2 = mstrategyCrv2.address;
 
         // constructor(address _want, address _p3crv, address _pickle, address _weth, address _t3crv, address _dai, address _usdc, address _usdt, address _controller, IVaultManager _vaultManager)
-        mstrategyPickle = await StrategyPickle3Crv.new(T3CRV, PJAR, PICKLE, WETH, T3CRV, DAI, USDC, USDT, STABLESWAP3POOL, MCONTROLLER, VMANAGER);
+        mstrategyPickle = await StrategyPickle3Crv.new(
+            T3CRV,
+            PJAR,
+            PICKLE,
+            WETH,
+            T3CRV,
+            DAI,
+            USDC,
+            USDT,
+            STABLESWAP3POOL,
+            MCONTROLLER,
+            VMANAGER
+        );
         MSTRATEGYPICKLE = mstrategyPickle.address;
 
         unirouter = await MockUniswapRouter.new(constants.ZERO_ADDRESS);
@@ -175,11 +217,11 @@ contract('yAxisMetaVaultManager', async (accounts) => {
         await mcontroller.addStrategy(T3CRV, MSTRATEGYPICKLE, 0);
         await mcontroller.addStrategy(T3CRV, MSTRATEGYCRV2, 0);
 
-        await dai.approve(MVAULT, MAX, {from: bob});
-        await usdc.approve(MVAULT, MAX, {from: bob});
-        await usdt.approve(MVAULT, MAX, {from: bob});
-        await t3crv.approve(MVAULT, MAX, {from: bob});
-        await mvault.approve(MVAULT, MAX, {from: bob});
+        await dai.approve(MVAULT, MAX, { from: bob });
+        await usdc.approve(MVAULT, MAX, { from: bob });
+        await usdt.approve(MVAULT, MAX, { from: bob });
+        await t3crv.approve(MVAULT, MAX, { from: bob });
+        await mvault.approve(MVAULT, MAX, { from: bob });
 
         await yax.mint(MVAULT, INIT_BALANCE);
         await dai.mint(STABLESWAP3POOL, INIT_BALANCE);
@@ -206,60 +248,42 @@ contract('yAxisMetaVaultManager', async (accounts) => {
 
     it('should set the insurance fee', async () => {
         assert.equal(0, await vmanager.insuranceFee());
-        await expectRevert(
-            vmanager.setInsuranceFee(1, {from: bob}),
-            '!governance'
-        );
+        await expectRevert(vmanager.setInsuranceFee(1, { from: bob }), '!governance');
         await vmanager.setInsuranceFee(1);
         assert.equal(1, await vmanager.insuranceFee());
     });
 
     it('should set the staking pool', async () => {
         assert.equal(constants.ZERO_ADDRESS, await vmanager.stakingPool());
-        await expectRevert(
-            vmanager.setStakingPool(stakingPool, {from: bob}),
-            '!governance'
-        );
+        await expectRevert(vmanager.setStakingPool(stakingPool, { from: bob }), '!governance');
         await vmanager.setStakingPool(stakingPool);
         assert.equal(stakingPool, await vmanager.stakingPool());
     });
 
     it('should set the staking pool fee', async () => {
         assert.equal(2000, await vmanager.stakingPoolShareFee());
-        await expectRevert(
-            vmanager.setStakingPoolShareFee(1, {from: bob}),
-            '!governance'
-        );
+        await expectRevert(vmanager.setStakingPoolShareFee(1, { from: bob }), '!governance');
         await vmanager.setStakingPoolShareFee(1);
         assert.equal(1, await vmanager.stakingPoolShareFee());
     });
 
     it('should set the treasury', async () => {
         assert.equal(constants.ZERO_ADDRESS, await vmanager.treasury());
-        await expectRevert(
-            vmanager.setTreasury(treasury, {from: bob}),
-            '!governance'
-        );
+        await expectRevert(vmanager.setTreasury(treasury, { from: bob }), '!governance');
         await vmanager.setTreasury(treasury);
         assert.equal(treasury, await vmanager.treasury());
     });
 
     it('should set the treasury balance', async () => {
         assert.equal(20000e18, await vmanager.treasuryBalance());
-        await expectRevert(
-            vmanager.setTreasuryBalance(1, {from: bob}),
-            '!governance'
-        );
+        await expectRevert(vmanager.setTreasuryBalance(1, { from: bob }), '!governance');
         await vmanager.setTreasuryBalance(1);
         assert.equal(1, await vmanager.treasuryBalance());
     });
 
     it('should set the treasury fee', async () => {
         assert.equal(500, await vmanager.treasuryFee());
-        await expectRevert(
-            vmanager.setTreasuryFee(1, {from: bob}),
-            '!governance'
-        );
+        await expectRevert(vmanager.setTreasuryFee(1, { from: bob }), '!governance');
         await vmanager.setTreasuryFee(1);
         assert.equal(1, await vmanager.treasuryFee());
     });
@@ -267,7 +291,7 @@ contract('yAxisMetaVaultManager', async (accounts) => {
     it('should set the withdrawal protection fee', async () => {
         assert.equal(10, await vmanager.withdrawalProtectionFee());
         await expectRevert(
-            vmanager.setWithdrawalProtectionFee(1, {from: bob}),
+            vmanager.setWithdrawalProtectionFee(1, { from: bob }),
             '!governance'
         );
         await vmanager.setWithdrawalProtectionFee(1);
@@ -276,30 +300,21 @@ contract('yAxisMetaVaultManager', async (accounts) => {
 
     it('should set the YAX token', async () => {
         assert.equal(YAX, await vmanager.yax());
-        await expectRevert(
-            vmanager.setYax(bob, {from: bob}),
-            '!governance'
-        );
+        await expectRevert(vmanager.setYax(bob, { from: bob }), '!governance');
         await vmanager.setYax(bob);
         assert.equal(bob, await vmanager.yax());
     });
 
     it('should set the strategist', async () => {
         assert.equal(deployer, await vmanager.strategist());
-        await expectRevert(
-            vmanager.setStrategist(bob, {from: bob}),
-            '!governance'
-        );
+        await expectRevert(vmanager.setStrategist(bob, { from: bob }), '!governance');
         await vmanager.setStrategist(bob);
         assert.equal(bob, await vmanager.strategist());
     });
 
     it('should set the governance', async () => {
         assert.equal(deployer, await vmanager.governance());
-        await expectRevert(
-            vmanager.setGovernance(bob, {from: bob}),
-            '!governance'
-        );
+        await expectRevert(vmanager.setGovernance(bob, { from: bob }), '!governance');
         await vmanager.setGovernance(bob);
         assert.equal(bob, await vmanager.governance());
     });

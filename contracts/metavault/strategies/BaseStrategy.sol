@@ -237,7 +237,14 @@ abstract contract BaseStrategy is IStrategy {
         address[] memory path = new address[](2);
         path[0] = _input;
         path[1] = _output;
-        unirouter.swapExactTokensForTokens(_amount, 1, path, address(this), now.add(1800));
+        unirouter.swapExactTokensForTokens(
+            _amount,
+            1,
+            path,
+            address(this),
+            // solhint-disable-next-line not-rely-on-time
+            block.timestamp.add(1800)
+        );
     }
 
     function _withdraw(uint256 _amount) internal virtual;

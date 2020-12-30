@@ -12,7 +12,7 @@ import "./IVaultManager.sol";
  * variables. Fees and permissioned addresses are stored and referenced in
  * this contract only.
  */
-contract yAxisMetaVaultManager is IVaultManager {
+contract yAxisMetaVaultManager is IVaultManager { // solhint-disable-line contract-name-camelcase
     address public override governance;
     address public override harvester;
     address public override stakingPool;
