@@ -32,7 +32,7 @@ function fromWeiWithDecimals(num, decimals = 18) {
     return num.toFixed(2);
 }
 
-contract('multi_strategy_controller.test', async (accounts) => {
+contract('StrategyControllerV2', async (accounts) => {
     const {fromWei} = web3.utils;
     const deployer = accounts[0];
     const treasury = accounts[1];

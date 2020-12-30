@@ -10,6 +10,7 @@
     "test": "hardhat test test/metavault/*",
     "test:verbose": "VERBOSE=true hardhat test test/metavault/*",
     "test:live": "VERBOSE=true hardhat test test/live/*",
+    "test:misc": "VERBOSE=true hardhat test test/misc/*",
     "coverage": "yarn solidity-coverage",
     "lint": "eslint .",
     "lint:contracts": "solhint contracts/*.sol",

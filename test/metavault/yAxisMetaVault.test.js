@@ -21,7 +21,7 @@ async function advanceBlocks(blocks) {
     }
 }
 
-contract('metavault.test', async (accounts) => {
+contract('yAxisMetaVault', async (accounts) => {
     const { toWei } = web3.utils;
     const { fromWei } = web3.utils;
     const alice = accounts[0];

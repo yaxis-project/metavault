@@ -35,10 +35,7 @@ async function advanceBlocks(blocks) {
     }
 }
 
-const ADDRESS_ZERO = '0x0000000000000000000000000000000000000000';
-const treasuryWallet = '0x362Db1c17db4C79B51Fe6aD2d73165b1fe9BaB4a';
-
-contract('strategy_curve_3crv.test', async (accounts) => {
+contract('StrategyCurve3Crv', async (accounts) => {
     const { fromWei } = web3.utils;
     const deployer = accounts[0];
     const treasury = accounts[1];
@@ -131,7 +128,7 @@ contract('strategy_curve_3crv.test', async (accounts) => {
         mstrategy = await StrategyCurve3Crv.new(T3CRV, CRV, WETH, T3CRV, DAI, USDC, USDT, GAUGE, MINTER, STABLESWAP3POOL, MCONTROLLER, VMANAGER);
         MSTRATEGY = mstrategy.address;
 
-        unirouter = await MockUniswapRouter.new(ADDRESS_ZERO);
+        unirouter = await MockUniswapRouter.new(constants.ZERO_ADDRESS);
         UNIROUTER = unirouter.address;
         yax.mint(UNIROUTER, INIT_BALANCE);
         weth.mint(UNIROUTER, INIT_BALANCE);
@@ -140,6 +137,7 @@ contract('strategy_curve_3crv.test', async (accounts) => {
 
         await mvault.setConverter(CONVERTER);
         await mvault.setVaultManager(VMANAGER);
+        await mvault.setTreasuryWallet(treasury);
         await vmanager.setVaultStatus(MVAULT, true);
         await vmanager.setTreasury(treasury);
         await vmanager.setStakingPool(stakingPool);
@@ -200,6 +198,18 @@ contract('strategy_curve_3crv.test', async (accounts) => {
         console.log('-------------------');
     }
 
+    beforeEach(async () => {
+        if (verbose) {
+            await printBalances('\n====== BEFORE ======');
+        }
+    });
+
+    afterEach(async () => {
+        if (verbose) {
+            await printBalances('\n====== AFTER ======');
+        }
+    });
+
     describe('controller with strategy should work', () => {
         it('views', async () => {
             await expectRevert.unspecified(mcontroller.want(DAI));
@@ -208,121 +218,70 @@ contract('strategy_curve_3crv.test', async (accounts) => {
         });
 
         it('deposit', async () => {
-            if (verbose) {
-                await printBalances('\n=== BEFORE deposit ===');
-            }
             const _amount = ether('10');
             await mvault.deposit(_amount, DAI, 1, true, {from: bob});
             assert.equal(String(await dai.balanceOf(bob)), ether('990'));
             assert.approximately(Number(await mcontroller.balanceOf(T3CRV)), Number(ether('9.519')), 10 ** -12);
             assert.approximately(Number(await mvault.getPricePerFullShare()), Number(ether('1')), 10 ** -12);
-            if (verbose) {
-                await printBalances('\n=== AFTER deposit ===');
-            }
         });
 
         it('strategy harvest by controller', async () => {
-            if (verbose) {
-                await printBalances('\n=== BEFORE strategy harvest by controller ===');
-            }
             await expectRevert(
                 mcontroller.harvestStrategy(MSTRATEGY, {from: bob}),
                 '!harvester'
             );
             await mcontroller.harvestStrategy(MSTRATEGY);
             assert.approximately(Number(await mvault.getPricePerFullShare()), Number(ether('8.5')), 10 ** -12);
-            if (verbose) {
-                await printBalances('\n=== AFTER strategy harvest by controller ===');
-            }
         });
 
         it('strategy harvest directly', async () => {
-            if (verbose) {
-                await printBalances('\n=== BEFORE strategy harvest directly ===');
-            }
             await expectRevert(
                 mstrategy.harvest({from: bob}),
                 '!authorized'
             );
             await mstrategy.harvest();
             assert.approximately(Number(await mvault.getPricePerFullShare()), Number(ether('22.75')), 10 ** -12);
-            if (verbose) {
-                await printBalances('\n=== AFTER strategy harvest directly ===');
-            }
         });
 
         it('bob withdraw DAI', async () => {
-            if (verbose) {
-                await printBalances('\n=== BEFORE bob withdraw DAI ===');
-            }
             await mvault.withdraw(ether('5'), DAI, {from: bob});
             assert.equal(String(await mvault.balanceOf(bob)), ether('0'));
             assert.ok(Number.parseFloat(await dai.balanceOf(bob)) >= Number.parseFloat(ether('994.99')), "less DAI then expected!");
-            if (verbose) {
-                await printBalances('\n=== AFTER bob withdraw DAI ===');
-            }
         });
 
         it('bob withdrawAll to T3CRV', async () => {
-            if (verbose) {
-                await printBalances('\n=== BEFORE bob withdrawAll to T3CRV ===');
-            }
             await mvault.withdrawAll(T3CRV, {from: bob});
             assert.equal(String(await mvault.balanceOf(bob)), ether('0'));
             assert.equal(String(await t3crv.balanceOf(MCONTROLLER)), ether('0'));
             assert.equal(String(await t3crv.balanceOf(MSTRATEGY)), ether('0'));
             assert.equal(String(await mvault.totalSupply()), ether('0'));
             assert.ok(Number.parseFloat(await t3crv.balanceOf(bob)) >= Number.parseFloat(ether('1005')), "less T3CRV then expected!");
-            if (verbose) {
-                await printBalances('\n=== AFTER bob withdrawAll to T3CRV ===');
-            }
         });
 
         it('withdrawAll by controller', async () => {
-            if (verbose) {
-                await printBalances('\n=== BEFORE withdrawAll by controller ===');
-            }
             await mcontroller.withdrawAll(MSTRATEGY);
-            if (verbose) {
-                await printBalances('\n=== AFTER withdrawAll by controller ===');
-            }
         });
 
         it('bob deposit 10 USDT', async () => {
-            if (verbose) {
-                await printBalances('\n=== BEFORE bob deposit 10 USDT ===');
-            }
             const _amount = ether('10');
             await mvault.deposit(_amount, DAI, 1, true, {from: bob});
             assert.approximately(Number(await mstrategy.balanceOfPool()), Number(ether('9.519')), 10 ** 12);
             assert.approximately(Number(await mcontroller.balanceOf(T3CRV)), Number(ether('9.519')), 10 ** 12);
             assert.approximately(Number(await mvault.getPricePerFullShare()), Number(ether('1.0')), 10 ** -12);
-            if (verbose) {
-                await printBalances('\n=== AFTER bob deposit 10 USDT ===');
-            }
         });
 
         it('harvest => auto-reinvest', async () => {
-            if (verbose) {
-                await printBalances('\n=== BEFORE harvest => auto-reinvest ===');
-            }
             assert.approximately(Number(await crv.balanceOf(MSTRATEGY)), Number(ether('0')), 10 ** -12);
             await mcontroller.harvestStrategy(MSTRATEGY);
             assert.approximately(Number(await crv.balanceOf(MSTRATEGY)), Number(ether('0')), 10 ** -12);
             assert.approximately(Number(await mstrategy.balanceOfPool()), Number(ether('213.1755')), 10 ** 12);
             assert.approximately(Number(await mcontroller.balanceOf(T3CRV)), Number(ether('213.1755')), 10 ** 12);
             assert.approximately(Number(await mvault.getPricePerFullShare()), Number(ether('21.325')), 10 ** 6);
-            if (verbose) {
-                await printBalances('\n=== AFTER harvest => auto-reinvest ===');
-            }
         });
 
         it('harvest => auto-reinvest', async () => {
-            if (verbose) {
-                await printBalances('\n=== BEFORE harvest => auto-reinvest ===');
-            }
             assert.approximately(Number(await crv.balanceOf(MSTRATEGY)), Number(ether('0')), 10 ** -12);
-            const harvester = await yAxisMetaVaultHarvester.new(VMANAGER);
+            const harvester = await yAxisMetaVaultHarvester.new(VMANAGER, MCONTROLLER);
             await vmanager.setHarvester(harvester.address);
             await harvester.setController(MCONTROLLER);
             await harvester.addStrategy(T3CRV, MSTRATEGY, 0);
@@ -333,30 +292,21 @@ contract('strategy_curve_3crv.test', async (accounts) => {
             await crv.mint(MINTER, INIT_BALANCE);
             await t3crv.mint(STABLESWAP3POOL, INIT_BALANCE);
             await harvester.harvest(MCONTROLLER, MSTRATEGY, {from: bob});
-            if (verbose) {
-                await printBalances('\n=== AFTER harvest => auto-reinvest ===');
-            }
             await mvault.withdrawAll(T3CRV, {from: bob});
         });
 
         it('claim Insurance Fund by governance', async () => {
-            if (verbose) {
-                await printBalances('\n=== BEFORE claim Insurance Fund by governance ===');
-            }
             await mstrategy.withdrawAll();
             await vmanager.setInsuranceFee(10); // 0.1%
             await vmanager.setWithdrawalProtectionFee(10); // 0.1%
             await mcontroller.setInvestEnabled(false); // disabled invest
             const _amount = ether('10');
             await mvault.deposit(_amount, T3CRV, 1, true, {from: bob});
-            assert.approximately(Number(await t3crv.balanceOf(treasuryWallet)), Number(ether('0')), 10 ** -12);
+            assert.approximately(Number(await t3crv.balanceOf(treasury)), Number(ether('0')), 10 ** -12);
             assert.approximately(Number(await mvault.insurance()), Number(ether('0.01')), 10 ** -12);
             await mvault.claimInsurance();
-            assert.approximately(Number(await t3crv.balanceOf(treasuryWallet)), Number(ether('0.01')), 10 ** -12);
+            assert.approximately(Number(await t3crv.balanceOf(treasury)), Number(ether('0.01')), 10 ** -12);
             assert.approximately(Number(await mvault.insurance()), Number(ether('0')), 10 ** -12);
-            if (verbose) {
-                await printBalances('\n=== AFTER claim Insurance Fund by governance ===');
-            }
             await mvault.withdrawAll(T3CRV, {from: bob});
         });
     });

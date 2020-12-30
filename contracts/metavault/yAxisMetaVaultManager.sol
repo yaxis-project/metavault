@@ -6,6 +6,12 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 import "./IVaultManager.sol";
 
+/**
+ * @title yAxisMetaVaultManager
+ * @notice This contract serves as the central point for governance-voted
+ * variables. Fees and permissioned addresses are stored and referenced in
+ * this contract only.
+ */
 contract yAxisMetaVaultManager is IVaultManager {
     address public override governance;
     address public override harvester;
@@ -26,6 +32,9 @@ contract yAxisMetaVaultManager is IVaultManager {
 
     mapping(address => bool) public override vaults;
 
+    /**
+     * @param _yax The address of the YAX token
+     */
     constructor(address _yax) public {
         yax = _yax;
         governance = msg.sender;
@@ -37,75 +46,162 @@ contract yAxisMetaVaultManager is IVaultManager {
         withdrawalProtectionFee = 10;
     }
 
+    /**
+     * GOVERNANCE-ONLY FUNCTIONS
+     */
+
+    /**
+     * @notice Allows governance to pull tokens out of this contract
+     * (it should never hold tokens)
+     * @param _token The address of the token
+     * @param _amount The amount to withdraw
+     * @param _to The address to send to
+     */
+    function governanceRecoverUnsupported(
+        IERC20 _token,
+        uint256 _amount,
+        address _to
+    ) external {
+        require(msg.sender == governance, "!governance");
+        _token.transfer(_to, _amount);
+    }
+
+    /**
+     * @notice Sets the governance address
+     * @param _governance The address of the governance
+     */
     function setGovernance(address _governance) external {
         require(msg.sender == governance, "!governance");
         governance = _governance;
     }
 
-    function setStrategist(address _strategist) external {
-        require(msg.sender == governance, "!governance");
-        strategist = _strategist;
-    }
-
-    function setYax(address _yax) external {
-        require(msg.sender == governance, "!governance");
-        yax = _yax;
-    }
-
-    function setStakingPool(address _stakingPool) public {
-        require(msg.sender == governance, "!governance");
-        stakingPool = _stakingPool;
-    }
-
-    function setStakingPoolShareFee(uint256 _stakingPoolShareFee) public {
-        require(msg.sender == governance, "!governance");
-        require(_stakingPoolShareFee <= 5000, "_stakingPoolShareFee over 50%");
-        stakingPoolShareFee = _stakingPoolShareFee;
-    }
-
-    function setTreasury(address _treasury) public {
-        require(msg.sender == governance, "!governance");
-        treasury = _treasury;
-    }
-
-    function setTreasuryBalance(uint256 _treasuryBalance) public {
-        require(msg.sender == governance, "!governance");
-        treasuryBalance = _treasuryBalance;
-    }
-
-    function setTreasuryFee(uint256 _treasuryFee) public {
-        require(msg.sender == governance, "!governance");
-        require(_treasuryFee <= 2000, "_treasuryFee over 20%");
-        treasuryFee = _treasuryFee;
-    }
-
+    /**
+     * @notice Sets the insurance fee
+     * @dev Throws if setting fee over 1%
+     * @param _insuranceFee The value for the insurance fee
+     */
     function setInsuranceFee(uint256 _insuranceFee) public {
         require(msg.sender == governance, "!governance");
         require(_insuranceFee <= 100, "_insuranceFee over 1%");
         insuranceFee = _insuranceFee;
     }
 
+    /**
+     * @notice Sets the staking pool address
+     * @param _stakingPool The address of the staking pool
+     */
+    function setStakingPool(address _stakingPool) public {
+        require(msg.sender == governance, "!governance");
+        stakingPool = _stakingPool;
+    }
+
+    /**
+     * @notice Sets the staking pool share fee
+     * @dev Throws if setting fee over 50%
+     * @param _stakingPoolShareFee The value for the staking pool fee
+     */
+    function setStakingPoolShareFee(uint256 _stakingPoolShareFee) public {
+        require(msg.sender == governance, "!governance");
+        require(_stakingPoolShareFee <= 5000, "_stakingPoolShareFee over 50%");
+        stakingPoolShareFee = _stakingPoolShareFee;
+    }
+
+    /**
+     * @notice Sets the strategist address
+     * @param _strategist The address of the strategist
+     */
+    function setStrategist(address _strategist) external {
+        require(msg.sender == governance, "!governance");
+        strategist = _strategist;
+    }
+
+    /**
+     * @notice Sets the treasury address
+     * @param _treasury The address of the treasury
+     */
+    function setTreasury(address _treasury) public {
+        require(msg.sender == governance, "!governance");
+        treasury = _treasury;
+    }
+
+    /**
+     * @notice Sets the maximum treasury balance
+     * @dev Strategies will read this value to determine whether or not
+     * to give the treasury the treasuryFee
+     * @param _treasuryBalance The maximum balance of the treasury
+     */
+    function setTreasuryBalance(uint256 _treasuryBalance) public {
+        require(msg.sender == governance, "!governance");
+        treasuryBalance = _treasuryBalance;
+    }
+
+    /**
+     * @notice Sets the treasury fee
+     * @dev Throws if setting fee over 20%
+     * @param _treasuryFee The value for the treasury fee
+     */
+    function setTreasuryFee(uint256 _treasuryFee) public {
+        require(msg.sender == governance, "!governance");
+        require(_treasuryFee <= 2000, "_treasuryFee over 20%");
+        treasuryFee = _treasuryFee;
+    }
+
+    /**
+     * @notice Sets the withdrawal protection fee
+     * @dev Throws if setting fee over 1%
+     * @param _withdrawalProtectionFee The value for the withdrawal protection fee
+     */
     function setWithdrawalProtectionFee(uint256 _withdrawalProtectionFee) public {
         require(msg.sender == governance, "!governance");
         require(_withdrawalProtectionFee <= 100, "_withdrawalProtectionFee over 1%");
         withdrawalProtectionFee = _withdrawalProtectionFee;
     }
 
-    function governanceRecoverUnsupported(IERC20 _token, uint _amount, address _to) external {
+    /**
+     * @notice Sets the YAX address
+     * @param _yax The address of the YAX token
+     */
+    function setYax(address _yax) external {
         require(msg.sender == governance, "!governance");
-        _token.transfer(_to, _amount);
+        yax = _yax;
     }
 
+    /**
+     * (GOVERNANCE|STRATEGIST)-ONLY FUNCTIONS
+     */
+
+    /**
+     * @notice Sets the harvester address
+     * @param _harvester The address of the harvester
+     */
     function setHarvester(address _harvester) external {
         require(msg.sender == strategist || msg.sender == governance, "!strategist");
         harvester = _harvester;
     }
 
+    /**
+     * @notice Sets the status for a vault
+     * @param _vault The address of the vault
+     * @param _status The status of the vault
+     */
     function setVaultStatus(address _vault, bool _status) external {
         require(msg.sender == strategist || msg.sender == governance, "!strategist");
         vaults[_vault] = _status;
     }
 
+    /**
+     * EXTERNAL VIEW FUNCTIONS
+     */
+
+    /**
+     * @notice Returns a tuple of:
+     *     YAX token,
+     *     Staking pool address,
+     *     Staking pool share fee,
+     *     Treasury address,
+     *     Checks the balance of the treasury and returns the treasury fee
+     *         if below the treasuryBalance, or 0 if above
+     */
     function getHarvestFeeInfo()
         external
         view

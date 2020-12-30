@@ -195,19 +195,25 @@ contract('stuck_funds.test', async (accounts) => {
         console.log('-------------------');
     }
 
+    beforeEach(async () => {
+        if (verbose) {
+            await printBalances('\n====== BEFORE ======');
+        }
+    });
+
+    afterEach(async () => {
+        if (verbose) {
+            await printBalances('\n====== AFTER ======');
+        }
+    });
+
     describe('rescue stuck fund in controller & strategy should work', () => {
         it('deposit', async () => {
-            if (verbose) {
-                await printBalances('\n=== BEFORE deposit ===');
-            }
             const _amount = ether('10');
             await mvault.deposit(_amount, DAI, 1, true, {from: bob});
             assert.equal(String(await dai.balanceOf(bob)), ether('990'));
             assert.approximately(Number(await mcontroller.balanceOf(T3CRV)), Number(ether('9.519')), 10 ** -12);
             assert.approximately(Number(await mvault.getPricePerFullShare()), Number(ether('1')), 10 ** -12);
-            if (verbose) {
-                await printBalances('\n=== AFTER deposit ===');
-            }
         });
 
         it('stuck WETH in strategy', async () => {

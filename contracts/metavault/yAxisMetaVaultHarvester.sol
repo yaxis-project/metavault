@@ -7,6 +7,12 @@ import "@openzeppelin/contracts/math/SafeMath.sol";
 import "./IController.sol";
 import "./IVaultManager.sol";
 
+/**
+ * @title yAxisMetaVaultHarvester
+ * @notice This contract is to be used as a central point to call
+ * harvest on all strategies for any given token. It has its own
+ * permissions for harvesters (set by the strategist or governance).
+ */
 contract yAxisMetaVaultHarvester {
     using SafeMath for uint256;
 
@@ -50,20 +56,25 @@ contract yAxisMetaVaultHarvester {
      */
     event StrategyRemoved(address indexed token, address indexed strategy, uint256 timeout);
 
-    constructor(address _vaultManager) public {
+    /**
+     * @param _vaultManager The address of the yAxisMetaVaultManager contract
+     * @param _controller The address of the controller
+     */
+    constructor(address _vaultManager, address _controller) public {
         vaultManager = IVaultManager(_vaultManager);
+        controller = IController(_controller);
     }
 
-    function setHarvester(address _harvester, bool _status) public onlyStrategist {
-        isHarvester[_harvester] = _status;
-        emit HarvesterSet(_harvester, _status);
-    }
+    /**
+     * (GOVERNANCE|STRATEGIST)-ONLY FUNCTIONS
+     */
 
-    function setController(IController _controller) external onlyStrategist {
-        controller = _controller;
-        emit ControllerSet(address(_controller));
-    }
-
+    /**
+     * @notice Adds a strategy to the rotation for a given token and sets a timeout
+     * @param _token The address of the token
+     * @param _strategy The address of the strategy
+     * @param _timeout The timeout between harvests
+     */
     function addStrategy(
         address _token,
         address _strategy,
@@ -74,6 +85,12 @@ contract yAxisMetaVaultHarvester {
         emit StrategyAdded(_token, _strategy, _timeout);
     }
 
+    /**
+     * @notice Removes a strategy from the rotation for a given token and sets a timeout
+     * @param _token The address of the token
+     * @param _strategy The address of the strategy
+     * @param _timeout The timeout between harvests
+     */
     function removeStrategy(
         address _token,
         address _strategy,
@@ -96,6 +113,35 @@ contract yAxisMetaVaultHarvester {
         emit StrategyRemoved(_token, _strategy, _timeout);
     }
 
+    /**
+     * @notice Sets the address of the controller
+     * @param _controller The address of the controller
+     */
+    function setController(IController _controller) external onlyStrategist {
+        controller = _controller;
+        emit ControllerSet(address(_controller));
+    }
+
+    /**
+     * @notice Sets the status of a harvester address to be able to call harvest functions
+     * @param _harvester The address of the harvester
+     * @param _status The status to allow the harvester to harvest
+     */
+    function setHarvester(address _harvester, bool _status) public onlyStrategist {
+        isHarvester[_harvester] = _status;
+        emit HarvesterSet(_harvester, _status);
+    }
+
+    /**
+     * (GOVERNANCE|STRATEGIST|HARVESTER)-ONLY FUNCTIONS
+     */
+
+    /**
+     * @notice Harvests a given strategy on the provided controller
+     * @dev This function ignores the timeout
+     * @param _controller The address of the controller
+     * @param _strategy The address of the strategy
+     */
     function harvest(
         IController _controller,
         address _strategy
@@ -104,13 +150,19 @@ contract yAxisMetaVaultHarvester {
         emit Harvest(address(_controller), _strategy);
     }
 
+    /**
+     * @notice Harvests the next available strategy for a given token and
+     * rotates the strategies
+     * @param _token The address of the token
+     */
     function harvestNextStrategy(address _token) external onlyHarvester {
+        require(canHarvest(_token), "!canHarvest");
         address strategy = strategies[_token].addresses[0];
         harvest(controller, strategy);
         uint256 k = strategies[_token].addresses.length;
         if (k > 1) {
             address[] memory _strategies = new address[](k);
-            for (uint i; i < k; i++) {
+            for (uint i; i < k-1; i++) {
                 _strategies[i] = strategies[_token].addresses[i+1];
             }
             _strategies[k-1] = strategy;
@@ -119,7 +171,27 @@ contract yAxisMetaVaultHarvester {
         strategies[_token].lastCalled = block.timestamp;
     }
 
-    function canHarvest(address _token) external view returns (bool) {
+    /**
+     * EXTERNAL VIEW FUNCTIONS
+     */
+
+    /**
+     * @notice Returns the addresses of the strategies for a given token
+     * @param _token The address of the token
+     */
+    function strategyAddresses(address _token) external view returns (address[] memory) {
+        return strategies[_token].addresses;
+    }
+
+    /**
+     * PUBLIC VIEW FUNCTIONS
+     */
+
+    /**
+     * @notice Returns the availability of a token's strategy to be harvested
+     * @param _token The address of the token
+     */
+    function canHarvest(address _token) public view returns (bool) {
         Strategy storage strategy = strategies[_token];
         if (strategy.addresses.length == 0 ||
             strategy.lastCalled > block.timestamp.sub(strategy.timeout)) {
@@ -127,6 +199,10 @@ contract yAxisMetaVaultHarvester {
         }
         return true;
     }
+
+    /**
+     * MODIFIERS
+     */
 
     modifier onlyHarvester() {
         require(isHarvester[msg.sender], "!harvester");

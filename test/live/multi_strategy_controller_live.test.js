@@ -235,11 +235,15 @@ contract('multi_strategy_controller_live.test', async (accounts) => {
         vmanager = await yAxisMetaVaultManager.new(YAX, {from: deployer});
         VMANAGER = vmanager.address;
 
-        vharvester = await yAxisMetaVaultHarvester.new(VMANAGER, {from: deployer});
-        VHARVESTER = vharvester.address;
-
         mcontroller = await StrategyControllerV2.new(VMANAGER, {from: deployer});
         MCONTROLLER = mcontroller.address;
+
+        vharvester = await yAxisMetaVaultHarvester.new(
+            VMANAGER,
+            MCONTROLLER,
+            {from: deployer}
+        );
+        VHARVESTER = vharvester.address;
 
         mstrategyCrv = await StrategyCurve3Crv.new(
             T3CRV,

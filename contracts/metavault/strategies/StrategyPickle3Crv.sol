@@ -105,7 +105,7 @@ contract StrategyPickle3Crv is BaseStrategy {
         stableSwap3Pool.add_liquidity(amounts, 1);
     }
 
-    function harvest() external override onlyAuthorized {
+    function _harvest() internal override {
         _claimReward();
         uint256 _remainingWeth = _payHarvestFees(pickle);
 

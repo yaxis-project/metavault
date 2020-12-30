@@ -14,6 +14,22 @@ import "../IVaultManager.sol";
 import "../IStrategy.sol";
 import "../IController.sol";
 
+/**
+ * @title BaseStrategy
+ * @notice The BaseStrategy is an abstract contract which all
+ * yAxis strategies should inherit functionality from. It gives
+ * specific security properties which make it hard to write an
+ * insecure strategy.
+ * @notice All state-changing functions implemented in the strategy
+ * should be internal, since any public or externally-facing functions
+ * are already handled in the BaseStrategy.
+ * @notice The following functions must be implemented by a strategy:
+ * - function _deposit() internal virtual;
+ * - function _harvest() internal virtual;
+ * - function _withdraw(uint256 _amount) internal virtual;
+ * - function _withdrawAll() internal virtual;
+ * - function balanceOfPool() public view override virtual returns (uint256);
+ */
 abstract contract BaseStrategy is IStrategy {
     using SafeERC20 for IERC20;
     using Address for address;
@@ -27,6 +43,12 @@ abstract contract BaseStrategy is IStrategy {
     IVaultManager public vaultManager;
     Uni public unirouter = Uni(0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D);
 
+    /**
+     * @param _controller The address of the controller
+     * @param _vaultManager The address of the vaultManager
+     * @param _want The desired token of the strategy
+     * @param _weth The address of WETH
+     */
     constructor(
         address _controller,
         address _vaultManager,
@@ -44,16 +66,30 @@ abstract contract BaseStrategy is IStrategy {
      * GOVERNANCE-ONLY FUNCTIONS
      */
 
+    /**
+     * @notice Approves a token address to be spent by an address
+     * @param _token The address of the token
+     * @param _spender The address of the spender
+     * @param _amount The amount to spend
+     */
     function approveForSpender(IERC20 _token, address _spender, uint256 _amount) external {
         require(msg.sender == vaultManager.governance(), "!governance");
         _token.safeApprove(_spender, _amount);
     }
 
+    /**
+     * @notice Sets the address of the controller
+     * @param _controller The address of the controller
+     */
     function setController(address _controller) external {
         require(msg.sender == vaultManager.governance(), "!governance");
         controller = _controller;
     }
 
+    /**
+     * @notice Sets the address of the Uniswap Router
+     * @param _unirouter The address of the router
+     */
     function setUnirouter(Uni _unirouter) external {
         require(msg.sender == vaultManager.governance(), "!governance");
         unirouter = _unirouter;
@@ -63,15 +99,31 @@ abstract contract BaseStrategy is IStrategy {
      * AUTHORIZED-ONLY FUNCTIONS
      */
 
+    /**
+     * @notice Deposits funds to the strategy's pool
+     */
     function deposit() external override onlyAuthorized {
         _deposit();
     }
 
+    /**
+     * @notice Harvest funds in the strategy's pool
+     */
+    function harvest() external override onlyAuthorized {
+        _harvest();
+    }
+
+    /**
+     * @notice Sends stuck want tokens in the strategy to the controller
+     */
     function skim() external override onlyAuthorized {
         IERC20(want).safeTransfer(controller, balanceOfWant());
     }
 
-    // Controller only function for creating additional rewards from dust
+    /**
+     * @notice Sends stuck tokens in the strategy to the controller
+     * @param _asset The address of the token to withdraw
+     */
     function withdraw(address _asset) external override onlyAuthorized {
         require(want != _asset, "want");
 
@@ -80,7 +132,10 @@ abstract contract BaseStrategy is IStrategy {
         _assetToken.safeTransfer(controller, _balance);
     }
 
-    // Withdraw partial funds, normally used with a vault withdrawal
+    /**
+     * @notice Initiated from a vault, withdraws funds from the pool
+     * @param _amount The amount of the want token to withdraw
+     */
     function withdraw(uint256 _amount) external override onlyAuthorized {
         uint256 _balance = balanceOfWant();
         if (_balance < _amount) {
@@ -93,7 +148,9 @@ abstract contract BaseStrategy is IStrategy {
         IERC20(want).safeTransfer(_vault, _amount);
     }
 
-    // Withdraw all funds, normally used when migrating strategies
+    /**
+     * @notice Withdraws all funds from the strategy
+     */
     function withdrawAll() external override onlyAuthorized returns (uint256 _balance) {
         _withdrawAll();
 
@@ -108,6 +165,9 @@ abstract contract BaseStrategy is IStrategy {
      * EXTERNAL VIEW FUNCTIONS
      */
 
+    /**
+     * @notice Returns the strategy's balance of the want token plus the balance of pool
+     */
     function balanceOf() external override view returns (uint256) {
         return balanceOfWant().add(balanceOfPool());
     }
@@ -116,8 +176,15 @@ abstract contract BaseStrategy is IStrategy {
      * PUBLIC VIEW FUNCTIONS
      */
 
+    /**
+     * @notice Returns the balance of the pool
+     * @dev Must be implemented by the strategy
+     */
     function balanceOfPool() public view override virtual returns (uint256);
 
+    /**
+     * @notice Returns the balance of the want token on the strategy
+     */
     function balanceOfWant() public view override returns (uint256) {
         return IERC20(want).balanceOf(address(this));
     }
@@ -127,6 +194,8 @@ abstract contract BaseStrategy is IStrategy {
      */
 
     function _deposit() internal virtual;
+
+    function _harvest() internal virtual;
 
     function _payHarvestFees(
         address _poolToken

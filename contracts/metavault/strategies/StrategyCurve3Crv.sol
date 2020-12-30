@@ -21,7 +21,6 @@ contract StrategyCurve3Crv is BaseStrategy {
     Mintr public crvMintr = Mintr(0xd061D61a4d941c39E5453435B6345Dc261C2fcE0);
     IStableSwap3Pool public stableSwap3Pool = IStableSwap3Pool(0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7);
 
-    //address private want_ = address(0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490); // 3Crv
     Gauge public gauge = Gauge(0xbFcF63294aD7105dEa65aA58F8AE5BE2D9d0952A); // 3Crv Gauge
 
     constructor(
@@ -98,7 +97,7 @@ contract StrategyCurve3Crv is BaseStrategy {
         return (dai, 0); // If they're somehow equal, we just want DAI
     }
 
-    function harvest() external override onlyAuthorized {
+    function _harvest() internal override {
         _claimReward();
         uint256 _remainingWeth = _payHarvestFees(crv);
 

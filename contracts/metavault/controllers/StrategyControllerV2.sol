@@ -75,7 +75,7 @@ contract StrategyControllerV2 is IController {
     );
 
     /**
-     * @notice Sets the governance, strategist, and harvester to the deployer
+     * @param _vaultManager The address of the vaultManager
      */
     constructor(address _vaultManager) public {
         vaultManager = IVaultManager(_vaultManager);
@@ -518,6 +518,10 @@ contract StrategyControllerV2 is IController {
             }
         }
     }
+
+    /**
+     * MODIFIERS
+     */
 
     modifier onlyGovernance() {
         require(msg.sender == vaultManager.governance(), "!governance");
