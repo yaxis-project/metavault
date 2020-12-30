@@ -246,6 +246,10 @@ contract('StrategyControllerV2', async (accounts) => {
             '!governance'
         );
         await expectRevert(
+            mcontroller.setVaultManager(bob, {from: bob}),
+            '!governance'
+        );
+        await expectRevert(
             mcontroller.setCap(bob, bob, 0, {from: bob}),
             '!strategist'
         );

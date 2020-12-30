@@ -57,6 +57,11 @@ contract yAxisMetaVaultHarvester {
     event StrategyRemoved(address indexed token, address indexed strategy, uint256 timeout);
 
     /**
+     * @notice Logged when a vault manger is set
+     */
+    event VaultManagerSet(address indexed vaultManager);
+
+    /**
      * @param _vaultManager The address of the yAxisMetaVaultManager contract
      * @param _controller The address of the controller
      */
@@ -130,6 +135,15 @@ contract yAxisMetaVaultHarvester {
     function setHarvester(address _harvester, bool _status) public onlyStrategist {
         isHarvester[_harvester] = _status;
         emit HarvesterSet(_harvester, _status);
+    }
+
+    /**
+     * @notice Sets the address of the vault manager contract
+     * @param _vaultManager The address of the vault manager
+     */
+    function setVaultManager(address _vaultManager) external onlyStrategist {
+        vaultManager = IVaultManager(_vaultManager);
+        emit VaultManagerSet(_vaultManager);
     }
 
     /**

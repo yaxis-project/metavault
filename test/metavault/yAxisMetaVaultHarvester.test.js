@@ -218,6 +218,18 @@ contract('yAxisMetaVaultHarvester', async (accounts) => {
         assert.equal(MCONTROLLER, await vharvester.controller());
     });
 
+    it('should set the vault manager', async () => {
+        await expectRevert(
+            vharvester.setVaultManager(VMANAGER, {from: bob}),
+            '!strategist'
+        );
+        const tx = await vharvester.setVaultManager(VMANAGER);
+        expectEvent(tx.receipt, 'VaultManagerSet', {
+            vaultManager: VMANAGER
+        });
+        assert.equal(VMANAGER, await vharvester.vaultManager());
+    });
+
     it('should set harvesters', async () => {
         await expectRevert(
             vharvester.setHarvester(bob, true, {from: bob}),

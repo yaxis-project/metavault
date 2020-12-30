@@ -133,6 +133,15 @@ contract StrategyControllerV2 is IController {
     }
 
     /**
+     * @notice Sets the address of the vault manager contract
+     * @dev Only callable by governance
+     * @param _vaultManager The address of the vault manager
+     */
+    function setVaultManager(address _vaultManager) external onlyGovernance {
+        vaultManager = IVaultManager(_vaultManager);
+    }
+
+    /**
      * (GOVERNANCE|STRATEGIST)-ONLY FUNCTIONS
      */
 
@@ -266,7 +275,7 @@ contract StrategyControllerV2 is IController {
         address _input,
         address _output,
         address _converter
-    ) public onlyStrategist {
+    ) external onlyStrategist {
         converters[_input][_output] = _converter;
     }
 
@@ -275,7 +284,7 @@ contract StrategyControllerV2 is IController {
      * @dev Only callable by governance or strategist
      * @param _investEnabled The new bool of the invest enabled flag
      */
-    function setInvestEnabled(bool _investEnabled) public onlyStrategist {
+    function setInvestEnabled(bool _investEnabled) external onlyStrategist {
         globalInvestEnabled = _investEnabled;
     }
 
@@ -285,7 +294,7 @@ contract StrategyControllerV2 is IController {
      * @param _token The address of the token
      * @param _vault The address of the vault
      */
-    function setVault(address _token, address _vault) public onlyStrategist {
+    function setVault(address _token, address _vault) external onlyStrategist {
         require(vaults[_token] == address(0), "vault");
         vaults[_token] = _vault;
         vaultTokens[_vault] = _token;
@@ -337,7 +346,7 @@ contract StrategyControllerV2 is IController {
      * @param _token The address of the token
      * @param _amount The amount that will be invested
      */
-    function earn(address _token, uint256 _amount) public override onlyVault(_token) {
+    function earn(address _token, uint256 _amount) external override onlyVault(_token) {
         // get the first strategy that will accept the deposit
         address _strategy = getBestStrategyEarn(_token, _amount);
         // get the want token of the strategy
