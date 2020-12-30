@@ -1,10 +1,16 @@
-const {expectRevert, time} = require('@openzeppelin/test-helpers');
+const {
+    constants,
+    ether,
+    expectEvent,
+    expectRevert,
+    time
+} = require('@openzeppelin/test-helpers');
 
 const yAxisMetaVault = artifacts.require('yAxisMetaVault');
 const yAxisMetaVaultManager = artifacts.require('yAxisMetaVaultManager');
 const StableSwap3PoolConverter = artifacts.require('StableSwap3PoolConverter');
 
-const StrategyControllerV1 = artifacts.require('StrategyControllerV1');
+const StrategyControllerV2 = artifacts.require('StrategyControllerV2');
 const StrategyPickle3Crv = artifacts.require('StrategyPickle3Crv');
 
 const MockPickleJar = artifacts.require('MockPickleJar');
@@ -27,18 +33,15 @@ async function advanceBlocks(blocks) {
     }
 }
 
-const ADDRESS_ZERO = '0x0000000000000000000000000000000000000000';
-const treasuryWallet = '0x362Db1c17db4C79B51Fe6aD2d73165b1fe9BaB4a';
-
-contract('recuse_stuck_fund.test', async (accounts) => {
-    const { toWei } = web3.utils;
-    const { fromWei } = web3.utils;
-    const alice = accounts[0];
-    const bob = accounts[1];
+contract('stuck_funds.test', async (accounts) => {
+    const {fromWei} = web3.utils;
+    const deployer = accounts[0];
+    const treasury = accounts[1];
     const stakingPool = accounts[2];
+    const bob = accounts[3];
 
     const MAX = web3.utils.toTwosComplement(-1);
-    const INIT_BALANCE = toWei('1000');
+    const INIT_BALANCE = ether('1000');
 
     let YAX; let DAI; let USDC; let USDT; let WETH; let T3CRV; let PICKLE; // addresses
     let yax; let dai; let usdc; let usdt; let weth; let t3crv; let pickle; // MockERC20s
@@ -88,7 +91,7 @@ contract('recuse_stuck_fund.test', async (accounts) => {
         PICKLE = pickle.address;
 
         // constructor (IERC20 _tokenDAI, IERC20 _tokenUSDC, IERC20 _tokenUSDT, IERC20 _token3CRV, IERC20 _tokenYAX, uint _yaxPerBlock, uint _startBlock)
-        const _yaxPerBlock = toWei('1');
+        const _yaxPerBlock = ether('1');
         const _startBlock = 1;
         mvault = await yAxisMetaVault.new(DAI, USDC, USDT, T3CRV, YAX, _yaxPerBlock, _startBlock);
         MVAULT = mvault.address;
@@ -115,14 +118,14 @@ contract('recuse_stuck_fund.test', async (accounts) => {
 
         await pickle.mint(PCHEF, INIT_BALANCE);
 
-        mcontroller = await StrategyControllerV1.new();
+        mcontroller = await StrategyControllerV2.new(VMANAGER);
         MCONTROLLER = mcontroller.address;
 
         // constructor(address _want, address _p3crv, address _pickle, address _weth, address _t3crv, address _dai, address _usdc, address _usdt, address _controller, IVaultManager _vaultManager)
         mstrategy = await StrategyPickle3Crv.new(T3CRV, PJAR, PICKLE, WETH, T3CRV, DAI, USDC, USDT, STABLESWAP3POOL, MCONTROLLER, VMANAGER);
         MSTRATEGY = mstrategy.address;
 
-        unirouter = await MockUniswapRouter.new(ADDRESS_ZERO);
+        unirouter = await MockUniswapRouter.new(constants.ZERO_ADDRESS);
         UNIROUTER = unirouter.address;
         yax.mint(UNIROUTER, INIT_BALANCE);
         weth.mint(UNIROUTER, INIT_BALANCE);
@@ -132,16 +135,14 @@ contract('recuse_stuck_fund.test', async (accounts) => {
         await mvault.setConverter(CONVERTER);
         await mvault.setVaultManager(VMANAGER);
         await vmanager.setVaultStatus(MVAULT, true);
-        await vmanager.setPerformanceReward(alice);
+        await vmanager.setTreasury(treasury);
         await vmanager.setStakingPool(stakingPool);
         await vmanager.setWithdrawalProtectionFee(0);
         await mvault.setController(MCONTROLLER);
         await mcontroller.setVault(T3CRV, MVAULT);
-        await mcontroller.approveStrategy(T3CRV, MSTRATEGY);
-        await mcontroller.setStrategy(T3CRV, MSTRATEGY, false);
+        await mcontroller.addStrategy(T3CRV, MSTRATEGY, 0);
         await mstrategy.setPickleMasterChef(PCHEF);
         await mstrategy.setStableForLiquidity(DAI);
-        await mstrategy.setUnirouter(UNIROUTER);
 
         await dai.approve(MVAULT, MAX, {from: bob});
         await usdc.approve(MVAULT, MAX, {from: bob});
@@ -179,7 +180,7 @@ contract('recuse_stuck_fund.test', async (accounts) => {
             fromWei(await yax.balanceOf(bob)));
         console.log('bob MVLT:        ', fromWei(await mvault.balanceOf(bob)));
         console.log('-------------------');
-        console.log('deployer WETH:   ', fromWei(await weth.balanceOf(alice)));
+        console.log('deployer WETH:   ', fromWei(await weth.balanceOf(deployer)));
         console.log('stakingPool YAX: ', fromWei(await yax.balanceOf(stakingPool)));
         console.log('-------------------');
     }
@@ -194,56 +195,62 @@ contract('recuse_stuck_fund.test', async (accounts) => {
         console.log('-------------------');
     }
 
+    beforeEach(async () => {
+        if (verbose) {
+            await printBalances('\n====== BEFORE ======');
+        }
+    });
+
+    afterEach(async () => {
+        if (verbose) {
+            await printBalances('\n====== AFTER ======');
+        }
+    });
+
     describe('rescue stuck fund in controller & strategy should work', () => {
         it('deposit', async () => {
-            if (verbose) {
-                await printBalances('\n=== BEFORE deposit ===');
-            }
-            const _amount = toWei('10');
+            const _amount = ether('10');
             await mvault.deposit(_amount, DAI, 1, true, {from: bob});
-            assert.equal(String(await dai.balanceOf(bob)), toWei('990'));
-            assert.approximately(Number(await mcontroller.balanceOf(T3CRV)), Number(toWei('9.519')), 10 ** -12);
-            assert.approximately(Number(await mvault.getPricePerFullShare()), Number(toWei('1')), 10 ** -12);
-            if (verbose) {
-                await printBalances('\n=== AFTER deposit ===');
-            }
+            assert.equal(String(await dai.balanceOf(bob)), ether('990'));
+            assert.approximately(Number(await mcontroller.balanceOf(T3CRV)), Number(ether('9.519')), 10 ** -12);
+            assert.approximately(Number(await mvault.getPricePerFullShare()), Number(ether('1')), 10 ** -12);
         });
 
         it('stuck WETH in strategy', async () => {
-            assert.equal(String(await weth.balanceOf(MSTRATEGY)), toWei('0'));
-            await weth.mint(MSTRATEGY, toWei('1'));
-            assert.equal(String(await weth.balanceOf(MSTRATEGY)), toWei('1'));
-            assert.equal(String(await weth.balanceOf(alice)), toWei('0')); // governance has no WETH
+            assert.equal(String(await weth.balanceOf(MSTRATEGY)), ether('0'));
+            await weth.mint(MSTRATEGY, ether('1'));
+            assert.equal(String(await weth.balanceOf(MSTRATEGY)), ether('1'));
+            assert.equal(String(await weth.balanceOf(deployer)), ether('0')); // governance has no WETH
             await mcontroller.inCaseStrategyGetStuck(MSTRATEGY, WETH);
-            assert.equal(String(await weth.balanceOf(MSTRATEGY)), toWei('0'));
-            assert.equal(String(await weth.balanceOf(alice)), toWei('1')); // governance has WETH now
+            assert.equal(String(await weth.balanceOf(MSTRATEGY)), ether('0'));
+            assert.equal(String(await weth.balanceOf(deployer)), ether('1')); // governance has WETH now
         });
 
         it('stuck WETH in controller', async () => {
-            assert.equal(String(await weth.balanceOf(MCONTROLLER)), toWei('0'));
-            await weth.mint(MCONTROLLER, toWei('1'));
-            assert.equal(String(await weth.balanceOf(MCONTROLLER)), toWei('1'));
-            assert.equal(String(await weth.balanceOf(alice)), toWei('1')); // governance has 1 WETH already
-            await mcontroller.inCaseTokensGetStuck(WETH, toWei('1'));
-            assert.equal(String(await weth.balanceOf(MCONTROLLER)), toWei('0'));
-            assert.equal(String(await weth.balanceOf(alice)), toWei('2')); // governance has 2 WETH
+            assert.equal(String(await weth.balanceOf(MCONTROLLER)), ether('0'));
+            await weth.mint(MCONTROLLER, ether('1'));
+            assert.equal(String(await weth.balanceOf(MCONTROLLER)), ether('1'));
+            assert.equal(String(await weth.balanceOf(deployer)), ether('1')); // governance has 1 WETH already
+            await mcontroller.inCaseTokensGetStuck(WETH, ether('1'));
+            assert.equal(String(await weth.balanceOf(MCONTROLLER)), ether('0'));
+            assert.equal(String(await weth.balanceOf(deployer)), ether('2')); // governance has 2 WETH
         });
 
         it('stuck T3CRV (core) in strategy', async () => {
-            assert.equal(String(await t3crv.balanceOf(MSTRATEGY)), toWei('0'));
-            await t3crv.mint(MSTRATEGY, toWei('1'));
-            assert.equal(String(await t3crv.balanceOf(MSTRATEGY)), toWei('1'));
-            assert.equal(String(await t3crv.balanceOf(MCONTROLLER)), toWei('0')); // controller has no T3CRV
+            assert.equal(String(await t3crv.balanceOf(MSTRATEGY)), ether('0'));
+            await t3crv.mint(MSTRATEGY, ether('1'));
+            assert.equal(String(await t3crv.balanceOf(MSTRATEGY)), ether('1'));
+            assert.equal(String(await t3crv.balanceOf(MCONTROLLER)), ether('0')); // controller has no T3CRV
             await expectRevert(
                 mcontroller.inCaseStrategyGetStuck(MSTRATEGY, T3CRV),
                 'want'
             );
-            await mstrategy.skim({from: bob});
-            assert.equal(String(await t3crv.balanceOf(MSTRATEGY)), toWei('0'));
-            assert.equal(String(await t3crv.balanceOf(MCONTROLLER)), toWei('1')); // controller has T3CRV now
-            await mcontroller.inCaseTokensGetStuck(T3CRV, toWei('1'));
-            assert.equal(String(await t3crv.balanceOf(MCONTROLLER)), toWei('0')); // controller has no T3CRV now
-            assert.equal(String(await t3crv.balanceOf(alice)), toWei('1')); // governance has T3CRV now
+            await mstrategy.skim()
+            assert.equal(String(await t3crv.balanceOf(MSTRATEGY)), ether('0'));
+            assert.equal(String(await t3crv.balanceOf(MCONTROLLER)), ether('1')); // controller has T3CRV now
+            await mcontroller.inCaseTokensGetStuck(T3CRV, ether('1'));
+            assert.equal(String(await t3crv.balanceOf(MCONTROLLER)), ether('0')); // controller has no T3CRV now
+            assert.equal(String(await t3crv.balanceOf(deployer)), ether('1')); // governance has T3CRV now
         });
     });
 });

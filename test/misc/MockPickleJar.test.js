@@ -75,11 +75,20 @@ contract('mock_pickle_pool.test', async (accounts) => {
         console.log('-------------------');
     }
 
+    beforeEach(async () => {
+        if (verbose) {
+            await printBalances('\n====== BEFORE ======');
+        }
+    });
+
+    afterEach(async () => {
+        if (verbose) {
+            await printBalances('\n====== AFTER ======');
+        }
+    });
+
     describe('pjar should work', () => {
         it('pjar deposit', async () => {
-            if (verbose) {
-                await printBalances('\n=== BEFORE pjar deposit ===');
-            }
             const _amount = toWei('10');
             await pjar.deposit(_amount, {from: bob});
             assert.equal(String(await t3crv.balanceOf(bob)), toWei('990'));
@@ -88,37 +97,22 @@ contract('mock_pickle_pool.test', async (accounts) => {
             assert.approximately(Number(await pjar.available()), Number(toWei('9.5')), 10 ** -12); // 95%
             assert.equal(String(await t3crv.balanceOf(PJAR)), toWei('10'));
             assert.equal(String(await pjar.totalSupply()), '9900990099009900990');
-            if (verbose) {
-                await printBalances('\n=== AFTER pjar deposit ===');
-            }
         });
 
         it('pjar withdraw', async () => {
-            if (verbose) {
-                await printBalances('\n=== BEFORE pjar withdraw ===');
-            }
             const _amount = toWei('1');
             await pjar.withdraw(_amount, {from: bob});
             assert.equal(String(await t3crv.balanceOf(bob)), toWei('991.01'));
             assert.equal(String(await pjar.balanceOf(bob)), '8900990099009900990');
             assert.equal(String(await t3crv.balanceOf(PJAR)), toWei('8.99'));
-            if (verbose) {
-                await printBalances('\n=== AFTER pjar withdraw ===');
-            }
         });
 
         it('pjar withdrawAll', async () => {
-            if (verbose) {
-                await printBalances('\n=== BEFORE pjar withdrawAll ===');
-            }
             await pjar.withdrawAll({from: bob});
             assert.approximately(Number(await t3crv.balanceOf(bob)), Number(toWei('1000')), 10 ** -12);
             assert.equal(String(await t3crv.balanceOf(bob)), '999999999999999999999');
             assert.equal(String(await pjar.balanceOf(bob)), '0');
             assert.equal(String(await t3crv.balanceOf(PJAR)), '1'); // 1 wei left because of div precision math
-            if (verbose) {
-                await printBalances('\n=== AFTER pjar withdrawAll ===');
-            }
         });
     });
 
@@ -130,60 +124,36 @@ contract('mock_pickle_pool.test', async (accounts) => {
         });
 
         it('pchef deposit', async () => {
-            if (verbose) {
-                await printBalances('\n=== BEFORE pchef deposit ===');
-            }
             const _pid = 14;
             const _amount = toWei('10');
             await pchef.deposit(_pid, _amount, {from: bob});
             assert.approximately(Number(await pjar.balanceOf(bob)), Number(toWei('89.00990099009901')), 10 ** -12);
             assert.equal(String(await pjar.balanceOf(PCHEF)), toWei('10'));
-            if (verbose) {
-                await printBalances('\n=== AFTER pchef deposit ===');
-            }
         });
 
         it('pchef deposit(0) - claim', async () => {
-            if (verbose) {
-                await printBalances('\n=== BEFORE pchef deposit(0) - claim ===');
-            }
             const _pid = 14;
             await pchef.deposit(_pid, 0, {from: bob});
             assert.approximately(Number(await pjar.balanceOf(bob)), Number(toWei('89.00990099009901')), 10 ** -12);
             assert.equal(String(await pjar.balanceOf(PCHEF)), toWei('10'));
             assert.equal(String(await pickle.balanceOf(bob)), toWei('1'));
-            if (verbose) {
-                await printBalances('\n=== AFTER pchef deposit(0) - claim ===');
-            }
         });
 
         it('pchef withdraw', async () => {
-            if (verbose) {
-                await printBalances('\n=== BEFORE pchef withdraw ===');
-            }
             const _pid = 14;
             const _amount = toWei('1');
             await pchef.withdraw(_pid, _amount, {from: bob});
             assert.approximately(Number(await pjar.balanceOf(bob)), Number(toWei('90.00990099009901')), 10 ** -12);
             assert.equal(String(await pjar.balanceOf(PCHEF)), toWei('9'));
-            if (verbose) {
-                await printBalances('\n=== AFTER pchef withdraw ===');
-            }
         });
 
         it('pchef emergencyWithdraw', async () => {
-            if (verbose) {
-                await printBalances('\n=== BEFORE pchef emergencyWithdraw ===');
-            }
             const _pid = 14;
             await pchef.emergencyWithdraw(_pid, {from: bob});
             assert.approximately(Number(await pjar.balanceOf(bob)), Number(toWei('99.00990099009901')), 10 ** -12);
             assert.equal(String(await pjar.balanceOf(PCHEF)), toWei('0'));
             const userInfo = await pchef.userInfo(14, bob);
             assert.equal(String(userInfo.amount), '0');
-            if (verbose) {
-                await printBalances('\n=== AFTER pchef emergencyWithdraw ===');
-            }
         });
     });
 });
