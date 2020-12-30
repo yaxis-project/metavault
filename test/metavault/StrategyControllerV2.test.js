@@ -1,10 +1,4 @@
-const {
-    constants,
-    ether,
-    expectEvent,
-    expectRevert,
-    time
-} = require('@openzeppelin/test-helpers');
+const { constants, ether, expectEvent, expectRevert } = require('@openzeppelin/test-helpers');
 
 const yAxisMetaVault = artifacts.require('yAxisMetaVault');
 const yAxisMetaVaultManager = artifacts.require('yAxisMetaVaultManager');
@@ -33,7 +27,7 @@ function fromWeiWithDecimals(num, decimals = 18) {
 }
 
 contract('StrategyControllerV2', async (accounts) => {
-    const {fromWei} = web3.utils;
+    const { fromWei } = web3.utils;
     const deployer = accounts[0];
     const treasury = accounts[1];
     const stakingPool = accounts[2];
@@ -62,6 +56,9 @@ contract('StrategyControllerV2', async (accounts) => {
 
     let minter;
     let MINTER;
+
+    let pickle;
+    let PICKLE;
 
     let pjar;
     let PJAR;
@@ -103,11 +100,20 @@ contract('StrategyControllerV2', async (accounts) => {
         // constructor (IERC20 _tokenDAI, IERC20 _tokenUSDC, IERC20 _tokenUSDT, IERC20 _token3CRV, IERC20 _tokenYAX, uint _yaxPerBlock, uint _startBlock)
         const _yaxPerBlock = ether('1');
         const _startBlock = 1;
-        mvault = await yAxisMetaVault.new(DAI, USDC, USDT, T3CRV, YAX, _yaxPerBlock, _startBlock);
+        mvault = await yAxisMetaVault.new(
+            DAI,
+            USDC,
+            USDT,
+            T3CRV,
+            YAX,
+            _yaxPerBlock,
+            _startBlock,
+            { from: deployer }
+        );
         MVAULT = mvault.address;
 
         // constructor (IERC20 _yax)
-        vmanager = await yAxisMetaVaultManager.new(YAX);
+        vmanager = await yAxisMetaVaultManager.new(YAX, { from: deployer });
         VMANAGER = vmanager.address;
 
         // constructor (IERC20 _tokenDAI, IERC20 _tokenUSDC, IERC20 _tokenUSDT, IERC20 _token3CRV)
@@ -115,7 +121,15 @@ contract('StrategyControllerV2', async (accounts) => {
         STABLESWAP3POOL = stableSwap3Pool.address;
 
         // constructor (IERC20 _tokenDAI, IERC20 _tokenUSDC, IERC20 _tokenUSDT, IERC20 _token3CRV, IStableSwap3Pool _stableSwap3Pool, IVaultManager _vaultMaster)
-        converter = await StableSwap3PoolConverter.new(DAI, USDC, USDT, T3CRV, STABLESWAP3POOL, VMANAGER);
+        converter = await StableSwap3PoolConverter.new(
+            DAI,
+            USDC,
+            USDT,
+            T3CRV,
+            STABLESWAP3POOL,
+            VMANAGER,
+            { from: deployer }
+        );
         CONVERTER = converter.address;
 
         gauge = await MockCurveGauge.new(T3CRV);
@@ -143,11 +157,38 @@ contract('StrategyControllerV2', async (accounts) => {
         //         address _dai, address _usdc, address _usdt,
         //         Gauge _gauge, Mintr _crvMintr,
         //         IStableSwap3Pool _stableSwap3Pool, address _controller, IVaultManager _vaultManager)
-        mstrategyCrv = await StrategyCurve3Crv.new(T3CRV, CRV, WETH, T3CRV, DAI, USDC, USDT, GAUGE, MINTER, STABLESWAP3POOL, MCONTROLLER, VMANAGER);
+        mstrategyCrv = await StrategyCurve3Crv.new(
+            T3CRV,
+            CRV,
+            WETH,
+            T3CRV,
+            DAI,
+            USDC,
+            USDT,
+            GAUGE,
+            MINTER,
+            STABLESWAP3POOL,
+            MCONTROLLER,
+            VMANAGER,
+            { from: deployer }
+        );
         MSTRATEGYCRV = mstrategyCrv.address;
 
         // constructor(address _want, address _p3crv, address _pickle, address _weth, address _t3crv, address _dai, address _usdc, address _usdt, address _controller, IVaultManager _vaultManager)
-        mstrategyPickle = await StrategyPickle3Crv.new(T3CRV, PJAR, PICKLE, WETH, T3CRV, DAI, USDC, USDT, STABLESWAP3POOL, MCONTROLLER, VMANAGER);
+        mstrategyPickle = await StrategyPickle3Crv.new(
+            T3CRV,
+            PJAR,
+            PICKLE,
+            WETH,
+            T3CRV,
+            DAI,
+            USDC,
+            USDT,
+            STABLESWAP3POOL,
+            MCONTROLLER,
+            VMANAGER,
+            { from: deployer }
+        );
         MSTRATEGYPICKLE = mstrategyPickle.address;
 
         unirouter = await MockUniswapRouter.new(constants.ZERO_ADDRESS);
@@ -172,11 +213,11 @@ contract('StrategyControllerV2', async (accounts) => {
         await mstrategyPickle.setStableForLiquidity(DAI);
         await mstrategyPickle.setUnirouter(UNIROUTER);
 
-        await dai.approve(MVAULT, MAX, {from: bob});
-        await usdc.approve(MVAULT, MAX, {from: bob});
-        await usdt.approve(MVAULT, MAX, {from: bob});
-        await t3crv.approve(MVAULT, MAX, {from: bob});
-        await mvault.approve(MVAULT, MAX, {from: bob});
+        await dai.approve(MVAULT, MAX, { from: bob });
+        await usdc.approve(MVAULT, MAX, { from: bob });
+        await usdt.approve(MVAULT, MAX, { from: bob });
+        await t3crv.approve(MVAULT, MAX, { from: bob });
+        await mvault.approve(MVAULT, MAX, { from: bob });
 
         await yax.mint(MVAULT, INIT_BALANCE);
         await dai.mint(STABLESWAP3POOL, INIT_BALANCE);
@@ -236,41 +277,23 @@ contract('StrategyControllerV2', async (accounts) => {
     });
 
     it('should not allow unpermissioned callers', async () => {
-        await expectRevert(mcontroller.setVault(bob, bob, {from: bob}), '!strategist');
+        await expectRevert(mcontroller.setVault(bob, bob, { from: bob }), '!strategist');
+        await expectRevert(mcontroller.removeStrategy(bob, bob, { from: bob }), '!strategist');
+        await expectRevert(mcontroller.addStrategy(bob, bob, 0, { from: bob }), '!governance');
+        await expectRevert(mcontroller.setVaultManager(bob, { from: bob }), '!governance');
+        await expectRevert(mcontroller.setCap(bob, bob, 0, { from: bob }), '!strategist');
+        await expectRevert(mcontroller.setInvestEnabled(false, { from: bob }), '!strategist');
+        await expectRevert(mcontroller.withdrawAll(bob, { from: bob }), '!strategist');
         await expectRevert(
-            mcontroller.removeStrategy(bob, bob, {from: bob}),
+            mcontroller.inCaseTokensGetStuck(bob, 0, { from: bob }),
             '!strategist'
         );
         await expectRevert(
-            mcontroller.addStrategy(bob, bob, 0, {from: bob}),
-            '!governance'
-        );
-        await expectRevert(
-            mcontroller.setVaultManager(bob, {from: bob}),
-            '!governance'
-        );
-        await expectRevert(
-            mcontroller.setCap(bob, bob, 0, {from: bob}),
+            mcontroller.inCaseStrategyGetStuck(bob, bob, { from: bob }),
             '!strategist'
         );
-        await expectRevert(
-            mcontroller.setInvestEnabled(false, {from: bob}),
-            '!strategist'
-        );
-        await expectRevert(mcontroller.withdrawAll(bob, {from: bob}), '!strategist');
-        await expectRevert(
-            mcontroller.inCaseTokensGetStuck(bob, 0, {from: bob}),
-            '!strategist'
-        );
-        await expectRevert(
-            mcontroller.inCaseStrategyGetStuck(bob, bob, {from: bob}),
-            '!strategist'
-        );
-        await expectRevert(mcontroller.claimInsurance(bob, {from: bob}), '!governance');
-        await expectRevert(
-            mcontroller.harvestStrategy(bob, {from: bob}),
-            '!harvester'
-        );
+        await expectRevert(mcontroller.claimInsurance(bob, { from: bob }), '!governance');
+        await expectRevert(mcontroller.harvestStrategy(bob, { from: bob }), '!harvester');
     });
 
     it('should add a strategy', async () => {
@@ -290,11 +313,11 @@ contract('StrategyControllerV2', async (accounts) => {
     it('should deposit into first strategy', async () => {
         const _amount = ether('10');
         await expectRevert(
-            mvault.deposit(_amount, DAI, ether('100'), true, {from: bob}),
+            mvault.deposit(_amount, DAI, ether('100'), true, { from: bob }),
             'slippage'
         );
         assert.equal(0, await mcontroller.balanceOf(T3CRV));
-        const tx = await mvault.deposit(_amount, DAI, 1, true, {from: bob});
+        const tx = await mvault.deposit(_amount, DAI, 1, true, { from: bob });
         assert.equal(String(await dai.balanceOf(bob)), ether('990'));
         await expectEvent.inTransaction(tx.tx, mcontroller, 'Earn', {
             strategy: MSTRATEGYCRV
@@ -315,7 +338,7 @@ contract('StrategyControllerV2', async (accounts) => {
         const _amount = ether('10');
         const strategy = await mcontroller.getBestStrategyEarn(T3CRV, _amount);
         assert.equal(MSTRATEGYPICKLE, strategy);
-        const tx = await mvault.deposit(_amount, DAI, 1, true, {from: bob});
+        const tx = await mvault.deposit(_amount, DAI, 1, true, { from: bob });
         assert.equal(String(await dai.balanceOf(bob)), ether('980'));
         await expectEvent.inTransaction(tx.tx, mcontroller, 'Earn', {
             strategy: MSTRATEGYPICKLE
@@ -339,7 +362,7 @@ contract('StrategyControllerV2', async (accounts) => {
     it('should withdraw excess funds when reducing a strategy cap', async () => {
         const _amount = ether('5');
         const before = await t3crv.balanceOf(MVAULT);
-        const tx = await mcontroller.setCap(T3CRV, MSTRATEGYPICKLE, _amount);
+        await mcontroller.setCap(T3CRV, MSTRATEGYPICKLE, _amount);
         const after = await t3crv.balanceOf(MVAULT);
         const change = after.sub(before);
         const diff = _amount.sub(change);
@@ -351,7 +374,7 @@ contract('StrategyControllerV2', async (accounts) => {
         assert.equal(MSTRATEGYCRV, strategy);
         const _amount = ether('10');
         await expectRevert(mcontroller.earn(T3CRV, _amount), '!vault');
-        const tx = await mvault.deposit(_amount, DAI, 1, true, {from: bob});
+        const tx = await mvault.deposit(_amount, DAI, 1, true, { from: bob });
         assert.equal(String(await dai.balanceOf(bob)), ether('970'));
         await expectEvent.inTransaction(tx.tx, mcontroller, 'Earn', {
             strategy: MSTRATEGYCRV
@@ -364,7 +387,7 @@ contract('StrategyControllerV2', async (accounts) => {
         assert.equal(MSTRATEGYCRV, strategies._strategies[0]);
         assert.equal(constants.ZERO_ADDRESS, strategies._strategies[1]);
         await expectRevert(mcontroller.withdraw(T3CRV, _amount), '!vault');
-        const tx = await mvault.withdraw(_amount, DAI, {from: bob});
+        await mvault.withdraw(_amount, DAI, { from: bob });
         // this seems to be the best way to assert balances with _tiny_ changes
         const diff = ether('975').sub(await dai.balanceOf(bob));
         assert.isTrue(diff.lt(ether('0.1')));
@@ -374,7 +397,7 @@ contract('StrategyControllerV2', async (accounts) => {
         const _amount = ether('50');
         const strategy = await mcontroller.getBestStrategyEarn(T3CRV, _amount);
         assert.equal(MSTRATEGYCRV, strategy);
-        const tx = await mvault.deposit(_amount, DAI, 1, true, {from: bob});
+        const tx = await mvault.deposit(_amount, DAI, 1, true, { from: bob });
         await expectEvent.inTransaction(tx.tx, mcontroller, 'Earn', {
             strategy: MSTRATEGYCRV
         });
@@ -387,7 +410,7 @@ contract('StrategyControllerV2', async (accounts) => {
         const strategies = await mcontroller.getBestStrategyWithdraw(T3CRV, _amount);
         assert.equal(MSTRATEGYCRV, strategies._strategies[0]);
         assert.equal(MSTRATEGYPICKLE, strategies._strategies[1]);
-        const tx = await mvault.withdraw(_amount, DAI, {from: bob});
+        await mvault.withdraw(_amount, DAI, { from: bob });
         // this seems to be the best way to assert balances with _tiny_ changes
         const diff = ether('995').sub(await dai.balanceOf(bob));
         assert.isTrue(diff.lt(ether('0.2')));
@@ -410,7 +433,7 @@ contract('StrategyControllerV2', async (accounts) => {
         const _amount = ether('5');
         const strategy = await mcontroller.getBestStrategyEarn(T3CRV, _amount);
         assert.equal(MSTRATEGYCRV, strategy);
-        const tx = await mvault.deposit(_amount, DAI, 1, true, {from: bob});
+        const tx = await mvault.deposit(_amount, DAI, 1, true, { from: bob });
         await expectEvent.inTransaction(tx.tx, mcontroller, 'Earn', {
             strategy: MSTRATEGYCRV
         });
@@ -426,7 +449,7 @@ contract('StrategyControllerV2', async (accounts) => {
 
     it('should allow deposits without strategies', async () => {
         const _amount = ether('5');
-        const tx = await mvault.deposit(_amount, DAI, 1, true, {from: bob});
+        await mvault.deposit(_amount, DAI, 1, true, { from: bob });
         const diff = ether('985').sub(await dai.balanceOf(bob));
         assert.isTrue(diff.lt(ether('0.2')));
     });
@@ -438,7 +461,7 @@ contract('StrategyControllerV2', async (accounts) => {
         assert.equal(MSTRATEGYCRV, strategies[0]);
         const strategy = await mcontroller.getBestStrategyEarn(T3CRV, ether('1'));
         assert.equal(MSTRATEGYCRV, strategy);
-        const tx = await mvault.earn()
+        const tx = await mvault.earn();
         await expectEvent.inTransaction(tx.tx, mcontroller, 'Earn', {
             strategy: MSTRATEGYCRV
         });

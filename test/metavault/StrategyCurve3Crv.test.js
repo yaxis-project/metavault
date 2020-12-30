@@ -1,10 +1,4 @@
-const {
-    constants,
-    ether,
-    expectEvent,
-    expectRevert,
-    time
-} = require('@openzeppelin/test-helpers');
+const { constants, ether, expectRevert } = require('@openzeppelin/test-helpers');
 
 const yAxisMetaVault = artifacts.require('yAxisMetaVault');
 const yAxisMetaVaultManager = artifacts.require('yAxisMetaVaultManager');
@@ -29,12 +23,6 @@ function fromWeiWithDecimals(num, decimals = 18) {
     return num.toFixed(2);
 }
 
-async function advanceBlocks(blocks) {
-    for (let i = 0; i < blocks; i++) {
-        await time.advanceBlock();
-    }
-}
-
 contract('StrategyCurve3Crv', async (accounts) => {
     const { fromWei } = web3.utils;
     const deployer = accounts[0];
@@ -45,8 +33,20 @@ contract('StrategyCurve3Crv', async (accounts) => {
     const MAX = web3.utils.toTwosComplement(-1);
     const INIT_BALANCE = ether('1000');
 
-    let YAX; let DAI; let USDC; let USDT; let WETH; let T3CRV; let CRV; // addresses
-    let yax; let dai; let usdc; let usdt; let weth; let t3crv; let crv; // MockERC20s
+    let YAX;
+    let DAI;
+    let USDC;
+    let USDT;
+    let WETH;
+    let T3CRV;
+    let CRV; // addresses
+    let yax;
+    let dai;
+    let usdc;
+    let usdt;
+    let weth;
+    let t3crv;
+    let crv; // MockERC20s
 
     let mvault;
     let MVAULT;
@@ -95,7 +95,15 @@ contract('StrategyCurve3Crv', async (accounts) => {
         // constructor (IERC20 _tokenDAI, IERC20 _tokenUSDC, IERC20 _tokenUSDT, IERC20 _token3CRV, IERC20 _tokenYAX, uint _yaxPerBlock, uint _startBlock)
         const _yaxPerBlock = ether('1');
         const _startBlock = 1;
-        mvault = await yAxisMetaVault.new(DAI, USDC, USDT, T3CRV, YAX, _yaxPerBlock, _startBlock);
+        mvault = await yAxisMetaVault.new(
+            DAI,
+            USDC,
+            USDT,
+            T3CRV,
+            YAX,
+            _yaxPerBlock,
+            _startBlock
+        );
         MVAULT = mvault.address;
 
         // constructor (IERC20 _yax)
@@ -107,7 +115,14 @@ contract('StrategyCurve3Crv', async (accounts) => {
         STABLESWAP3POOL = stableSwap3Pool.address;
 
         // constructor (IERC20 _tokenDAI, IERC20 _tokenUSDC, IERC20 _tokenUSDT, IERC20 _token3CRV, IStableSwap3Pool _stableSwap3Pool, IVaultManager _vaultMaster)
-        converter = await StableSwap3PoolConverter.new(DAI, USDC, USDT, T3CRV, STABLESWAP3POOL, VMANAGER);
+        converter = await StableSwap3PoolConverter.new(
+            DAI,
+            USDC,
+            USDT,
+            T3CRV,
+            STABLESWAP3POOL,
+            VMANAGER
+        );
         CONVERTER = converter.address;
 
         gauge = await MockCurveGauge.new(T3CRV);
@@ -125,7 +140,20 @@ contract('StrategyCurve3Crv', async (accounts) => {
         //         address _dai, address _usdc, address _usdt,
         //         Gauge _gauge, Mintr _crvMintr,
         //         IStableSwap3Pool _stableSwap3Pool, address _controller, IVaultManager _vaultManager)
-        mstrategy = await StrategyCurve3Crv.new(T3CRV, CRV, WETH, T3CRV, DAI, USDC, USDT, GAUGE, MINTER, STABLESWAP3POOL, MCONTROLLER, VMANAGER);
+        mstrategy = await StrategyCurve3Crv.new(
+            T3CRV,
+            CRV,
+            WETH,
+            T3CRV,
+            DAI,
+            USDC,
+            USDT,
+            GAUGE,
+            MINTER,
+            STABLESWAP3POOL,
+            MCONTROLLER,
+            VMANAGER
+        );
         MSTRATEGY = mstrategy.address;
 
         unirouter = await MockUniswapRouter.new(constants.ZERO_ADDRESS);
@@ -149,11 +177,11 @@ contract('StrategyCurve3Crv', async (accounts) => {
         await mstrategy.approveForSpender(CRV, UNIROUTER, MAX);
         await mstrategy.approveForSpender(WETH, UNIROUTER, MAX);
 
-        await dai.approve(MVAULT, MAX, {from: bob});
-        await usdc.approve(MVAULT, MAX, {from: bob});
-        await usdt.approve(MVAULT, MAX, {from: bob});
-        await t3crv.approve(MVAULT, MAX, {from: bob});
-        await mvault.approve(MVAULT, MAX, {from: bob});
+        await dai.approve(MVAULT, MAX, { from: bob });
+        await usdc.approve(MVAULT, MAX, { from: bob });
+        await usdt.approve(MVAULT, MAX, { from: bob });
+        await t3crv.approve(MVAULT, MAX, { from: bob });
+        await mvault.approve(MVAULT, MAX, { from: bob });
 
         await yax.mint(MVAULT, INIT_BALANCE);
         await dai.mint(STABLESWAP3POOL, INIT_BALANCE);
@@ -176,25 +204,18 @@ contract('StrategyCurve3Crv', async (accounts) => {
         console.log('mcontroller T3CRV:    ', fromWei(await t3crv.balanceOf(MCONTROLLER)));
         console.log('mstrategy T3CRV:      ', fromWei(await t3crv.balanceOf(MSTRATEGY)));
         console.log('-------------------');
-        console.log('bob balances: %s DAI/ %s USDC/ %s USDT/ %s T3CRV/ %s YAX', fromWei(await dai.balanceOf(bob)),
+        console.log(
+            'bob balances: %s DAI/ %s USDC/ %s USDT/ %s T3CRV/ %s YAX',
+            fromWei(await dai.balanceOf(bob)),
             fromWeiWithDecimals(await usdc.balanceOf(bob), 6),
             fromWeiWithDecimals(await usdt.balanceOf(bob), 6),
             fromWei(await t3crv.balanceOf(bob)),
-            fromWei(await yax.balanceOf(bob)));
+            fromWei(await yax.balanceOf(bob))
+        );
         console.log('bob MVLT:        ', fromWei(await mvault.balanceOf(bob)));
         console.log('-------------------');
         console.log('deployer WETH:   ', fromWei(await weth.balanceOf(deployer)));
         console.log('stakingPool YAX: ', fromWei(await yax.balanceOf(stakingPool)));
-        console.log('-------------------');
-    }
-
-    async function printStakeInfo(account_name, account) {
-        console.log('yaxPerBlock:        ', fromWei(await mvault.yaxPerBlock()));
-        console.log('lastRewardBlock:    ', String(await mvault.lastRewardBlock()));
-        console.log('accYaxPerShare:     ', fromWei(await mvault.accYaxPerShare()));
-        const userInfo = await mvault.userInfo(account);
-        console.log('%s UserInfo:        ', account_name, JSON.stringify(userInfo));
-        console.log('%s amount:          ', account_name, fromWei(userInfo.amount));
         console.log('-------------------');
     }
 
@@ -214,48 +235,72 @@ contract('StrategyCurve3Crv', async (accounts) => {
         it('views', async () => {
             await expectRevert.unspecified(mcontroller.want(DAI));
             assert.equal(String(await mcontroller.want(T3CRV)), T3CRV);
-            assert.equal(String(await mcontroller.withdrawFee(T3CRV, ether('1000'))), ether('0'));
+            assert.equal(
+                String(await mcontroller.withdrawFee(T3CRV, ether('1000'))),
+                ether('0')
+            );
         });
 
         it('deposit', async () => {
             const _amount = ether('10');
-            await mvault.deposit(_amount, DAI, 1, true, {from: bob});
+            await mvault.deposit(_amount, DAI, 1, true, { from: bob });
             assert.equal(String(await dai.balanceOf(bob)), ether('990'));
-            assert.approximately(Number(await mcontroller.balanceOf(T3CRV)), Number(ether('9.519')), 10 ** -12);
-            assert.approximately(Number(await mvault.getPricePerFullShare()), Number(ether('1')), 10 ** -12);
+            assert.approximately(
+                Number(await mcontroller.balanceOf(T3CRV)),
+                Number(ether('9.519')),
+                10 ** -12
+            );
+            assert.approximately(
+                Number(await mvault.getPricePerFullShare()),
+                Number(ether('1')),
+                10 ** -12
+            );
         });
 
         it('strategy harvest by controller', async () => {
             await expectRevert(
-                mcontroller.harvestStrategy(MSTRATEGY, {from: bob}),
+                mcontroller.harvestStrategy(MSTRATEGY, { from: bob }),
                 '!harvester'
             );
             await mcontroller.harvestStrategy(MSTRATEGY);
-            assert.approximately(Number(await mvault.getPricePerFullShare()), Number(ether('8.5')), 10 ** -12);
+            assert.approximately(
+                Number(await mvault.getPricePerFullShare()),
+                Number(ether('8.5')),
+                10 ** -12
+            );
         });
 
         it('strategy harvest directly', async () => {
-            await expectRevert(
-                mstrategy.harvest({from: bob}),
-                '!authorized'
-            );
+            await expectRevert(mstrategy.harvest({ from: bob }), '!authorized');
             await mstrategy.harvest();
-            assert.approximately(Number(await mvault.getPricePerFullShare()), Number(ether('22.75')), 10 ** -12);
+            assert.approximately(
+                Number(await mvault.getPricePerFullShare()),
+                Number(ether('22.75')),
+                10 ** -12
+            );
         });
 
         it('bob withdraw DAI', async () => {
-            await mvault.withdraw(ether('5'), DAI, {from: bob});
+            await mvault.withdraw(ether('5'), DAI, { from: bob });
             assert.equal(String(await mvault.balanceOf(bob)), ether('0'));
-            assert.ok(Number.parseFloat(await dai.balanceOf(bob)) >= Number.parseFloat(ether('994.99')), "less DAI then expected!");
+            assert.ok(
+                Number.parseFloat(await dai.balanceOf(bob)) >=
+                    Number.parseFloat(ether('994.99')),
+                'less DAI then expected!'
+            );
         });
 
         it('bob withdrawAll to T3CRV', async () => {
-            await mvault.withdrawAll(T3CRV, {from: bob});
+            await mvault.withdrawAll(T3CRV, { from: bob });
             assert.equal(String(await mvault.balanceOf(bob)), ether('0'));
             assert.equal(String(await t3crv.balanceOf(MCONTROLLER)), ether('0'));
             assert.equal(String(await t3crv.balanceOf(MSTRATEGY)), ether('0'));
             assert.equal(String(await mvault.totalSupply()), ether('0'));
-            assert.ok(Number.parseFloat(await t3crv.balanceOf(bob)) >= Number.parseFloat(ether('1005')), "less T3CRV then expected!");
+            assert.ok(
+                Number.parseFloat(await t3crv.balanceOf(bob)) >=
+                    Number.parseFloat(ether('1005')),
+                'less T3CRV then expected!'
+            );
         });
 
         it('withdrawAll by controller', async () => {
@@ -264,35 +309,75 @@ contract('StrategyCurve3Crv', async (accounts) => {
 
         it('bob deposit 10 USDT', async () => {
             const _amount = ether('10');
-            await mvault.deposit(_amount, DAI, 1, true, {from: bob});
-            assert.approximately(Number(await mstrategy.balanceOfPool()), Number(ether('9.519')), 10 ** 12);
-            assert.approximately(Number(await mcontroller.balanceOf(T3CRV)), Number(ether('9.519')), 10 ** 12);
-            assert.approximately(Number(await mvault.getPricePerFullShare()), Number(ether('1.0')), 10 ** -12);
+            await mvault.deposit(_amount, DAI, 1, true, { from: bob });
+            assert.approximately(
+                Number(await mstrategy.balanceOfPool()),
+                Number(ether('9.519')),
+                10 ** 12
+            );
+            assert.approximately(
+                Number(await mcontroller.balanceOf(T3CRV)),
+                Number(ether('9.519')),
+                10 ** 12
+            );
+            assert.approximately(
+                Number(await mvault.getPricePerFullShare()),
+                Number(ether('1.0')),
+                10 ** -12
+            );
         });
 
         it('harvest => auto-reinvest', async () => {
-            assert.approximately(Number(await crv.balanceOf(MSTRATEGY)), Number(ether('0')), 10 ** -12);
+            assert.approximately(
+                Number(await crv.balanceOf(MSTRATEGY)),
+                Number(ether('0')),
+                10 ** -12
+            );
             await mcontroller.harvestStrategy(MSTRATEGY);
-            assert.approximately(Number(await crv.balanceOf(MSTRATEGY)), Number(ether('0')), 10 ** -12);
-            assert.approximately(Number(await mstrategy.balanceOfPool()), Number(ether('213.1755')), 10 ** 12);
-            assert.approximately(Number(await mcontroller.balanceOf(T3CRV)), Number(ether('213.1755')), 10 ** 12);
-            assert.approximately(Number(await mvault.getPricePerFullShare()), Number(ether('21.325')), 10 ** 6);
+            assert.approximately(
+                Number(await crv.balanceOf(MSTRATEGY)),
+                Number(ether('0')),
+                10 ** -12
+            );
+            assert.approximately(
+                Number(await mstrategy.balanceOfPool()),
+                Number(ether('213.1755')),
+                10 ** 12
+            );
+            assert.approximately(
+                Number(await mcontroller.balanceOf(T3CRV)),
+                Number(ether('213.1755')),
+                10 ** 12
+            );
+            assert.approximately(
+                Number(await mvault.getPricePerFullShare()),
+                Number(ether('21.325')),
+                10 ** 6
+            );
         });
 
         it('harvest => auto-reinvest', async () => {
-            assert.approximately(Number(await crv.balanceOf(MSTRATEGY)), Number(ether('0')), 10 ** -12);
+            assert.approximately(
+                Number(await crv.balanceOf(MSTRATEGY)),
+                Number(ether('0')),
+                10 ** -12
+            );
             const harvester = await yAxisMetaVaultHarvester.new(VMANAGER, MCONTROLLER);
             await vmanager.setHarvester(harvester.address);
             await harvester.setController(MCONTROLLER);
             await harvester.addStrategy(T3CRV, MSTRATEGY, 0);
             await harvester.setHarvester(bob, true);
             assert.isTrue(await harvester.isHarvester(bob));
-            await harvester.harvest(MCONTROLLER, MSTRATEGY, {from: bob});
-            assert.approximately(Number(await crv.balanceOf(MSTRATEGY)), Number(ether('0')), 10 ** -12);
+            await harvester.harvest(MCONTROLLER, MSTRATEGY, { from: bob });
+            assert.approximately(
+                Number(await crv.balanceOf(MSTRATEGY)),
+                Number(ether('0')),
+                10 ** -12
+            );
             await crv.mint(MINTER, INIT_BALANCE);
             await t3crv.mint(STABLESWAP3POOL, INIT_BALANCE);
-            await harvester.harvest(MCONTROLLER, MSTRATEGY, {from: bob});
-            await mvault.withdrawAll(T3CRV, {from: bob});
+            await harvester.harvest(MCONTROLLER, MSTRATEGY, { from: bob });
+            await mvault.withdrawAll(T3CRV, { from: bob });
         });
 
         it('claim Insurance Fund by governance', async () => {
@@ -301,13 +386,29 @@ contract('StrategyCurve3Crv', async (accounts) => {
             await vmanager.setWithdrawalProtectionFee(10); // 0.1%
             await mcontroller.setInvestEnabled(false); // disabled invest
             const _amount = ether('10');
-            await mvault.deposit(_amount, T3CRV, 1, true, {from: bob});
-            assert.approximately(Number(await t3crv.balanceOf(treasury)), Number(ether('0')), 10 ** -12);
-            assert.approximately(Number(await mvault.insurance()), Number(ether('0.01')), 10 ** -12);
+            await mvault.deposit(_amount, T3CRV, 1, true, { from: bob });
+            assert.approximately(
+                Number(await t3crv.balanceOf(treasury)),
+                Number(ether('0')),
+                10 ** -12
+            );
+            assert.approximately(
+                Number(await mvault.insurance()),
+                Number(ether('0.01')),
+                10 ** -12
+            );
             await mvault.claimInsurance();
-            assert.approximately(Number(await t3crv.balanceOf(treasury)), Number(ether('0.01')), 10 ** -12);
-            assert.approximately(Number(await mvault.insurance()), Number(ether('0')), 10 ** -12);
-            await mvault.withdrawAll(T3CRV, {from: bob});
+            assert.approximately(
+                Number(await t3crv.balanceOf(treasury)),
+                Number(ether('0.01')),
+                10 ** -12
+            );
+            assert.approximately(
+                Number(await mvault.insurance()),
+                Number(ether('0')),
+                10 ** -12
+            );
+            await mvault.withdrawAll(T3CRV, { from: bob });
         });
     });
 });

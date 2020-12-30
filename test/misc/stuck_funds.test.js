@@ -1,10 +1,4 @@
-const {
-    constants,
-    ether,
-    expectEvent,
-    expectRevert,
-    time
-} = require('@openzeppelin/test-helpers');
+const { constants, ether, expectRevert } = require('@openzeppelin/test-helpers');
 
 const yAxisMetaVault = artifacts.require('yAxisMetaVault');
 const yAxisMetaVaultManager = artifacts.require('yAxisMetaVaultManager');
@@ -27,14 +21,8 @@ function fromWeiWithDecimals(num, decimals = 18) {
     return num.toFixed(2);
 }
 
-async function advanceBlocks(blocks) {
-    for (let i = 0; i < blocks; i++) {
-        await time.advanceBlock();
-    }
-}
-
 contract('stuck_funds.test', async (accounts) => {
-    const {fromWei} = web3.utils;
+    const { fromWei } = web3.utils;
     const deployer = accounts[0];
     const treasury = accounts[1];
     const stakingPool = accounts[2];
@@ -43,8 +31,20 @@ contract('stuck_funds.test', async (accounts) => {
     const MAX = web3.utils.toTwosComplement(-1);
     const INIT_BALANCE = ether('1000');
 
-    let YAX; let DAI; let USDC; let USDT; let WETH; let T3CRV; let PICKLE; // addresses
-    let yax; let dai; let usdc; let usdt; let weth; let t3crv; let pickle; // MockERC20s
+    let YAX;
+    let DAI;
+    let USDC;
+    let USDT;
+    let WETH;
+    let T3CRV;
+    let PICKLE; // addresses
+    let yax;
+    let dai;
+    let usdc;
+    let usdt;
+    let weth;
+    let t3crv;
+    let pickle; // MockERC20s
 
     let mvault;
     let MVAULT;
@@ -93,7 +93,15 @@ contract('stuck_funds.test', async (accounts) => {
         // constructor (IERC20 _tokenDAI, IERC20 _tokenUSDC, IERC20 _tokenUSDT, IERC20 _token3CRV, IERC20 _tokenYAX, uint _yaxPerBlock, uint _startBlock)
         const _yaxPerBlock = ether('1');
         const _startBlock = 1;
-        mvault = await yAxisMetaVault.new(DAI, USDC, USDT, T3CRV, YAX, _yaxPerBlock, _startBlock);
+        mvault = await yAxisMetaVault.new(
+            DAI,
+            USDC,
+            USDT,
+            T3CRV,
+            YAX,
+            _yaxPerBlock,
+            _startBlock
+        );
         MVAULT = mvault.address;
 
         // constructor (IERC20 _yax)
@@ -105,7 +113,14 @@ contract('stuck_funds.test', async (accounts) => {
         STABLESWAP3POOL = stableSwap3Pool.address;
 
         // constructor (IERC20 _tokenDAI, IERC20 _tokenUSDC, IERC20 _tokenUSDT, IERC20 _token3CRV, IStableSwap3Pool _stableSwap3Pool, IVaultManager _vaultMaster)
-        converter = await StableSwap3PoolConverter.new(DAI, USDC, USDT, T3CRV, STABLESWAP3POOL, VMANAGER);
+        converter = await StableSwap3PoolConverter.new(
+            DAI,
+            USDC,
+            USDT,
+            T3CRV,
+            STABLESWAP3POOL,
+            VMANAGER
+        );
         CONVERTER = converter.address;
 
         // constructor (IERC20 _t3crv)
@@ -122,7 +137,19 @@ contract('stuck_funds.test', async (accounts) => {
         MCONTROLLER = mcontroller.address;
 
         // constructor(address _want, address _p3crv, address _pickle, address _weth, address _t3crv, address _dai, address _usdc, address _usdt, address _controller, IVaultManager _vaultManager)
-        mstrategy = await StrategyPickle3Crv.new(T3CRV, PJAR, PICKLE, WETH, T3CRV, DAI, USDC, USDT, STABLESWAP3POOL, MCONTROLLER, VMANAGER);
+        mstrategy = await StrategyPickle3Crv.new(
+            T3CRV,
+            PJAR,
+            PICKLE,
+            WETH,
+            T3CRV,
+            DAI,
+            USDC,
+            USDT,
+            STABLESWAP3POOL,
+            MCONTROLLER,
+            VMANAGER
+        );
         MSTRATEGY = mstrategy.address;
 
         unirouter = await MockUniswapRouter.new(constants.ZERO_ADDRESS);
@@ -144,11 +171,11 @@ contract('stuck_funds.test', async (accounts) => {
         await mstrategy.setPickleMasterChef(PCHEF);
         await mstrategy.setStableForLiquidity(DAI);
 
-        await dai.approve(MVAULT, MAX, {from: bob});
-        await usdc.approve(MVAULT, MAX, {from: bob});
-        await usdt.approve(MVAULT, MAX, {from: bob});
-        await t3crv.approve(MVAULT, MAX, {from: bob});
-        await mvault.approve(MVAULT, MAX, {from: bob});
+        await dai.approve(MVAULT, MAX, { from: bob });
+        await usdc.approve(MVAULT, MAX, { from: bob });
+        await usdt.approve(MVAULT, MAX, { from: bob });
+        await t3crv.approve(MVAULT, MAX, { from: bob });
+        await mvault.approve(MVAULT, MAX, { from: bob });
 
         await yax.mint(MVAULT, INIT_BALANCE);
         await dai.mint(STABLESWAP3POOL, INIT_BALANCE);
@@ -173,25 +200,18 @@ contract('stuck_funds.test', async (accounts) => {
         console.log('pjar T3CRV:           ', fromWei(await t3crv.balanceOf(PJAR)));
         console.log('pchef PJAR:           ', fromWei(await pjar.balanceOf(PCHEF)));
         console.log('-------------------');
-        console.log('bob balances: %s DAI/ %s USDC/ %s USDT/ %s T3CRV/ %s YAX', fromWei(await dai.balanceOf(bob)),
+        console.log(
+            'bob balances: %s DAI/ %s USDC/ %s USDT/ %s T3CRV/ %s YAX',
+            fromWei(await dai.balanceOf(bob)),
             fromWeiWithDecimals(await usdc.balanceOf(bob), 6),
             fromWeiWithDecimals(await usdt.balanceOf(bob), 6),
             fromWei(await t3crv.balanceOf(bob)),
-            fromWei(await yax.balanceOf(bob)));
+            fromWei(await yax.balanceOf(bob))
+        );
         console.log('bob MVLT:        ', fromWei(await mvault.balanceOf(bob)));
         console.log('-------------------');
         console.log('deployer WETH:   ', fromWei(await weth.balanceOf(deployer)));
         console.log('stakingPool YAX: ', fromWei(await yax.balanceOf(stakingPool)));
-        console.log('-------------------');
-    }
-
-    async function printStakeInfo(account_name, account) {
-        console.log('yaxPerBlock:        ', fromWei(await mvault.yaxPerBlock()));
-        console.log('lastRewardBlock:    ', String(await mvault.lastRewardBlock()));
-        console.log('accYaxPerShare:     ', fromWei(await mvault.accYaxPerShare()));
-        const userInfo = await mvault.userInfo(account);
-        console.log('%s UserInfo:        ', account_name, JSON.stringify(userInfo));
-        console.log('%s amount:          ', account_name, fromWei(userInfo.amount));
         console.log('-------------------');
     }
 
@@ -210,10 +230,18 @@ contract('stuck_funds.test', async (accounts) => {
     describe('rescue stuck fund in controller & strategy should work', () => {
         it('deposit', async () => {
             const _amount = ether('10');
-            await mvault.deposit(_amount, DAI, 1, true, {from: bob});
+            await mvault.deposit(_amount, DAI, 1, true, { from: bob });
             assert.equal(String(await dai.balanceOf(bob)), ether('990'));
-            assert.approximately(Number(await mcontroller.balanceOf(T3CRV)), Number(ether('9.519')), 10 ** -12);
-            assert.approximately(Number(await mvault.getPricePerFullShare()), Number(ether('1')), 10 ** -12);
+            assert.approximately(
+                Number(await mcontroller.balanceOf(T3CRV)),
+                Number(ether('9.519')),
+                10 ** -12
+            );
+            assert.approximately(
+                Number(await mvault.getPricePerFullShare()),
+                Number(ether('1')),
+                10 ** -12
+            );
         });
 
         it('stuck WETH in strategy', async () => {
@@ -241,11 +269,8 @@ contract('stuck_funds.test', async (accounts) => {
             await t3crv.mint(MSTRATEGY, ether('1'));
             assert.equal(String(await t3crv.balanceOf(MSTRATEGY)), ether('1'));
             assert.equal(String(await t3crv.balanceOf(MCONTROLLER)), ether('0')); // controller has no T3CRV
-            await expectRevert(
-                mcontroller.inCaseStrategyGetStuck(MSTRATEGY, T3CRV),
-                'want'
-            );
-            await mstrategy.skim()
+            await expectRevert(mcontroller.inCaseStrategyGetStuck(MSTRATEGY, T3CRV), 'want');
+            await mstrategy.skim();
             assert.equal(String(await t3crv.balanceOf(MSTRATEGY)), ether('0'));
             assert.equal(String(await t3crv.balanceOf(MCONTROLLER)), ether('1')); // controller has T3CRV now
             await mcontroller.inCaseTokensGetStuck(T3CRV, ether('1'));

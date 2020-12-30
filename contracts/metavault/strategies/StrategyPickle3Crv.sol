@@ -16,7 +16,8 @@ contract StrategyPickle3Crv is BaseStrategy {
     address public pickle = address(0x429881672B9AE42b8EbA0E26cD9C73711b891Ca5);
     address public t3crv = address(0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490);
 
-    // for add_liquidity via curve.fi to get back 3CRV (set stableForAddLiquidity for the best stable coin used in the route)
+    // for add_liquidity via curve.fi to get back 3CRV
+    // (set stableForAddLiquidity for the best stable coin used in the route)
     address public dai = address(0x6B175474E89094C44Da98b954EedeAC495271d0F);
     address public usdc = address(0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48);
     address public usdt = address(0xdAC17F958D2ee523a2206206994597C13D831ec7);

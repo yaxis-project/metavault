@@ -1,0 +1,5 @@
+node_modules/
+contracts/interfaces/
+contracts/metavault/mock/
+# Make no changes to existing yAxisMetaVault contract
+contracts/metavault/yAxisMetaVault.sol

@@ -18,6 +18,14 @@ interface Balancer {
         uint tokenAmountOut,
         uint maxPrice
     ) external returns (uint tokenAmountIn, uint spotPriceAfter);
-    function joinswapExternAmountIn(address tokenIn, uint tokenAmountIn, uint minPoolAmountOut) external returns (uint poolAmountOut);
-    function exitswapPoolAmountIn(address tokenOut, uint poolAmountIn, uint minAmountOut) external returns (uint tokenAmountOut);
+    function joinswapExternAmountIn(
+        address tokenIn,
+        uint tokenAmountIn,
+        uint minPoolAmountOut
+    ) external returns (uint poolAmountOut);
+    function exitswapPoolAmountIn(
+        address tokenOut,
+        uint poolAmountIn,
+        uint minAmountOut
+    ) external returns (uint tokenAmountOut);
 }

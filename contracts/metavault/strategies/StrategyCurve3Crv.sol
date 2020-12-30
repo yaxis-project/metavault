@@ -125,7 +125,7 @@ contract StrategyCurve3Crv is BaseStrategy {
         return gauge.balanceOf(address(this));
     }
 
-    function claimable_tokens() external view returns (uint) {
+    function claimableTokens() external view returns (uint) {
         return gauge.claimable_tokens(address(this));
     }
 }
