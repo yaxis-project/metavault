@@ -283,6 +283,7 @@ contract('StrategyControllerV2', async (accounts) => {
         await expectRevert(mcontroller.setVaultManager(bob, { from: bob }), '!governance');
         await expectRevert(mcontroller.setCap(bob, bob, 0, { from: bob }), '!strategist');
         await expectRevert(mcontroller.setInvestEnabled(false, { from: bob }), '!strategist');
+        await expectRevert(mcontroller.setMaxStrategies(5, { from: bob }), '!strategist');
         await expectRevert(mcontroller.withdrawAll(bob, { from: bob }), '!strategist');
         await expectRevert(
             mcontroller.inCaseTokensGetStuck(bob, 0, { from: bob }),
@@ -322,6 +323,15 @@ contract('StrategyControllerV2', async (accounts) => {
         await expectEvent.inTransaction(tx.tx, mcontroller, 'Earn', {
             strategy: MSTRATEGYCRV
         });
+    });
+
+    it('should obey maximum strategies amount', async () => {
+        await mcontroller.setMaxStrategies(1);
+        await expectRevert(
+            mcontroller.addStrategy(T3CRV, MSTRATEGYPICKLE, ether('10')),
+            '!maxStrategies'
+        );
+        await mcontroller.setMaxStrategies(10);
     });
 
     it('should add an additional strategy', async () => {

@@ -20,6 +20,7 @@ contract StrategyControllerV2 is IController {
     using SafeMath for uint256;
 
     bool public globalInvestEnabled;
+    uint256 public maxStrategies;
     IVaultManager public vaultManager;
 
     struct TokenStrategy {
@@ -80,6 +81,7 @@ contract StrategyControllerV2 is IController {
     constructor(address _vaultManager) public {
         vaultManager = IVaultManager(_vaultManager);
         globalInvestEnabled = true;
+        maxStrategies = 10;
     }
 
     /**
@@ -108,6 +110,8 @@ contract StrategyControllerV2 is IController {
         }
         // get the index of the newly added strategy
         uint256 index = tokenStrategies[_token].strategies.length;
+        // ensure we haven't added too many strategies already
+        require(index < maxStrategies, "!maxStrategies");
         // push the strategy to the array of strategies
         tokenStrategies[_token].strategies.push(_strategy);
         // set the cap
@@ -286,6 +290,15 @@ contract StrategyControllerV2 is IController {
      */
     function setInvestEnabled(bool _investEnabled) external onlyStrategist {
         globalInvestEnabled = _investEnabled;
+    }
+
+    /**
+     * @notice Sets/updates the maximum number of strategies for a token
+     * @dev Only callable by governance or strategist
+     * @param _maxStrategies The new value of the maximum strategies
+     */
+    function setMaxStrategies(uint256 _maxStrategies) external onlyStrategist {
+      maxStrategies = _maxStrategies;
     }
 
     /**
