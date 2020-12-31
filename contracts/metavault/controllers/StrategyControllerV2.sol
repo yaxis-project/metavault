@@ -38,8 +38,6 @@ contract StrategyControllerV2 is IController {
     mapping(address => address) public override vaults;
     // vault => token
     mapping(address => address) public vaultTokens;
-    // token => fee
-    mapping(address => uint256) internal withdrawalFees;
 
     /**
      * @notice Logged when earn is called for a strategy
@@ -314,18 +312,6 @@ contract StrategyControllerV2 is IController {
     }
 
     /**
-     * @notice Sets the withdrawal fee for a given token
-     * @param _token The address of the token
-     * @param _withdrawalFee The withdrawal fee
-     */
-    function setWithdrawalFee(
-        address _token,
-        uint256 _withdrawalFee
-    ) external onlyStrategist {
-        withdrawalFees[_token] = _withdrawalFee;
-    }
-
-    /**
      * @notice Withdraws all funds from a strategy
      * @dev Only callable by governance or the strategist
      * @param _strategy The address of the strategy
@@ -460,14 +446,13 @@ contract StrategyControllerV2 is IController {
 
     /**
      * @notice Returns the fee for withdrawing a specified amount
-     * @param _token The address of the token
      * @param _amount The amount that will be withdrawn
      */
     function withdrawFee(
-        address _token,
+        address,
         uint256 _amount
     ) external view override returns (uint256 _fee) {
-        return withdrawalFees[_token].mul(_amount);
+        return vaultManager.withdrawalProtectionFee().mul(_amount).div(10000);
     }
 
     /**
