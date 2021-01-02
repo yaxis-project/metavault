@@ -4,6 +4,8 @@ const yAxisMetaVault = artifacts.require('yAxisMetaVault');
 const yAxisMetaVaultManager = artifacts.require('yAxisMetaVaultManager');
 const yAxisMetaVaultHarvester = artifacts.require('yAxisMetaVaultHarvester');
 
+const StableSwap3PoolConverter = artifacts.require('StableSwap3PoolConverter');
+
 const StrategyControllerV1 = artifacts.require('StrategyControllerV1');
 const StrategyControllerV2 = artifacts.require('StrategyControllerV2');
 const StrategyCurve3Crv = artifacts.require('StrategyCurve3Crv');
@@ -24,6 +26,7 @@ function fromWeiWithDecimals(num, decimals = 18) {
 const deployer = '0x5661bF295f48F499A70857E8A6450066a8D16400';
 const multisig = '0xC1d40e197563dF727a4d3134E8BD1DeF4B498C6f';
 const timelock = '0x66C5c16d13a38461648c1D097f219762D374B412';
+const stakingPool = '0xeF31Cb88048416E301Fee1eA13e7664b887BA7e8';
 const bob = '0x3f5CE5FBFe3E9af3971dD833D26bA9b5C936f0bE';
 
 contract('multi_strategy_controller_live.test', async (accounts) => {
@@ -48,6 +51,9 @@ contract('multi_strategy_controller_live.test', async (accounts) => {
     let vharvester;
     let VHARVESTER;
 
+    let converter;
+    let CONVERTER;
+
     let STABLESWAP3POOL;
 
     let GAUGE;
@@ -66,6 +72,8 @@ contract('multi_strategy_controller_live.test', async (accounts) => {
 
     let oldController;
     let OLDCONTROLLER;
+
+    let OLDMSTRATEGYCRV;
 
     let mstrategyCrv;
     let MSTRATEGYCRV;
@@ -115,6 +123,7 @@ contract('multi_strategy_controller_live.test', async (accounts) => {
         MVAULT = '0xBFbEC72F2450eF9Ab742e4A27441Fa06Ca79eA6a';
         STABLESWAP3POOL = '0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7';
         OLDCONTROLLER = '0x2ebE1461D2Fc6dabF079882CFc51e5013BbA49B6';
+        OLDMSTRATEGYCRV = '0xd721d16a685f63A4e8C4e8c5988b76Bec6A85c90';
         GAUGE = '0xbFcF63294aD7105dEa65aA58F8AE5BE2D9d0952A';
         MINTER = '0xd061D61a4d941c39E5453435B6345Dc261C2fcE0';
         PJAR = '0x1BB74b5DdC1f4fC91D6f9E7906cf68bc93538e33';
@@ -167,8 +176,6 @@ contract('multi_strategy_controller_live.test', async (accounts) => {
         console.log('mvault Supply:      ', fromWei(await mvault.totalSupply()));
         console.log('--------------------');
         if (typeof MCONTROLLER != 'undefined') {
-            console.log('mcontroller T3CRV:  ', fromWei(await t3crv.balanceOf(MCONTROLLER)));
-            console.log('oldController T3CRV:', fromWei(await t3crv.balanceOf(OLDCONTROLLER)));
             console.log('mstrategy T3CRV:    ', fromWei(await mstrategyCrv.balanceOf()));
             console.log('mstrategy PICKLE:   ', fromWei(await mstrategyPickle.balanceOf()));
             console.log('pjar T3CRV:         ', fromWei(await t3crv.balanceOf(PJAR)));
@@ -211,6 +218,17 @@ contract('multi_strategy_controller_live.test', async (accounts) => {
         });
         VHARVESTER = vharvester.address;
 
+        converter = await StableSwap3PoolConverter.new(
+            DAI,
+            USDC,
+            USDT,
+            T3CRV,
+            STABLESWAP3POOL,
+            VMANAGER,
+            { from: deployer }
+        );
+        CONVERTER = converter.address;
+
         mstrategyCrv = await StrategyCurve3Crv.new(
             T3CRV,
             CRV,
@@ -247,41 +265,81 @@ contract('multi_strategy_controller_live.test', async (accounts) => {
 
     it('should prepare the old controller and vault', async () => {
         await oldController.setInvestEnabled(false, { from: multisig });
-        await oldController.withdrawAll('0xd721d16a685f63A4e8C4e8c5988b76Bec6A85c90', {
+        await oldController.withdrawAll(OLDMSTRATEGYCRV, {
             from: multisig
         });
     });
 
     it('should setup the vault manager', async () => {
+        await vmanager.setVaultStatus(MVAULT, true, { from: deployer });
+        assert.isTrue(await vmanager.vaults(MVAULT));
+        await vmanager.setControllerStatus(MCONTROLLER, true, { from: deployer });
+        assert.isTrue(await vmanager.controllers(MCONTROLLER));
+        await vmanager.setTreasury(multisig, { from: deployer });
+        assert.equal(multisig, await vmanager.treasury());
+        await vmanager.setStakingPool(stakingPool, { from: deployer });
+        assert.equal(stakingPool, await vmanager.stakingPool());
         await vmanager.setHarvester(VHARVESTER, { from: deployer });
-        await vmanager.setStrategist(multisig, { from: deployer });
-        await vmanager.setGovernance(timelock, { from: deployer });
+        assert.equal(VHARVESTER, await vmanager.harvester());
     });
 
     it('should setup the new strategies and harvester', async () => {
-        await mstrategyPickle.setStableForLiquidity(DAI, { from: multisig });
-        await vharvester.setHarvester(deployer, true, { from: multisig });
-        await vharvester.addStrategy(T3CRV, MSTRATEGYCRV, 86400, { from: multisig });
-        await vharvester.addStrategy(T3CRV, MSTRATEGYPICKLE, 43200, { from: multisig });
+        await mstrategyPickle.setStableForLiquidity(DAI, { from: deployer });
+        await vharvester.setVaultManager(VMANAGER, { from: deployer });
+        assert.equal(VMANAGER, await vharvester.vaultManager());
+        await vharvester.setController(MCONTROLLER, { from: deployer });
+        assert.equal(MCONTROLLER, await vharvester.controller());
+        await vharvester.setHarvester(deployer, true, { from: deployer });
+        assert.isTrue(await vharvester.isHarvester(deployer));
+        await vharvester.addStrategy(T3CRV, MSTRATEGYCRV, 86400, { from: deployer });
+        await vharvester.addStrategy(T3CRV, MSTRATEGYPICKLE, 43200, { from: deployer });
+        const strategyAddresses = await vharvester.strategyAddresses(T3CRV);
+        assert.equal(2, strategyAddresses.length);
+        assert.equal(MSTRATEGYCRV, strategyAddresses[0]);
+        assert.equal(MSTRATEGYPICKLE, strategyAddresses[1]);
     });
 
     it('should setup the new controller', async () => {
-        await mcontroller.setVault(T3CRV, MVAULT, { from: multisig });
-        await mcontroller.addStrategy(T3CRV, MSTRATEGYCRV, 0, { from: timelock });
-        await mcontroller.addStrategy(T3CRV, MSTRATEGYPICKLE, ether('2000000'), {
-            from: timelock
+        await mcontroller.setConverter(T3CRV, DAI, CONVERTER, { from: deployer });
+        await mcontroller.setConverter(T3CRV, USDT, CONVERTER, { from: deployer });
+        await mcontroller.setConverter(T3CRV, USDC, CONVERTER, { from: deployer });
+        assert.equal(CONVERTER, await mcontroller.converters(T3CRV, DAI));
+        assert.equal(CONVERTER, await mcontroller.converters(T3CRV, USDT));
+        assert.equal(CONVERTER, await mcontroller.converters(T3CRV, USDC));
+        await mcontroller.setVault(T3CRV, MVAULT, { from: deployer });
+        assert.equal(MVAULT, await mcontroller.vaults(T3CRV));
+        await mcontroller.addStrategy(T3CRV, MSTRATEGYCRV, 0, { from: deployer });
+        await mcontroller.addStrategy(T3CRV, MSTRATEGYPICKLE, ether('1000000'), {
+            from: deployer
         });
+        const strategies = await mcontroller.strategies(T3CRV);
+        assert.equal(2, strategies.length);
+        assert.equal(MSTRATEGYCRV, strategies[0]);
+        assert.equal(MSTRATEGYPICKLE, strategies[1]);
+    });
+
+    it('should pass governance and strategist over', async () => {
+        await vmanager.setStrategist(multisig, { from: deployer });
+        assert.equal(multisig, await vmanager.strategist());
+        await vmanager.setGovernance(timelock, { from: deployer });
+        assert.equal(timelock, await vmanager.governance());
     });
 
     it('should set the new controller on the vault', async () => {
+        assert.equal(OLDCONTROLLER, await mvault.controller());
         await mvault.setController(MCONTROLLER, { from: timelock });
+        assert.equal(MCONTROLLER, await mvault.controller());
     });
 
     it('should call earn to transfer funds to Curve strategy', async () => {
+        assert.equal(0, await mstrategyCrv.balanceOf());
         await mvault.earn({ from: deployer });
+        assert.isTrue((await mstrategyCrv.balanceOf()).gt(ether('1000000')));
     });
 
     it('should send new deposits go to the Pickle strategy', async () => {
+        assert.equal(0, await mstrategyPickle.balanceOf());
         await mvault.deposit(ether('100'), DAI, 1, true, { from: bob });
+        assert.isTrue((await mstrategyPickle.balanceOf()).gt(ether('100')));
     });
 });
