@@ -280,7 +280,7 @@ contract('yAxisMetaVault', async (accounts) => {
         });
 
         it('exchange DAI to USDC', async () => {
-            await converter.setGovernance(bob);
+            await vmanager.setGovernance(bob);
             await dai.transfer(CONVERTER, toWei('10'), { from: bob });
             await converter.exchange(0, 1, toWei('10'), 1, { from: bob });
             assert.ok(

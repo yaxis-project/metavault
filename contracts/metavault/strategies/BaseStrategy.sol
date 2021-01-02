@@ -143,9 +143,10 @@ abstract contract BaseStrategy is IStrategy {
             _amount = _amount.add(_balance);
         }
 
-        address _vault = IController(controller).vaults(address(want));
+        address _token = _vaultWant();
+        address _vault = IController(controller).vaults(_token);
         require(_vault != address(0), "!vault"); // additional protection so we don't burn the funds
-        IERC20(want).safeTransfer(_vault, _amount);
+        IERC20(_token).safeTransfer(_vault, _amount);
     }
 
     /**
@@ -154,11 +155,12 @@ abstract contract BaseStrategy is IStrategy {
     function withdrawAll() external override onlyAuthorized returns (uint256 _balance) {
         _withdrawAll();
 
-        _balance = balanceOfWant();
+        address _token = _vaultWant();
+        _balance = IERC20(_token).balanceOf(address(this));
 
-        address _vault = IController(controller).vaults(address(want));
+        address _vault = IController(controller).vaults(_token);
         require(_vault != address(0), "!vault"); // additional protection so we don't burn the funds
-        IERC20(want).safeTransfer(_vault, _balance);
+        IERC20(_token).safeTransfer(_vault, _balance);
     }
 
     /**
@@ -247,14 +249,19 @@ abstract contract BaseStrategy is IStrategy {
         );
     }
 
+    function _vaultWant() internal returns (address) {
+        return IController(controller).strategyTokens(address(this));
+    }
+
     function _withdraw(uint256 _amount) internal virtual;
 
     function _withdrawAll() internal virtual;
 
     function _withdrawSome(uint256 _amount) internal returns (uint256) {
-        uint256 _before = IERC20(want).balanceOf(address(this));
+        address _token = _vaultWant();
+        uint256 _before = IERC20(_token).balanceOf(address(this));
         _withdraw(_amount);
-        uint256 _after = IERC20(want).balanceOf(address(this));
+        uint256 _after = IERC20(_token).balanceOf(address(this));
         _amount = _after.sub(_before);
 
         return _amount;

@@ -5,9 +5,9 @@ import "@openzeppelin/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import "../IController.sol";
+import "../IConverter.sol";
 import "../IMetaVault.sol";
 import "../IStrategy.sol";
-import "../IStrategyControllerConverter.sol";
 import "../IVaultManager.sol";
 
 /**
@@ -34,6 +34,8 @@ contract StrategyControllerV2 is IController {
     mapping(address => mapping(address => address)) public converters;
     // token => TokenStrategy
     mapping(address => TokenStrategy) internal tokenStrategies;
+    // strategy => token
+    mapping(address => address) public override strategyTokens;
     // token => vault
     mapping(address => address) public override vaults;
     // vault => token
@@ -118,6 +120,8 @@ contract StrategyControllerV2 is IController {
         tokenStrategies[_token].index[_strategy] = index;
         // activate the strategy
         tokenStrategies[_token].active[_strategy] = true;
+        // store the reverse mapping
+        strategyTokens[_strategy] = _token;
         emit StrategyAdded(_token, _strategy, _cap);
     }
 
@@ -353,9 +357,13 @@ contract StrategyControllerV2 is IController {
         // if the depositing token is not what the strategy wants, convert it
         // then transfer it to the strategy
         if (_want != _token) {
-            address converter = converters[_token][_want];
-            IERC20(_token).safeTransfer(converter, _amount);
-            _amount = IStrategyControllerConverter(converter).convert(_strategy);
+            address _converter = converters[_token][_want];
+            IERC20(_token).safeTransfer(_converter, _amount);
+            _amount = IConverter(_converter).convert(
+                _token,
+                _want,
+                _amount
+            );
             IERC20(_want).safeTransfer(_strategy, _amount);
         } else {
             IERC20(_token).safeTransfer(_strategy, _amount);
@@ -402,7 +410,18 @@ contract StrategyControllerV2 is IController {
     function balanceOf(address _token) external view override returns (uint256 _balance) {
         uint256 k = tokenStrategies[_token].strategies.length;
         for (uint i = 0; i < k; i++) {
-            _balance = _balance.add(IStrategy(tokenStrategies[_token].strategies[i]).balanceOf());
+            IStrategy _strategy = IStrategy(tokenStrategies[_token].strategies[i]);
+            address _want = _strategy.want();
+            if (_want != _token) {
+                address _converter = converters[_token][_want];
+                _balance = _balance.add(IConverter(_converter).convert_rate(
+                    _want,
+                    _token,
+                    _strategy.balanceOf()
+               ));
+            } else {
+                _balance = _balance.add(_strategy.balanceOf());
+            }
         }
     }
 
