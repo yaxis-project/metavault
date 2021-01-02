@@ -31,6 +31,7 @@ contract yAxisMetaVaultManager is IVaultManager { // solhint-disable-line contra
     uint256 public override withdrawalProtectionFee;
 
     mapping(address => bool) public override vaults;
+    mapping(address => bool) public override controllers;
 
     /**
      * @param _yax The address of the YAX token
@@ -169,6 +170,16 @@ contract yAxisMetaVaultManager is IVaultManager { // solhint-disable-line contra
     /**
      * (GOVERNANCE|STRATEGIST)-ONLY FUNCTIONS
      */
+
+    /**
+     * @notice Sets the status for a controller
+     * @param _controller The address of the controller
+     * @param _status The status of the controller
+     */
+    function setControllerStatus(address _controller, bool _status) external {
+        require(msg.sender == strategist || msg.sender == governance, "!strategist");
+        controllers[_controller] = _status;
+    }
 
     /**
      * @notice Sets the harvester address
