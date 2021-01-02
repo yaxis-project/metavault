@@ -342,4 +342,8 @@ contract('multi_strategy_controller_live.test', async (accounts) => {
         await mvault.deposit(ether('100'), DAI, 1, true, { from: bob });
         assert.isTrue((await mstrategyPickle.balanceOf()).gt(ether('100')));
     });
+
+    it('should harvest', async () => {
+        await vharvester.harvestNextStrategy(T3CRV, { from: deployer });
+    });
 });

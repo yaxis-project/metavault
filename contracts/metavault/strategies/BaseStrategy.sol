@@ -218,24 +218,26 @@ abstract contract BaseStrategy is IStrategy {
                 uint256 insurancePoolFee
             ) = vaultManager.getHarvestFeeInfo();
 
+            uint256 _fee;
+
             // pay the staking pool with YAX
             if (stakingPoolShareFee > 0 && stakingPool != address(0)) {
-                uint256 _stakingPoolShareFee = _wethBal.mul(stakingPoolShareFee).div(ONE_HUNDRED_PERCENT);
-                _swapTokens(weth, yax, _stakingPoolShareFee);
+                _fee = _wethBal.mul(stakingPoolShareFee).div(ONE_HUNDRED_PERCENT);
+                _swapTokens(weth, yax, _fee);
                 IERC20(yax).safeTransfer(stakingPool, IERC20(yax).balanceOf(address(this)));
             }
 
             // pay the treasury with YAX
             if (treasuryFee > 0 && treasury != address(0)) {
-                uint256 _treasuryFee = _wethBal.mul(treasuryFee).div(ONE_HUNDRED_PERCENT);
-                _swapTokens(weth, yax, _treasuryFee);
+                _fee = _wethBal.mul(treasuryFee).div(ONE_HUNDRED_PERCENT);
+                _swapTokens(weth, yax, _fee);
                 IERC20(yax).safeTransfer(treasury, IERC20(yax).balanceOf(address(this)));
             }
 
             // pay the insurance pool with YAX
             if (insurancePoolFee > 0 && insurance != address(0)) {
-                uint256 _insuranceFee = _wethBal.mul(insurancePoolFee).div(ONE_HUNDRED_PERCENT);
-                _swapTokens(weth, yax, _insuranceFee);
+                _fee = _wethBal.mul(insurancePoolFee).div(ONE_HUNDRED_PERCENT);
+                _swapTokens(weth, yax, _fee);
                 IERC20(yax).safeTransfer(insurance, IERC20(yax).balanceOf(address(this)));
             }
 
