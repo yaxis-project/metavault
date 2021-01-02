@@ -15,6 +15,7 @@ import "./IVaultManager.sol";
 contract yAxisMetaVaultManager is IVaultManager { // solhint-disable-line contract-name-camelcase
     address public override governance;
     address public override harvester;
+    address public override insurancePool;
     address public override stakingPool;
     address public override strategist;
     address public override treasury;
@@ -25,6 +26,7 @@ contract yAxisMetaVaultManager is IVaultManager { // solhint-disable-line contra
      *  They are updated by governance (community vote).
      */
     uint256 public override insuranceFee;
+    uint256 public override insurancePoolFee;
     uint256 public override stakingPoolShareFee;
     uint256 public override treasuryBalance;
     uint256 public override treasuryFee;
@@ -85,6 +87,26 @@ contract yAxisMetaVaultManager is IVaultManager { // solhint-disable-line contra
         require(msg.sender == governance, "!governance");
         require(_insuranceFee <= 100, "_insuranceFee over 1%");
         insuranceFee = _insuranceFee;
+    }
+
+    /**
+     * @notice Sets the insurance pool address
+     * @param _insurancePool The address of the insurance pool
+     */
+    function setInsurancePool(address _insurancePool) public {
+        require(msg.sender == governance, "!governance");
+        insurancePool = _insurancePool;
+    }
+
+    /**
+     * @notice Sets the insurance pool fee
+     * @dev Throws if setting fee over 20%
+     * @param _insurancePoolFee The value for the insurance pool fee
+     */
+    function setInsurancePoolFee(uint256 _insurancePoolFee) public {
+        require(msg.sender == governance, "!governance");
+        require(_insurancePoolFee <= 2000, "_insurancePoolFee over 20%");
+        insurancePoolFee = _insurancePoolFee;
     }
 
     /**
@@ -217,14 +239,16 @@ contract yAxisMetaVaultManager is IVaultManager { // solhint-disable-line contra
         external
         view
         override
-        returns (address, address, uint256, address, uint256)
+        returns (address, address, uint256, address, uint256, address, uint256)
     {
         return (
             yax,
             stakingPool,
             stakingPoolShareFee,
             treasury,
-            IERC20(yax).balanceOf(treasury) >= treasuryBalance ? 0 : treasuryFee
+            IERC20(yax).balanceOf(treasury) >= treasuryBalance ? 0 : treasuryFee,
+            insurancePool,
+            insurancePoolFee
         );
     }
 }

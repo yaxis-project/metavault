@@ -4,10 +4,12 @@ pragma solidity 0.6.12;
 
 interface IVaultManager {
     function controllers(address) external view returns (bool);
-    function getHarvestFeeInfo() external view returns (address, address, uint256, address, uint256);
+    function getHarvestFeeInfo() external view returns (address, address, uint256, address, uint256, address, uint256);
     function governance() external view returns (address);
     function harvester() external view returns (address);
     function insuranceFee() external view returns (uint256);
+    function insurancePool() external view returns (address);
+    function insurancePoolFee() external view returns (uint256);
     function stakingPool() external view returns (address);
     function stakingPoolShareFee() external view returns (uint256);
     function strategist() external view returns (address);

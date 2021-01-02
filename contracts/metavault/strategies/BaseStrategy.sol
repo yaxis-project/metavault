@@ -213,7 +213,9 @@ abstract contract BaseStrategy is IStrategy {
                 address stakingPool,
                 uint256 stakingPoolShareFee,
                 address treasury,
-                uint256 treasuryFee
+                uint256 treasuryFee,
+                address insurance,
+                uint256 insurancePoolFee
             ) = vaultManager.getHarvestFeeInfo();
 
             // pay the staking pool with YAX
@@ -228,6 +230,13 @@ abstract contract BaseStrategy is IStrategy {
                 uint256 _treasuryFee = _wethBal.mul(treasuryFee).div(ONE_HUNDRED_PERCENT);
                 _swapTokens(weth, yax, _treasuryFee);
                 IERC20(yax).safeTransfer(treasury, IERC20(yax).balanceOf(address(this)));
+            }
+
+            // pay the insurance pool with YAX
+            if (insurancePoolFee > 0 && insurance != address(0)) {
+                uint256 _insuranceFee = _wethBal.mul(insurancePoolFee).div(ONE_HUNDRED_PERCENT);
+                _swapTokens(weth, yax, _insuranceFee);
+                IERC20(yax).safeTransfer(insurance, IERC20(yax).balanceOf(address(this)));
             }
 
             // return the remaining WETH balance

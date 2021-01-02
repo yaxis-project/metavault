@@ -22,7 +22,8 @@ contract('yAxisMetaVaultManager', async (accounts) => {
     const deployer = accounts[0];
     const treasury = accounts[1];
     const stakingPool = accounts[2];
-    const bob = accounts[3];
+    const insurancePool = accounts[3];
+    const bob = accounts[4];
 
     const MAX = web3.utils.toTwosComplement(-1);
     const INIT_BALANCE = ether('1000');
@@ -251,6 +252,23 @@ contract('yAxisMetaVaultManager', async (accounts) => {
         await expectRevert(vmanager.setInsuranceFee(1, { from: bob }), '!governance');
         await vmanager.setInsuranceFee(1);
         assert.equal(1, await vmanager.insuranceFee());
+    });
+
+    it('should set the insurance pool', async () => {
+        assert.equal(constants.ZERO_ADDRESS, await vmanager.insurancePool());
+        await expectRevert(
+            vmanager.setInsurancePool(insurancePool, { from: bob }),
+            '!governance'
+        );
+        await vmanager.setInsurancePool(insurancePool);
+        assert.equal(insurancePool, await vmanager.insurancePool());
+    });
+
+    it('should set the insurance pool fee', async () => {
+        assert.equal(0, await vmanager.insurancePoolFee());
+        await expectRevert(vmanager.setInsurancePoolFee(1, { from: bob }), '!governance');
+        await vmanager.setInsurancePoolFee(1);
+        assert.equal(1, await vmanager.insurancePoolFee());
     });
 
     it('should set the staking pool', async () => {
