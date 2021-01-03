@@ -1,85 +1,28 @@
 const { ether, send } = require('@openzeppelin/test-helpers');
+const { MAX, fromWei, fromWeiWithDecimals, verbose } = require('../helpers/common');
 
-const yAxisMetaVault = artifacts.require('yAxisMetaVault');
-const yAxisMetaVaultManager = artifacts.require('yAxisMetaVaultManager');
-const yAxisMetaVaultHarvester = artifacts.require('yAxisMetaVaultHarvester');
-
+const MockERC20 = artifacts.require('MockERC20');
+const PickleJar = artifacts.require('PickleJar');
 const StableSwap3PoolConverter = artifacts.require('StableSwap3PoolConverter');
-
 const StrategyControllerV1 = artifacts.require('StrategyControllerV1');
 const StrategyControllerV2 = artifacts.require('StrategyControllerV2');
 const StrategyCurve3Crv = artifacts.require('StrategyCurve3Crv');
 const StrategyPickle3Crv = artifacts.require('StrategyPickle3Crv');
-
-const PickleJar = artifacts.require('PickleJar');
-
-const MockERC20 = artifacts.require('MockERC20');
-
-const verbose = process.env.VERBOSE;
-
-function fromWeiWithDecimals(num, decimals = 18) {
-    num = Number.parseFloat(String(num));
-    for (let i = 0; i < decimals; i++) num = num * 0.1;
-    return num.toFixed(2);
-}
+const yAxisMetaVault = artifacts.require('yAxisMetaVault');
+const yAxisMetaVaultHarvester = artifacts.require('yAxisMetaVaultHarvester');
+const yAxisMetaVaultManager = artifacts.require('yAxisMetaVaultManager');
 
 const deployer = '0x5661bF295f48F499A70857E8A6450066a8D16400';
 const multisig = '0xC1d40e197563dF727a4d3134E8BD1DeF4B498C6f';
 const timelock = '0x66C5c16d13a38461648c1D097f219762D374B412';
 const stakingPool = '0xeF31Cb88048416E301Fee1eA13e7664b887BA7e8';
-const bob = '0x3f5CE5FBFe3E9af3971dD833D26bA9b5C936f0bE';
+const user = '0x3f5CE5FBFe3E9af3971dD833D26bA9b5C936f0bE';
 
-contract('multi_strategy_controller_live.test', async (accounts) => {
-    const { fromWei } = web3.utils;
-
+contract('StrategyControllerV2: live', async (accounts) => {
     accounts[0] = deployer;
     accounts[1] = multisig;
     accounts[2] = timelock;
-    accounts[3] = bob;
-
-    const MAX = web3.utils.toTwosComplement(-1);
-
-    let YAX, DAI, USDC, USDT, WETH, T3CRV, CRV; // addresses
-    let yax, dai, usdc, usdt, t3crv; // MockERC20s
-
-    let mvault;
-    let MVAULT;
-
-    let vmanager;
-    let VMANAGER;
-
-    let vharvester;
-    let VHARVESTER;
-
-    let converter;
-    let CONVERTER;
-
-    let STABLESWAP3POOL;
-
-    let GAUGE;
-
-    let MINTER;
-
-    let pjar;
-    let PJAR;
-
-    let PCHEF;
-
-    let PICKLE;
-
-    let mcontroller;
-    let MCONTROLLER;
-
-    let oldController;
-    let OLDCONTROLLER;
-
-    let OLDMSTRATEGYCRV;
-
-    let mstrategyCrv;
-    let MSTRATEGYCRV;
-
-    let mstrategyPickle;
-    let MSTRATEGYPICKLE;
+    accounts[3] = user;
 
     before(async () => {
         await network.provider.request({
@@ -94,7 +37,7 @@ contract('multi_strategy_controller_live.test', async (accounts) => {
         });
         await network.provider.request({
             method: 'hardhat_impersonateAccount',
-            params: [bob]
+            params: [user]
         });
         await network.provider.request({
             method: 'hardhat_impersonateAccount',
@@ -108,48 +51,48 @@ contract('multi_strategy_controller_live.test', async (accounts) => {
             method: 'hardhat_impersonateAccount',
             params: [timelock]
         });
-        await send.ether(bob, deployer, ether('100'), { from: bob });
-        await send.ether(bob, multisig, ether('100'), { from: bob });
-        await send.ether(bob, timelock, ether('100'), { from: bob });
-        YAX = '0xb1dC9124c395c1e97773ab855d66E879f053A289';
-        DAI = '0x6B175474E89094C44Da98b954EedeAC495271d0F';
-        USDC = '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48';
-        USDT = '0xdAC17F958D2ee523a2206206994597C13D831ec7';
-        WETH = '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2';
-        T3CRV = '0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490';
-        CRV = '0xD533a949740bb3306d119CC777fa900bA034cd52';
-        PICKLE = '0x429881672B9AE42b8EbA0E26cD9C73711b891Ca5';
 
-        MVAULT = '0xBFbEC72F2450eF9Ab742e4A27441Fa06Ca79eA6a';
-        STABLESWAP3POOL = '0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7';
-        OLDCONTROLLER = '0x2ebE1461D2Fc6dabF079882CFc51e5013BbA49B6';
-        OLDMSTRATEGYCRV = '0xd721d16a685f63A4e8C4e8c5988b76Bec6A85c90';
-        GAUGE = '0xbFcF63294aD7105dEa65aA58F8AE5BE2D9d0952A';
-        MINTER = '0xd061D61a4d941c39E5453435B6345Dc261C2fcE0';
-        PJAR = '0x1BB74b5DdC1f4fC91D6f9E7906cf68bc93538e33';
-        PCHEF = '0xbD17B1ce622d73bD438b9E658acA5996dc394b0d';
+        await send.ether(user, deployer, ether('100'), { from: user });
+        await send.ether(user, multisig, ether('100'), { from: user });
+        await send.ether(user, timelock, ether('100'), { from: user });
 
-        yax = await MockERC20.at(YAX);
-        dai = await MockERC20.at(DAI);
-        usdc = await MockERC20.at(USDC);
-        usdt = await MockERC20.at(USDT);
-        t3crv = await MockERC20.at(T3CRV);
+        this.YAX = '0xb1dC9124c395c1e97773ab855d66E879f053A289';
+        this.DAI = '0x6B175474E89094C44Da98b954EedeAC495271d0F';
+        this.USDC = '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48';
+        this.USDT = '0xdAC17F958D2ee523a2206206994597C13D831ec7';
+        this.WETH = '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2';
+        this.T3CRV = '0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490';
+        this.CRV = '0xD533a949740bb3306d119CC777fa900bA034cd52';
+        this.PICKLE = '0x429881672B9AE42b8EbA0E26cD9C73711b891Ca5';
+        this.VAULT = '0xBFbEC72F2450eF9Ab742e4A27441Fa06Ca79eA6a';
+        this.STABLESWAP3POOL = '0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7';
+        this.OLDCONTROLLER = '0x2ebE1461D2Fc6dabF079882CFc51e5013BbA49B6';
+        this.OLDSTRATEGYCRV = '0xd721d16a685f63A4e8C4e8c5988b76Bec6A85c90';
+        this.GAUGE = '0xbFcF63294aD7105dEa65aA58F8AE5BE2D9d0952A';
+        this.MINTER = '0xd061D61a4d941c39E5453435B6345Dc261C2fcE0';
+        this.PJAR = '0x1BB74b5DdC1f4fC91D6f9E7906cf68bc93538e33';
+        this.PCHEF = '0xbD17B1ce622d73bD438b9E658acA5996dc394b0d';
 
-        mvault = await yAxisMetaVault.at(MVAULT);
-        oldController = await StrategyControllerV1.at(OLDCONTROLLER);
-        pjar = await PickleJar.at(PJAR);
+        this.yax = await MockERC20.at(this.YAX);
+        this.dai = await MockERC20.at(this.DAI);
+        this.usdc = await MockERC20.at(this.USDC);
+        this.usdt = await MockERC20.at(this.USDT);
+        this.t3crv = await MockERC20.at(this.T3CRV);
+        this.vault = await yAxisMetaVault.at(this.VAULT);
+        this.oldController = await StrategyControllerV1.at(this.OLDCONTROLLER);
+        this.pjar = await PickleJar.at(this.PJAR);
 
-        await dai.approve(MVAULT, MAX, { from: bob });
-        await usdc.approve(MVAULT, MAX, { from: bob });
-        await usdt.approve(MVAULT, MAX, { from: bob });
-        await t3crv.approve(MVAULT, MAX, { from: bob });
-        await mvault.approve(MVAULT, MAX, { from: bob });
+        await this.dai.approve(this.VAULT, MAX, { from: user });
+        await this.usdc.approve(this.VAULT, MAX, { from: user });
+        await this.usdt.approve(this.VAULT, MAX, { from: user });
+        await this.t3crv.approve(this.VAULT, MAX, { from: user });
+        await this.vault.approve(this.VAULT, MAX, { from: user });
     });
 
     after(async () => {
         await network.provider.request({
             method: 'hardhat_stopImpersonatingAccount',
-            params: [bob]
+            params: [user]
         });
         await network.provider.request({
             method: 'hardhat_stopImpersonatingAccount',
@@ -169,181 +112,215 @@ contract('multi_strategy_controller_live.test', async (accounts) => {
         });
     });
 
-    async function printBalances(title) {
-        console.log(title);
-        console.log('mvault T3CRV:       ', fromWei(await t3crv.balanceOf(MVAULT)));
-        console.log('mvault MVLT:        ', fromWei(await mvault.balanceOf(MVAULT)));
-        console.log('mvault Supply:      ', fromWei(await mvault.totalSupply()));
-        console.log('--------------------');
-        if (typeof MCONTROLLER != 'undefined') {
-            console.log('mstrategy T3CRV:    ', fromWei(await mstrategyCrv.balanceOf()));
-            console.log('mstrategy PICKLE:   ', fromWei(await mstrategyPickle.balanceOf()));
-            console.log('pjar T3CRV:         ', fromWei(await t3crv.balanceOf(PJAR)));
-            console.log('pchef PJAR:         ', fromWei(await pjar.balanceOf(PCHEF)));
+    this.printBalances = async (title) => {
+        // skips printing before the first test
+        if (typeof this.controller != 'undefined') {
+            console.log(title);
+            console.log(
+                'vault T3CRV:       ',
+                fromWei(await this.t3crv.balanceOf(this.VAULT))
+            );
+            console.log(
+                'vault MVLT:        ',
+                fromWei(await this.vault.balanceOf(this.VAULT))
+            );
+            console.log('vault Supply:      ', fromWei(await this.vault.totalSupply()));
+            console.log('--------------------');
+            console.log('strategy T3CRV:    ', fromWei(await this.strategyCrv.balanceOf()));
+            console.log('strategy PICKLE:   ', fromWei(await this.strategyPickle.balanceOf()));
+            console.log('pjar T3CRV:        ', fromWei(await this.t3crv.balanceOf(this.PJAR)));
+            console.log('pchef PJAR:        ', fromWei(await this.pjar.balanceOf(this.PCHEF)));
+            console.log('--------------------');
+            console.log(
+                'user balances:      %s DAI/ %s USDC/ %s USDT/ %s T3CRV/ %s YAX',
+                fromWei(await this.dai.balanceOf(user)),
+                fromWeiWithDecimals(await this.usdc.balanceOf(user), 6),
+                fromWeiWithDecimals(await this.usdt.balanceOf(user), 6),
+                fromWei(await this.t3crv.balanceOf(user)),
+                fromWei(await this.yax.balanceOf(user))
+            );
+            console.log(
+                'user staked:       ',
+                fromWei((await this.vault.userInfo(user)).amount)
+            );
             console.log('--------------------');
         }
-        console.log(
-            'bob balances:        %s DAI/ %s USDC/ %s USDT/ %s T3CRV/ %s YAX',
-            fromWei(await dai.balanceOf(bob)),
-            fromWeiWithDecimals(await usdc.balanceOf(bob), 6),
-            fromWeiWithDecimals(await usdt.balanceOf(bob), 6),
-            fromWei(await t3crv.balanceOf(bob)),
-            fromWei(await yax.balanceOf(bob))
-        );
-        console.log('bob MVLT:           ', fromWei(await mvault.balanceOf(bob)));
-        console.log('--------------------');
-    }
+    };
 
     beforeEach(async () => {
         if (verbose) {
-            await printBalances('\n====== BEFORE ======');
+            await this.printBalances('\n====== BEFORE ======');
         }
     });
 
     afterEach(async () => {
         if (verbose) {
-            await printBalances('\n====== AFTER ======');
+            await this.printBalances('\n====== AFTER ======');
         }
     });
 
     it('should deploy new contracts', async () => {
-        vmanager = await yAxisMetaVaultManager.new(YAX, { from: deployer });
-        VMANAGER = vmanager.address;
+        this.manager = await yAxisMetaVaultManager.new(this.YAX, { from: deployer });
 
-        mcontroller = await StrategyControllerV2.new(VMANAGER, { from: deployer });
-        MCONTROLLER = mcontroller.address;
-
-        vharvester = await yAxisMetaVaultHarvester.new(VMANAGER, MCONTROLLER, {
+        this.controller = await StrategyControllerV2.new(this.manager.address, {
             from: deployer
         });
-        VHARVESTER = vharvester.address;
 
-        converter = await StableSwap3PoolConverter.new(
-            DAI,
-            USDC,
-            USDT,
-            T3CRV,
-            STABLESWAP3POOL,
-            VMANAGER,
+        this.harvester = await yAxisMetaVaultHarvester.new(
+            this.manager.address,
+            this.controller.address,
             { from: deployer }
         );
-        CONVERTER = converter.address;
 
-        mstrategyCrv = await StrategyCurve3Crv.new(
-            T3CRV,
-            CRV,
-            WETH,
-            T3CRV,
-            DAI,
-            USDC,
-            USDT,
-            GAUGE,
-            MINTER,
-            STABLESWAP3POOL,
-            MCONTROLLER,
-            VMANAGER,
+        this.converter = await StableSwap3PoolConverter.new(
+            this.DAI,
+            this.USDC,
+            this.USDT,
+            this.T3CRV,
+            this.STABLESWAP3POOL,
+            this.manager.address,
             { from: deployer }
         );
-        MSTRATEGYCRV = mstrategyCrv.address;
 
-        mstrategyPickle = await StrategyPickle3Crv.new(
-            T3CRV,
-            PJAR,
-            PICKLE,
-            WETH,
-            T3CRV,
-            DAI,
-            USDC,
-            USDT,
-            STABLESWAP3POOL,
-            MCONTROLLER,
-            VMANAGER,
+        this.strategyCrv = await StrategyCurve3Crv.new(
+            this.T3CRV,
+            this.CRV,
+            this.WETH,
+            this.T3CRV,
+            this.DAI,
+            this.USDC,
+            this.USDT,
+            this.GAUGE,
+            this.MINTER,
+            this.STABLESWAP3POOL,
+            this.controller.address,
+            this.manager.address,
             { from: deployer }
         );
-        MSTRATEGYPICKLE = mstrategyPickle.address;
+
+        this.strategyPickle = await StrategyPickle3Crv.new(
+            this.T3CRV,
+            this.PJAR,
+            this.PICKLE,
+            this.WETH,
+            this.T3CRV,
+            this.DAI,
+            this.USDC,
+            this.USDT,
+            this.STABLESWAP3POOL,
+            this.controller.address,
+            this.manager.address,
+            { from: deployer }
+        );
     });
 
     it('should prepare the old controller and vault', async () => {
-        await oldController.setInvestEnabled(false, { from: multisig });
-        await oldController.withdrawAll(OLDMSTRATEGYCRV, {
+        await this.oldController.setInvestEnabled(false, { from: multisig });
+        await this.oldController.withdrawAll(this.OLDSTRATEGYCRV, {
             from: multisig
         });
     });
 
     it('should setup the vault manager', async () => {
-        await vmanager.setVaultStatus(MVAULT, true, { from: deployer });
-        assert.isTrue(await vmanager.vaults(MVAULT));
-        await vmanager.setControllerStatus(MCONTROLLER, true, { from: deployer });
-        assert.isTrue(await vmanager.controllers(MCONTROLLER));
-        await vmanager.setTreasury(multisig, { from: deployer });
-        assert.equal(multisig, await vmanager.treasury());
-        await vmanager.setStakingPool(stakingPool, { from: deployer });
-        assert.equal(stakingPool, await vmanager.stakingPool());
-        await vmanager.setHarvester(VHARVESTER, { from: deployer });
-        assert.equal(VHARVESTER, await vmanager.harvester());
+        await this.manager.setVaultStatus(this.VAULT, true, { from: deployer });
+        assert.isTrue(await this.manager.vaults(this.VAULT));
+        await this.manager.setControllerStatus(this.controller.address, true, {
+            from: deployer
+        });
+        assert.isTrue(await this.manager.controllers(this.controller.address));
+        await this.manager.setTreasury(multisig, { from: deployer });
+        assert.equal(multisig, await this.manager.treasury());
+        await this.manager.setStakingPool(stakingPool, { from: deployer });
+        assert.equal(stakingPool, await this.manager.stakingPool());
+        await this.manager.setHarvester(this.harvester.address, { from: deployer });
+        assert.equal(this.harvester.address, await this.manager.harvester());
     });
 
     it('should setup the new strategies and harvester', async () => {
-        await mstrategyPickle.setStableForLiquidity(DAI, { from: deployer });
-        await vharvester.setVaultManager(VMANAGER, { from: deployer });
-        assert.equal(VMANAGER, await vharvester.vaultManager());
-        await vharvester.setController(MCONTROLLER, { from: deployer });
-        assert.equal(MCONTROLLER, await vharvester.controller());
-        await vharvester.setHarvester(deployer, true, { from: deployer });
-        assert.isTrue(await vharvester.isHarvester(deployer));
-        await vharvester.addStrategy(T3CRV, MSTRATEGYCRV, 86400, { from: deployer });
-        await vharvester.addStrategy(T3CRV, MSTRATEGYPICKLE, 43200, { from: deployer });
-        const strategyAddresses = await vharvester.strategyAddresses(T3CRV);
+        await this.strategyPickle.setStableForLiquidity(this.DAI, { from: deployer });
+        await this.harvester.setVaultManager(this.manager.address, { from: deployer });
+        assert.equal(this.manager.address, await this.harvester.vaultManager());
+        await this.harvester.setController(this.controller.address, { from: deployer });
+        assert.equal(this.controller.address, await this.harvester.controller());
+        await this.harvester.setHarvester(deployer, true, { from: deployer });
+        assert.isTrue(await this.harvester.isHarvester(deployer));
+        await this.harvester.addStrategy(this.T3CRV, this.strategyCrv.address, 86400, {
+            from: deployer
+        });
+        await this.harvester.addStrategy(this.T3CRV, this.strategyPickle.address, 43200, {
+            from: deployer
+        });
+        const strategyAddresses = await this.harvester.strategyAddresses(this.T3CRV);
         assert.equal(2, strategyAddresses.length);
-        assert.equal(MSTRATEGYCRV, strategyAddresses[0]);
-        assert.equal(MSTRATEGYPICKLE, strategyAddresses[1]);
+        assert.equal(this.strategyCrv.address, strategyAddresses[0]);
+        assert.equal(this.strategyPickle.address, strategyAddresses[1]);
     });
 
     it('should setup the new controller', async () => {
-        await mcontroller.setConverter(T3CRV, DAI, CONVERTER, { from: deployer });
-        await mcontroller.setConverter(T3CRV, USDT, CONVERTER, { from: deployer });
-        await mcontroller.setConverter(T3CRV, USDC, CONVERTER, { from: deployer });
-        assert.equal(CONVERTER, await mcontroller.converters(T3CRV, DAI));
-        assert.equal(CONVERTER, await mcontroller.converters(T3CRV, USDT));
-        assert.equal(CONVERTER, await mcontroller.converters(T3CRV, USDC));
-        await mcontroller.setVault(T3CRV, MVAULT, { from: deployer });
-        assert.equal(MVAULT, await mcontroller.vaults(T3CRV));
-        await mcontroller.addStrategy(T3CRV, MSTRATEGYCRV, 0, { from: deployer });
-        await mcontroller.addStrategy(T3CRV, MSTRATEGYPICKLE, ether('1000000'), {
+        await this.controller.setConverter(this.T3CRV, this.DAI, this.converter.address, {
             from: deployer
         });
-        const strategies = await mcontroller.strategies(T3CRV);
+        await this.controller.setConverter(this.T3CRV, this.USDT, this.converter.address, {
+            from: deployer
+        });
+        await this.controller.setConverter(this.T3CRV, this.USDC, this.converter.address, {
+            from: deployer
+        });
+        assert.equal(
+            this.converter.address,
+            await this.controller.converters(this.T3CRV, this.DAI)
+        );
+        assert.equal(
+            this.converter.address,
+            await this.controller.converters(this.T3CRV, this.USDT)
+        );
+        assert.equal(
+            this.converter.address,
+            await this.controller.converters(this.T3CRV, this.USDC)
+        );
+        await this.controller.setVault(this.T3CRV, this.VAULT, { from: deployer });
+        assert.equal(this.VAULT, await this.controller.vaults(this.T3CRV));
+        await this.controller.addStrategy(this.T3CRV, this.strategyCrv.address, 0, {
+            from: deployer
+        });
+        await this.controller.addStrategy(
+            this.T3CRV,
+            this.strategyPickle.address,
+            ether('1000000'),
+            { from: deployer }
+        );
+        const strategies = await this.controller.strategies(this.T3CRV);
         assert.equal(2, strategies.length);
-        assert.equal(MSTRATEGYCRV, strategies[0]);
-        assert.equal(MSTRATEGYPICKLE, strategies[1]);
+        assert.equal(this.strategyCrv.address, strategies[0]);
+        assert.equal(this.strategyPickle.address, strategies[1]);
     });
 
     it('should pass governance and strategist over', async () => {
-        await vmanager.setStrategist(multisig, { from: deployer });
-        assert.equal(multisig, await vmanager.strategist());
-        await vmanager.setGovernance(timelock, { from: deployer });
-        assert.equal(timelock, await vmanager.governance());
+        await this.manager.setStrategist(multisig, { from: deployer });
+        assert.equal(multisig, await this.manager.strategist());
+        await this.manager.setGovernance(timelock, { from: deployer });
+        assert.equal(timelock, await this.manager.governance());
     });
 
     it('should set the new controller on the vault', async () => {
-        assert.equal(OLDCONTROLLER, await mvault.controller());
-        await mvault.setController(MCONTROLLER, { from: timelock });
-        assert.equal(MCONTROLLER, await mvault.controller());
+        assert.equal(this.OLDCONTROLLER, await this.vault.controller());
+        await this.vault.setController(this.controller.address, { from: timelock });
+        assert.equal(this.controller.address, await this.vault.controller());
     });
 
     it('should call earn to transfer funds to Curve strategy', async () => {
-        assert.equal(0, await mstrategyCrv.balanceOf());
-        await mvault.earn({ from: deployer });
-        assert.isTrue((await mstrategyCrv.balanceOf()).gt(ether('1000000')));
+        assert.equal(0, await this.strategyCrv.balanceOf());
+        await this.vault.earn({ from: deployer });
+        assert.isTrue((await this.strategyCrv.balanceOf()).gt(ether('1000000')));
     });
 
     it('should send new deposits go to the Pickle strategy', async () => {
-        assert.equal(0, await mstrategyPickle.balanceOf());
-        await mvault.deposit(ether('100'), DAI, 1, true, { from: bob });
-        assert.isTrue((await mstrategyPickle.balanceOf()).gt(ether('100')));
+        assert.equal(0, await this.strategyPickle.balanceOf());
+        await this.vault.deposit(ether('100'), this.DAI, 1, true, { from: user });
+        assert.isTrue((await this.strategyPickle.balanceOf()).gt(ether('100')));
     });
 
     it('should harvest', async () => {
-        await vharvester.harvestNextStrategy(T3CRV, { from: deployer });
+        await this.harvester.harvestNextStrategy(this.T3CRV, { from: deployer });
     });
 });
