@@ -95,7 +95,7 @@ exports.printBalances = async (title) => {
     console.log('vault Supply:   ', fromWei(await globalThis.vault.totalSupply()));
     console.log('-------------------');
     console.log(
-        'bob balances:    %s DAI/ %s USDC/ %s USDT/ %s 3CRV/ %s YAX',
+        'user balances:   %s DAI/ %s USDC/ %s USDT/ %s 3CRV/ %s YAX',
         fromWei(await globalThis.dai.balanceOf(globalThis.user)),
         fromWeiWithDecimals(await globalThis.usdc.balanceOf(globalThis.user), 6),
         fromWeiWithDecimals(await globalThis.usdt.balanceOf(globalThis.user), 6),
@@ -103,7 +103,7 @@ exports.printBalances = async (title) => {
         fromWei(await globalThis.yax.balanceOf(globalThis.user))
     );
     console.log(
-        'bob staked:     ',
+        'user staked:    ',
         fromWei((await globalThis.vault.userInfo(globalThis.user)).amount)
     );
     console.log('-------------------');
