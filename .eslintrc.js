@@ -14,6 +14,7 @@ module.exports = {
         artifacts: true,
         assert: true,
         contract: true,
+        globalThis: true,
         network: true,
         web3: true
     },
