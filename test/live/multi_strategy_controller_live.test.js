@@ -30,7 +30,7 @@ contract('StrategyControllerV2: live', async (accounts) => {
             params: [
                 {
                     forking: {
-                        jsonRpcUrl: `https://mainnet.infura.io/v3/${process.env.INFURA_PROJECT_ID}`
+                        jsonRpcUrl: process.env.MAINNET_RPC_URL
                     }
                 }
             ]
