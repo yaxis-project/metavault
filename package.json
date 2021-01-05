@@ -6,19 +6,16 @@
   "description": "MetaVault Contracts and ABI",
   "scripts": {
     "compile": "hardhat compile",
-    "testrpc": "ganache-cli --deterministic --gasLimit 10000000",
     "test": "hardhat test test/metavault/*",
     "test:verbose": "VERBOSE=true hardhat test test/metavault/*",
     "test:live": "VERBOSE=true hardhat test test/live/*",
     "test:misc": "VERBOSE=true hardhat test test/misc/*",
-    "coverage": "yarn solidity-coverage",
     "lint": "eslint . && solhint contracts/**/*.sol",
     "lint:js": "eslint.",
     "lint:fix": "eslint . --fix",
     "lint:contracts": "solhint contracts/**/*.sol",
-    "flat:contracts": "sol-merger \"./contracts/*.sol\" ./build",
-    "flat:contracts-metavault": "sol-merger \"./contracts/metavault/*.sol\" ./build/metavault",
-    "flat:contracts-metavault-subfolder": "sol-merger \"./contracts/metavault/*/*.sol\" ./build/metavault/subfolder"
+    "verify:kovan": "hardhat --network kovan etherscan-verify --api-key $ETHERSCAN_API_KEY",
+    "deploy:kovan": "hardhat deploy --network kovan"
   },
   "repository": {
     "type": "git",
@@ -29,19 +26,17 @@
   },
   "homepage": "https://github.com/yaxis-project/metavault#readme",
   "dependencies": {
-    "@openzeppelin/contracts": "^3.1.0",
-    "@openzeppelin/test-helpers": "^0.5.6",
-    "sleep": "^6.3.0",
-    "truffle-flattener": "^1.4.4",
-    "web3-utils": "^1.2.11"
+    "@openzeppelin/contracts": "^3.1.0"
   },
   "devDependencies": {
+    "@openzeppelin/test-helpers": "^0.5.6",
     "@nomiclabs/hardhat-truffle5": "^2.0.0",
     "@nomiclabs/hardhat-web3": "^2.0.0",
     "eslint": "^7.16.0",
     "eslint-config-prettier": "^7.1.0",
     "eslint-plugin-prettier": "^3.3.0",
     "hardhat": "^2.0.6",
+    "hardhat-deploy": "^0.7.0-beta.39",
     "prettier": "^2.2.1",
     "solhint": "^3.3.2",
     "web3": "^1.3.1"

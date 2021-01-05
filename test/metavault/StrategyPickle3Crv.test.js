@@ -14,7 +14,7 @@ contract('StrategyPickle3Crv', async (accounts) => {
     before(async () => {
         await beforeStrategySetup(accounts);
 
-        globalThis.pickle = await MockERC20.new('Pickle', 'globalThis.pickle.address', 18);
+        globalThis.pickle = await MockERC20.new('Pickle', 'PICKLE', 18);
         globalThis.pjar = await MockPickleJar.new(globalThis.t3crv.address);
         globalThis.pchef = await MockPickleMasterChef.new(
             globalThis.pickle.address,
