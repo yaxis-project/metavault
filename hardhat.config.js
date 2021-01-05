@@ -22,7 +22,8 @@ module.exports = {
     },
     namedAccounts: {
         CRV: {
-            1: '0xD533a949740bb3306d119CC777fa900bA034cd52'
+            1: '0xD533a949740bb3306d119CC777fa900bA034cd52',
+            42: '0x27793C6F8fdB370DA02786c0A1c47F7A0877bD67'
         },
         DAI: {
             1: '0x6B175474E89094C44Da98b954EedeAC495271d0F',
@@ -45,7 +46,8 @@ module.exports = {
             1: '0x868277d475E0e475E38EC5CdA2d9C83B5E1D9fc8'
         },
         deployer: {
-            1: '0x36D68d13dD18Fe8076833Ef99245Ef33B00A7259'
+            1: '0x36D68d13dD18Fe8076833Ef99245Ef33B00A7259',
+            42: '0x36D68d13dD18Fe8076833Ef99245Ef33B00A7259'
         },
         gauge: {
             1: '0xbFcF63294aD7105dEa65aA58F8AE5BE2D9d0952A'
@@ -63,7 +65,8 @@ module.exports = {
             1: '0xbD17B1ce622d73bD438b9E658acA5996dc394b0d'
         },
         PICKLE: {
-            1: '0x429881672B9AE42b8EbA0E26cD9C73711b891Ca5'
+            1: '0x429881672B9AE42b8EbA0E26cD9C73711b891Ca5',
+            42: '0xf38591C9d2FB28B6fF1b0635A1007Ff37eb9FC5B'
         },
         pjar: {
             1: '0x1BB74b5DdC1f4fC91D6f9E7906cf68bc93538e33'

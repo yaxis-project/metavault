@@ -1,0 +1,265 @@
+{
+  "address": "0x72e94E3279C596DAA7a25636C3AAc82dc51aBA2a",
+  "abi": [
+    {
+      "inputs": [
+        {
+          "internalType": "contract IERC20",
+          "name": "_pickleToken",
+          "type": "address"
+        },
+        {
+          "internalType": "contract IERC20",
+          "name": "_lpToken",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "constructor"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "_pid",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_amount",
+          "type": "uint256"
+        }
+      ],
+      "name": "deposit",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "_pid",
+          "type": "uint256"
+        }
+      ],
+      "name": "emergencyWithdraw",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "lpToken",
+      "outputs": [
+        {
+          "internalType": "contract IERC20",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        },
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "name": "pendingPickle",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "pickleToken",
+      "outputs": [
+        {
+          "internalType": "contract IERC20",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        },
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "name": "userInfo",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "rewardDebt",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "_pid",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_amount",
+          "type": "uint256"
+        }
+      ],
+      "name": "withdraw",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    }
+  ],
+  "transactionHash": "0x7f706a7aa67908c5b64795d12db851ea53bb20ae726d6dffaea7130698a9112b",
+  "receipt": {
+    "to": null,
+    "from": "0x36D68d13dD18Fe8076833Ef99245Ef33B00A7259",
+    "contractAddress": "0x72e94E3279C596DAA7a25636C3AAc82dc51aBA2a",
+    "transactionIndex": 11,
+    "gasUsed": "408440",
+    "logsBloom": "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+    "blockHash": "0x75996dc318c53f00bbb38b4468da4ae2a878ba8b8a2ef5e89ecac3e1dbde5b92",
+    "transactionHash": "0x7f706a7aa67908c5b64795d12db851ea53bb20ae726d6dffaea7130698a9112b",
+    "logs": [],
+    "blockNumber": 22894235,
+    "cumulativeGasUsed": "1814437",
+    "status": 1,
+    "byzantium": true
+  },
+  "args": [
+    "0xf38591C9d2FB28B6fF1b0635A1007Ff37eb9FC5B",
+    "0xeD5Db765f341468e20313Ca1F97C5831969D02bf"
+  ],
+  "solcInputHash": "bc3511bdeb2de45e5dcb5fa98f27c79c",
+  "metadata": "{\"compiler\":{\"version\":\"0.6.12+commit.27d51765\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[{\"internalType\":\"contract IERC20\",\"name\":\"_pickleToken\",\"type\":\"address\"},{\"internalType\":\"contract IERC20\",\"name\":\"_lpToken\",\"type\":\"address\"}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_pid\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"_amount\",\"type\":\"uint256\"}],\"name\":\"deposit\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_pid\",\"type\":\"uint256\"}],\"name\":\"emergencyWithdraw\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"lpToken\",\"outputs\":[{\"internalType\":\"contract IERC20\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"pendingPickle\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"pickleToken\",\"outputs\":[{\"internalType\":\"contract IERC20\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"userInfo\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"rewardDebt\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_pid\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"_amount\",\"type\":\"uint256\"}],\"name\":\"withdraw\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}],\"devdoc\":{\"kind\":\"dev\",\"methods\":{},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"contracts/metavault/mock/MockPickleMasterChef.sol\":\"MockPickleMasterChef\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\",\"useLiteralContent\":true},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[]},\"sources\":{\"@openzeppelin/contracts/token/ERC20/IERC20.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\n\\npragma solidity >=0.6.0 <0.8.0;\\n\\n/**\\n * @dev Interface of the ERC20 standard as defined in the EIP.\\n */\\ninterface IERC20 {\\n    /**\\n     * @dev Returns the amount of tokens in existence.\\n     */\\n    function totalSupply() external view returns (uint256);\\n\\n    /**\\n     * @dev Returns the amount of tokens owned by `account`.\\n     */\\n    function balanceOf(address account) external view returns (uint256);\\n\\n    /**\\n     * @dev Moves `amount` tokens from the caller's account to `recipient`.\\n     *\\n     * Returns a boolean value indicating whether the operation succeeded.\\n     *\\n     * Emits a {Transfer} event.\\n     */\\n    function transfer(address recipient, uint256 amount) external returns (bool);\\n\\n    /**\\n     * @dev Returns the remaining number of tokens that `spender` will be\\n     * allowed to spend on behalf of `owner` through {transferFrom}. This is\\n     * zero by default.\\n     *\\n     * This value changes when {approve} or {transferFrom} are called.\\n     */\\n    function allowance(address owner, address spender) external view returns (uint256);\\n\\n    /**\\n     * @dev Sets `amount` as the allowance of `spender` over the caller's tokens.\\n     *\\n     * Returns a boolean value indicating whether the operation succeeded.\\n     *\\n     * IMPORTANT: Beware that changing an allowance with this method brings the risk\\n     * that someone may use both the old and the new allowance by unfortunate\\n     * transaction ordering. One possible solution to mitigate this race\\n     * condition is to first reduce the spender's allowance to 0 and set the\\n     * desired value afterwards:\\n     * https://github.com/ethereum/EIPs/issues/20#issuecomment-263524729\\n     *\\n     * Emits an {Approval} event.\\n     */\\n    function approve(address spender, uint256 amount) external returns (bool);\\n\\n    /**\\n     * @dev Moves `amount` tokens from `sender` to `recipient` using the\\n     * allowance mechanism. `amount` is then deducted from the caller's\\n     * allowance.\\n     *\\n     * Returns a boolean value indicating whether the operation succeeded.\\n     *\\n     * Emits a {Transfer} event.\\n     */\\n    function transferFrom(address sender, address recipient, uint256 amount) external returns (bool);\\n\\n    /**\\n     * @dev Emitted when `value` tokens are moved from one account (`from`) to\\n     * another (`to`).\\n     *\\n     * Note that `value` may be zero.\\n     */\\n    event Transfer(address indexed from, address indexed to, uint256 value);\\n\\n    /**\\n     * @dev Emitted when the allowance of a `spender` for an `owner` is set by\\n     * a call to {approve}. `value` is the new allowance.\\n     */\\n    event Approval(address indexed owner, address indexed spender, uint256 value);\\n}\\n\",\"keccak256\":\"0x5f02220344881ce43204ae4a6281145a67bc52c2bb1290a791857df3d19d78f5\",\"license\":\"MIT\"},\"contracts/metavault/mock/MockPickleMasterChef.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\n\\npragma solidity 0.6.12;\\n\\nimport \\\"@openzeppelin/contracts/token/ERC20/IERC20.sol\\\";\\n\\ncontract MockPickleMasterChef {\\n    IERC20 public pickleToken;\\n    IERC20 public lpToken;\\n\\n    struct UserInfo {\\n        uint amount; // How many LP tokens the user has provided.\\n        uint rewardDebt; // Reward debt. See explanation below.\\n    }\\n\\n    mapping(uint => mapping(address => UserInfo)) public userInfo;\\n\\n    constructor(IERC20 _pickleToken, IERC20 _lpToken) public {\\n        pickleToken = _pickleToken;\\n        lpToken = _lpToken;\\n    }\\n\\n    function deposit(uint _pid, uint _amount) external {\\n        lpToken.transferFrom(msg.sender, address(this), _amount);\\n        UserInfo storage user = userInfo[_pid][msg.sender];\\n        pickleToken.transfer(msg.sender, user.amount / 10); // always get 10% of deposited amount\\n        user.amount = user.amount + _amount;\\n    }\\n\\n    function withdraw(uint _pid, uint _amount) external {\\n        lpToken.transfer(msg.sender, _amount);\\n        UserInfo storage user = userInfo[_pid][msg.sender];\\n        pickleToken.transfer(msg.sender, user.amount / 10); // always get 10% of deposited amount\\n        user.amount = user.amount - _amount;\\n    }\\n\\n    function pendingPickle(uint, address) external view returns (uint) {\\n        return pickleToken.balanceOf(address(this)) / 10;\\n    }\\n\\n    function emergencyWithdraw(uint _pid) external {\\n        UserInfo storage user = userInfo[_pid][msg.sender];\\n        lpToken.transfer(msg.sender, user.amount);\\n        user.amount = 0;\\n        user.rewardDebt = 0;\\n    }\\n}\\n\",\"keccak256\":\"0xf6b1da00a34e1bbd2c0afcfdeb5db5df45384adb3bf4d1a0a2016b3752e092ac\",\"license\":\"MIT\"}},\"version\":1}",
+  "bytecode": "0x608060405234801561001057600080fd5b5060405161061c38038061061c8339818101604052604081101561003357600080fd5b508051602090910151600080546001600160a01b039384166001600160a01b031991821617909155600180549390921692169190911790556105a28061007a6000396000f3fe608060405234801561001057600080fd5b506004361061007d5760003560e01c80635fcbd2851161005b5780635fcbd285146100e8578063876ad663146100f057806393f1a40b1461012e578063e2bbb158146101735761007d565b806311176c0314610082578063441a3e70146100a65780635312ea8e146100cb575b600080fd5b61008a610196565b604080516001600160a01b039092168252519081900360200190f35b6100c9600480360360408110156100bc57600080fd5b50803590602001356101a5565b005b6100c9600480360360208110156100e157600080fd5b50356102d5565b61008a61037d565b61011c6004803603604081101561010657600080fd5b50803590602001356001600160a01b031661038c565b60408051918252519081900360200190f35b61015a6004803603604081101561014457600080fd5b50803590602001356001600160a01b0316610413565b6040805192835260208301919091528051918290030190f35b6100c96004803603604081101561018957600080fd5b5080359060200135610437565b6000546001600160a01b031681565b6001546040805163a9059cbb60e01b81523360048201526024810184905290516001600160a01b039092169163a9059cbb916044808201926020929091908290030181600087803b1580156101f957600080fd5b505af115801561020d573d6000803e3d6000fd5b505050506040513d602081101561022357600080fd5b505060008281526002602090815260408083203380855292528220915482546001600160a01b039091169163a9059cbb91600a90046040518363ffffffff1660e01b815260040180836001600160a01b0316815260200182815260200192505050602060405180830381600087803b15801561029e57600080fd5b505af11580156102b2573d6000803e3d6000fd5b505050506040513d60208110156102c857600080fd5b5050805491909103905550565b6000818152600260209081526040808320338085529083528184206001548154845163a9059cbb60e01b815260048101949094526024840152925190946001600160a01b039093169363a9059cbb936044808501949293928390030190829087803b15801561034357600080fd5b505af1158015610357573d6000803e3d6000fd5b505050506040513d602081101561036d57600080fd5b5050600080825560019091015550565b6001546001600160a01b031681565b60008054604080516370a0823160e01b81523060048201529051600a926001600160a01b0316916370a08231916024808301926020929190829003018186803b1580156103d857600080fd5b505afa1580156103ec573d6000803e3d6000fd5b505050506040513d602081101561040257600080fd5b50518161040b57fe5b049392505050565b60026020908152600092835260408084209091529082529020805460019091015482565b600154604080516323b872dd60e01b81523360048201523060248201526044810184905290516001600160a01b03909216916323b872dd916064808201926020929091908290030181600087803b15801561049157600080fd5b505af11580156104a5573d6000803e3d6000fd5b505050506040513d60208110156104bb57600080fd5b505060008281526002602090815260408083203380855292528220915482546001600160a01b039091169163a9059cbb91600a90046040518363ffffffff1660e01b815260040180836001600160a01b0316815260200182815260200192505050602060405180830381600087803b15801561053657600080fd5b505af115801561054a573d6000803e3d6000fd5b505050506040513d602081101561056057600080fd5b5050805490910190555056fea26469706673582212205ae099c05dfd4f35349741ba7f1b788daecde542855143a8cf7f471fb5e06b8e64736f6c634300060c0033",
+  "deployedBytecode": "0x608060405234801561001057600080fd5b506004361061007d5760003560e01c80635fcbd2851161005b5780635fcbd285146100e8578063876ad663146100f057806393f1a40b1461012e578063e2bbb158146101735761007d565b806311176c0314610082578063441a3e70146100a65780635312ea8e146100cb575b600080fd5b61008a610196565b604080516001600160a01b039092168252519081900360200190f35b6100c9600480360360408110156100bc57600080fd5b50803590602001356101a5565b005b6100c9600480360360208110156100e157600080fd5b50356102d5565b61008a61037d565b61011c6004803603604081101561010657600080fd5b50803590602001356001600160a01b031661038c565b60408051918252519081900360200190f35b61015a6004803603604081101561014457600080fd5b50803590602001356001600160a01b0316610413565b6040805192835260208301919091528051918290030190f35b6100c96004803603604081101561018957600080fd5b5080359060200135610437565b6000546001600160a01b031681565b6001546040805163a9059cbb60e01b81523360048201526024810184905290516001600160a01b039092169163a9059cbb916044808201926020929091908290030181600087803b1580156101f957600080fd5b505af115801561020d573d6000803e3d6000fd5b505050506040513d602081101561022357600080fd5b505060008281526002602090815260408083203380855292528220915482546001600160a01b039091169163a9059cbb91600a90046040518363ffffffff1660e01b815260040180836001600160a01b0316815260200182815260200192505050602060405180830381600087803b15801561029e57600080fd5b505af11580156102b2573d6000803e3d6000fd5b505050506040513d60208110156102c857600080fd5b5050805491909103905550565b6000818152600260209081526040808320338085529083528184206001548154845163a9059cbb60e01b815260048101949094526024840152925190946001600160a01b039093169363a9059cbb936044808501949293928390030190829087803b15801561034357600080fd5b505af1158015610357573d6000803e3d6000fd5b505050506040513d602081101561036d57600080fd5b5050600080825560019091015550565b6001546001600160a01b031681565b60008054604080516370a0823160e01b81523060048201529051600a926001600160a01b0316916370a08231916024808301926020929190829003018186803b1580156103d857600080fd5b505afa1580156103ec573d6000803e3d6000fd5b505050506040513d602081101561040257600080fd5b50518161040b57fe5b049392505050565b60026020908152600092835260408084209091529082529020805460019091015482565b600154604080516323b872dd60e01b81523360048201523060248201526044810184905290516001600160a01b03909216916323b872dd916064808201926020929091908290030181600087803b15801561049157600080fd5b505af11580156104a5573d6000803e3d6000fd5b505050506040513d60208110156104bb57600080fd5b505060008281526002602090815260408083203380855292528220915482546001600160a01b039091169163a9059cbb91600a90046040518363ffffffff1660e01b815260040180836001600160a01b0316815260200182815260200192505050602060405180830381600087803b15801561053657600080fd5b505af115801561054a573d6000803e3d6000fd5b505050506040513d602081101561056057600080fd5b5050805490910190555056fea26469706673582212205ae099c05dfd4f35349741ba7f1b788daecde542855143a8cf7f471fb5e06b8e64736f6c634300060c0033",
+  "devdoc": {
+    "kind": "dev",
+    "methods": {},
+    "version": 1
+  },
+  "userdoc": {
+    "kind": "user",
+    "methods": {},
+    "version": 1
+  },
+  "storageLayout": {
+    "storage": [
+      {
+        "astId": 5299,
+        "contract": "contracts/metavault/mock/MockPickleMasterChef.sol:MockPickleMasterChef",
+        "label": "pickleToken",
+        "offset": 0,
+        "slot": "0",
+        "type": "t_contract(IERC20)799"
+      },
+      {
+        "astId": 5301,
+        "contract": "contracts/metavault/mock/MockPickleMasterChef.sol:MockPickleMasterChef",
+        "label": "lpToken",
+        "offset": 0,
+        "slot": "1",
+        "type": "t_contract(IERC20)799"
+      },
+      {
+        "astId": 5312,
+        "contract": "contracts/metavault/mock/MockPickleMasterChef.sol:MockPickleMasterChef",
+        "label": "userInfo",
+        "offset": 0,
+        "slot": "2",
+        "type": "t_mapping(t_uint256,t_mapping(t_address,t_struct(UserInfo)5306_storage))"
+      }
+    ],
+    "types": {
+      "t_address": {
+        "encoding": "inplace",
+        "label": "address",
+        "numberOfBytes": "20"
+      },
+      "t_contract(IERC20)799": {
+        "encoding": "inplace",
+        "label": "contract IERC20",
+        "numberOfBytes": "20"
+      },
+      "t_mapping(t_address,t_struct(UserInfo)5306_storage)": {
+        "encoding": "mapping",
+        "key": "t_address",
+        "label": "mapping(address => struct MockPickleMasterChef.UserInfo)",
+        "numberOfBytes": "32",
+        "value": "t_struct(UserInfo)5306_storage"
+      },
+      "t_mapping(t_uint256,t_mapping(t_address,t_struct(UserInfo)5306_storage))": {
+        "encoding": "mapping",
+        "key": "t_uint256",
+        "label": "mapping(uint256 => mapping(address => struct MockPickleMasterChef.UserInfo))",
+        "numberOfBytes": "32",
+        "value": "t_mapping(t_address,t_struct(UserInfo)5306_storage)"
+      },
+      "t_struct(UserInfo)5306_storage": {
+        "encoding": "inplace",
+        "label": "struct MockPickleMasterChef.UserInfo",
+        "members": [
+          {
+            "astId": 5303,
+            "contract": "contracts/metavault/mock/MockPickleMasterChef.sol:MockPickleMasterChef",
+            "label": "amount",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_uint256"
+          },
+          {
+            "astId": 5305,
+            "contract": "contracts/metavault/mock/MockPickleMasterChef.sol:MockPickleMasterChef",
+            "label": "rewardDebt",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_uint256"
+          }
+        ],
+        "numberOfBytes": "64"
+      },
+      "t_uint256": {
+        "encoding": "inplace",
+        "label": "uint256",
+        "numberOfBytes": "32"
+      }
+    }
+  }
+}
