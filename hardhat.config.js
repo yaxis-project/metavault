@@ -56,7 +56,8 @@ module.exports = {
             1: '0xd061D61a4d941c39E5453435B6345Dc261C2fcE0'
         },
         multisig: {
-            1: '0xC1d40e197563dF727a4d3134E8BD1DeF4B498C6f'
+            1: '0xC1d40e197563dF727a4d3134E8BD1DeF4B498C6f',
+            42: '0x36D68d13dD18Fe8076833Ef99245Ef33B00A7259'
         },
         p3crv: {
             1: '0x1BB74b5DdC1f4fC91D6f9E7906cf68bc93538e33'
@@ -75,14 +76,16 @@ module.exports = {
             1: '0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7'
         },
         stakingPool: {
-            1: '0xeF31Cb88048416E301Fee1eA13e7664b887BA7e8'
+            1: '0xeF31Cb88048416E301Fee1eA13e7664b887BA7e8',
+            42: '0x36D68d13dD18Fe8076833Ef99245Ef33B00A7259'
         },
         T3CRV: {
             1: '0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490',
             42: '0x07A0D425B0d67e38EE041e280F70f0250491764b'
         },
         timelock: {
-            1: '0x66C5c16d13a38461648c1D097f219762D374B412'
+            1: '0x66C5c16d13a38461648c1D097f219762D374B412',
+            42: '0x36D68d13dD18Fe8076833Ef99245Ef33B00A7259'
         },
         unirouter: {
             1: '0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D'
