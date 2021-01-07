@@ -1,4 +1,4 @@
-const { INIT_BALANCE, MAX, ether, verbose } = require('../helpers/common');
+const { INIT_BALANCE, ether, verbose } = require('../helpers/common');
 const {
     afterStrategySetup,
     beforeStrategySetup,
@@ -30,15 +30,11 @@ contract('StrategyCurve3Crv', async (accounts) => {
             globalThis.minter.address,
             globalThis.stableSwap3Pool.address,
             globalThis.controller.address,
-            globalThis.globalThis.vaultManager.address
+            globalThis.vaultManager.address,
+            globalThis.router.address
         );
 
         await globalThis.crv.mint(globalThis.minter.address, INIT_BALANCE);
-        await globalThis.strategy.approveForSpender(
-            globalThis.crv.address,
-            globalThis.unirouter.address,
-            MAX
-        );
 
         await afterStrategySetup();
     });
@@ -67,7 +63,7 @@ contract('StrategyCurve3Crv', async (accounts) => {
             globalThis.vaultManager.address,
             await globalThis.strategy.vaultManager()
         );
-        assert.equal(globalThis.unirouter.address, await globalThis.strategy.unirouter());
+        assert.equal(globalThis.router.address, await globalThis.strategy.router());
     });
 
     it('should deposit DAI', async () => {

@@ -1,4 +1,4 @@
-const { INIT_BALANCE, MAX, ether, verbose } = require('../helpers/common');
+const { INIT_BALANCE, ether, verbose } = require('../helpers/common');
 const {
     afterStrategySetup,
     beforeStrategySetup,
@@ -31,15 +31,11 @@ contract('StrategyPickle3Crv', async (accounts) => {
             globalThis.usdt.address,
             globalThis.stableSwap3Pool.address,
             globalThis.controller.address,
-            globalThis.globalThis.vaultManager.address
+            globalThis.vaultManager.address,
+            globalThis.router.address
         );
         await globalThis.strategy.setPickleMasterChef(globalThis.pchef.address);
         await globalThis.strategy.setStableForLiquidity(globalThis.dai.address);
-        await globalThis.strategy.approveForSpender(
-            globalThis.pickle.address,
-            globalThis.unirouter.address,
-            MAX
-        );
         await globalThis.pickle.mint(globalThis.pchef.address, INIT_BALANCE);
 
         await afterStrategySetup();
@@ -69,7 +65,7 @@ contract('StrategyPickle3Crv', async (accounts) => {
             globalThis.vaultManager.address,
             await globalThis.strategy.vaultManager()
         );
-        assert.equal(globalThis.unirouter.address, await globalThis.strategy.unirouter());
+        assert.equal(globalThis.router.address, await globalThis.strategy.router());
     });
 
     it('should deposit DAI', async () => {

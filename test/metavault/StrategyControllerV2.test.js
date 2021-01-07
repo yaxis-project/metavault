@@ -120,6 +120,9 @@ contract('StrategyControllerV2', async (accounts) => {
         stableSwap3Pool = await MockStableSwap3Pool.new(DAI, USDC, USDT, T3CRV);
         STABLESWAP3POOL = stableSwap3Pool.address;
 
+        unirouter = await MockUniswapRouter.new(constants.ZERO_ADDRESS);
+        UNIROUTER = unirouter.address;
+
         // constructor (IERC20 _tokenDAI, IERC20 _tokenUSDC, IERC20 _tokenUSDT, IERC20 _token3CRV, IStableSwap3Pool _stableSwap3Pool, IVaultManager _vaultMaster)
         converter = await StableSwap3PoolConverter.new(
             DAI,
@@ -170,6 +173,7 @@ contract('StrategyControllerV2', async (accounts) => {
             STABLESWAP3POOL,
             MCONTROLLER,
             VMANAGER,
+            UNIROUTER,
             { from: deployer }
         );
         MSTRATEGYCRV = mstrategyCrv.address;
@@ -187,12 +191,11 @@ contract('StrategyControllerV2', async (accounts) => {
             STABLESWAP3POOL,
             MCONTROLLER,
             VMANAGER,
+            UNIROUTER,
             { from: deployer }
         );
         MSTRATEGYPICKLE = mstrategyPickle.address;
 
-        unirouter = await MockUniswapRouter.new(constants.ZERO_ADDRESS);
-        UNIROUTER = unirouter.address;
         yax.mint(UNIROUTER, INIT_BALANCE);
         weth.mint(UNIROUTER, INIT_BALANCE);
         crv.mint(UNIROUTER, INIT_BALANCE);
@@ -206,12 +209,8 @@ contract('StrategyControllerV2', async (accounts) => {
         await vmanager.setWithdrawalProtectionFee(0);
         await mvault.setController(MCONTROLLER);
         await mcontroller.setVault(T3CRV, MVAULT);
-        await mstrategyCrv.setUnirouter(UNIROUTER);
-        await mstrategyCrv.approveForSpender(WETH, UNIROUTER, MAX);
-        await mstrategyCrv.approveForSpender(CRV, UNIROUTER, MAX);
         await mstrategyPickle.setPickleMasterChef(PCHEF);
         await mstrategyPickle.setStableForLiquidity(DAI);
-        await mstrategyPickle.setUnirouter(UNIROUTER);
 
         await dai.approve(MVAULT, MAX, { from: bob });
         await usdc.approve(MVAULT, MAX, { from: bob });

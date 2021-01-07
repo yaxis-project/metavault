@@ -20,16 +20,17 @@ contract StrategyDforce is BaseStrategy {
         address _converter,
         address _controller,
         address _vaultManager,
-        address _weth
+        address _weth,
+        address _router
     )
         public
-        BaseStrategy(_controller, _vaultManager, _underlying, _weth)
+        BaseStrategy(_controller, _vaultManager, _underlying, _weth, _router)
     {
         dToken = _dToken;
         pool = _pool;
         DF = _DF;
         converter = IConverter(_converter);
-        IERC20(_DF).safeApprove(address(unirouter), type(uint256).max);
+        IERC20(_DF).safeApprove(address(_router), type(uint256).max);
         IERC20(_underlying).safeApprove(address(_converter), type(uint256).max);
         IERC20(_underlying).safeApprove(_dToken, type(uint256).max);
         IERC20(_dToken).safeApprove(_pool, type(uint256).max);

@@ -146,6 +146,9 @@ contract('yAxisMetaVaultManager', async (accounts) => {
         mcontroller = await StrategyControllerV2.new(VMANAGER);
         MCONTROLLER = mcontroller.address;
 
+        unirouter = await MockUniswapRouter.new(constants.ZERO_ADDRESS);
+        UNIROUTER = unirouter.address;
+
         // constructor(address _want, address _crv, address _weth, address _t3crv,
         //         address _dai, address _usdc, address _usdt,
         //         Gauge _gauge, Mintr _crvMintr,
@@ -162,7 +165,8 @@ contract('yAxisMetaVaultManager', async (accounts) => {
             MINTER,
             STABLESWAP3POOL,
             MCONTROLLER,
-            VMANAGER
+            VMANAGER,
+            UNIROUTER
         );
         MSTRATEGYCRV = mstrategyCrv.address;
         mstrategyCrv2 = await StrategyCurve3Crv.new(
@@ -177,7 +181,8 @@ contract('yAxisMetaVaultManager', async (accounts) => {
             MINTER,
             STABLESWAP3POOL,
             MCONTROLLER,
-            VMANAGER
+            VMANAGER,
+            UNIROUTER
         );
         MSTRATEGYCRV2 = mstrategyCrv2.address;
 
@@ -193,12 +198,11 @@ contract('yAxisMetaVaultManager', async (accounts) => {
             USDT,
             STABLESWAP3POOL,
             MCONTROLLER,
-            VMANAGER
+            VMANAGER,
+            UNIROUTER
         );
         MSTRATEGYPICKLE = mstrategyPickle.address;
 
-        unirouter = await MockUniswapRouter.new(constants.ZERO_ADDRESS);
-        UNIROUTER = unirouter.address;
         yax.mint(UNIROUTER, INIT_BALANCE);
         weth.mint(UNIROUTER, INIT_BALANCE);
         crv.mint(UNIROUTER, INIT_BALANCE);
@@ -208,12 +212,8 @@ contract('yAxisMetaVaultManager', async (accounts) => {
         await mvault.setVaultManager(VMANAGER);
         await mvault.setController(MCONTROLLER);
         await mcontroller.setVault(T3CRV, MVAULT);
-        await mstrategyCrv.setUnirouter(UNIROUTER);
-        await mstrategyCrv.approveForSpender(WETH, UNIROUTER, MAX);
-        await mstrategyCrv.approveForSpender(CRV, UNIROUTER, MAX);
         await mstrategyPickle.setPickleMasterChef(PCHEF);
         await mstrategyPickle.setStableForLiquidity(DAI);
-        await mstrategyPickle.setUnirouter(UNIROUTER);
         await mcontroller.addStrategy(T3CRV, MSTRATEGYCRV, 0);
         await mcontroller.addStrategy(T3CRV, MSTRATEGYPICKLE, 0);
         await mcontroller.addStrategy(T3CRV, MSTRATEGYCRV2, 0);

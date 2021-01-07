@@ -3,7 +3,6 @@
 pragma solidity 0.6.12;
 
 import "../../interfaces/Gauge.sol";
-import "../../interfaces/Uniswap.sol";
 import "../../interfaces/Balancer.sol";
 
 import "./BaseStrategy.sol";
@@ -35,10 +34,11 @@ contract StrategyCurve3Crv is BaseStrategy {
         Mintr _crvMintr,
         IStableSwap3Pool _stableSwap3Pool,
         address _controller,
-        address _vaultManager
+        address _vaultManager,
+        address _router
     )
         public
-        BaseStrategy(_controller, _vaultManager, _want, _weth)
+        BaseStrategy(_controller, _vaultManager, _want, _weth, _router)
     {
         if (_crv != address(0)) crv = _crv;
         if (_t3crv != address(0)) t3crv = _t3crv;
@@ -49,7 +49,7 @@ contract StrategyCurve3Crv is BaseStrategy {
         if (address(_gauge) != address(0)) gauge = _gauge;
         if (address(_crvMintr) != address(0)) crvMintr = _crvMintr;
         IERC20(_want).safeApprove(address(gauge), type(uint256).max);
-        IERC20(crv).safeApprove(address(unirouter), type(uint256).max);
+        IERC20(crv).safeApprove(address(_router), type(uint256).max);
         IERC20(dai).safeApprove(address(stableSwap3Pool), type(uint256).max);
         IERC20(usdc).safeApprove(address(stableSwap3Pool), type(uint256).max);
         IERC20(usdt).safeApprove(address(stableSwap3Pool), type(uint256).max);
