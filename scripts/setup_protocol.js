@@ -1,17 +1,13 @@
-const { MAX } = require('../test/helpers/common');
 const { ether } = require('@openzeppelin/test-helpers');
 const hardhat = require('hardhat');
 const { deployments, getChainId, getNamedAccounts, web3 } = hardhat;
 
 (async () => {
     const {
-        CRV,
         DAI,
-        PICKLE,
         T3CRV,
         USDC,
         USDT,
-        WETH,
         deployer,
         multisig,
         stakingPool,
@@ -36,7 +32,6 @@ const { deployments, getChainId, getNamedAccounts, web3 } = hardhat;
     const StrategyPickle = await deployments.get('StrategyPickle3Crv');
     const strategyPickle = new web3.eth.Contract(StrategyPickle.abi, StrategyPickle.address);
     const StrategyCurve = await deployments.get('StrategyCurve3Crv');
-    const strategyCurve = new web3.eth.Contract(StrategyCurve.abi, StrategyCurve.address);
     const Harvester = await deployments.get('yAxisMetaVaultHarvester');
     const harvester = new web3.eth.Contract(Harvester.abi, Harvester.address);
     const Converter = await deployments.get('StableSwap3PoolConverter');
@@ -53,28 +48,8 @@ const { deployments, getChainId, getNamedAccounts, web3 } = hardhat;
     // setup the strategies
     await strategyPickle.methods.setStableForLiquidity(DAI).send({ from: deployer });
     if (chainId != '1') {
-        const Unirouter = await deployments.get('MockUniswapRouter');
         const PickleMasterChef = await deployments.get('MockPickleMasterChef');
-        // These can only be set once for the same address
         try {
-            await strategyCurve.methods
-                .setUnirouter(Unirouter.address)
-                .send({ from: deployer });
-            await strategyCurve.methods
-                .approveForSpender(CRV, Unirouter.address, MAX)
-                .send({ from: deployer });
-            await strategyCurve.methods
-                .approveForSpender(WETH, Unirouter.address, MAX)
-                .send({ from: deployer });
-            await strategyPickle.methods
-                .setUnirouter(Unirouter.address)
-                .send({ from: deployer });
-            await strategyPickle.methods
-                .approveForSpender(PICKLE, Unirouter.address, MAX)
-                .send({ from: deployer });
-            await strategyPickle.methods
-                .approveForSpender(WETH, Unirouter.address, MAX)
-                .send({ from: deployer });
             await strategyPickle.methods
                 .setPickleMasterChef(PickleMasterChef.address)
                 .send({ from: deployer });
