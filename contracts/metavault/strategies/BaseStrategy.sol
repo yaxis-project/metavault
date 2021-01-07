@@ -7,9 +7,8 @@ import "@openzeppelin/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
 import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 
-import "../../interfaces/Uniswap.sol";
-
 import "../IStableSwap3Pool.sol";
+import "../ISwap.sol";
 import "../IVaultManager.sol";
 import "../IStrategy.sol";
 import "../IController.sol";
@@ -41,25 +40,28 @@ abstract contract BaseStrategy is IStrategy {
     address public immutable weth;
     address public controller;
     IVaultManager public vaultManager;
-    Uni public unirouter = Uni(0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D);
+    ISwap public router;
 
     /**
      * @param _controller The address of the controller
      * @param _vaultManager The address of the vaultManager
      * @param _want The desired token of the strategy
      * @param _weth The address of WETH
+     * @param _router The address of the router for swapping tokens
      */
     constructor(
         address _controller,
         address _vaultManager,
         address _want,
-        address _weth
+        address _weth,
+        address _router
     ) public {
         want = _want;
         controller = _controller;
         vaultManager = IVaultManager(_vaultManager);
         weth = _weth;
-        IERC20(_weth).safeApprove(address(unirouter), type(uint256).max);
+        router = ISwap(_router);
+        IERC20(_weth).safeApprove(address(_router), type(uint256).max);
     }
 
     /**
@@ -87,12 +89,12 @@ abstract contract BaseStrategy is IStrategy {
     }
 
     /**
-     * @notice Sets the address of the Uniswap Router
-     * @param _unirouter The address of the router
+     * @notice Sets the address of the ISwap-compatible router
+     * @param _router The address of the router
      */
-    function setUnirouter(Uni _unirouter) external {
+    function setRouter(address _router) external {
         require(msg.sender == vaultManager.governance(), "!governance");
-        unirouter = _unirouter;
+        router = ISwap(_router);
     }
 
     /**
@@ -250,7 +252,7 @@ abstract contract BaseStrategy is IStrategy {
         address[] memory path = new address[](2);
         path[0] = _input;
         path[1] = _output;
-        unirouter.swapExactTokensForTokens(
+        router.swapExactTokensForTokens(
             _amount,
             1,
             path,

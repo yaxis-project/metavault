@@ -10,7 +10,8 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
         PICKLE,
         pjar,
         deployer,
-        stableSwap3Pool
+        stableSwap3Pool,
+        unirouter
     } = await getNamedAccounts();
     const chainId = await getChainId();
     const controller = await deployments.get('StrategyControllerV2');
@@ -31,13 +32,15 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
                     USDT,
                     stableSwap3Pool,
                     controller.address,
-                    manager.address
+                    manager.address,
+                    unirouter
                 ]
             });
             break;
         case '42':
             const mockStableSwap3Pool = await deployments.get('MockStableSwap3Pool');
             const mockPickleJar = await deployments.get('MockPickleJar');
+            const mockUnirouter = await deployments.get('MockUniswapRouter');
             await deploy('StrategyPickle3Crv', {
                 from: deployer,
                 args: [
@@ -51,7 +54,8 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
                     USDT,
                     mockStableSwap3Pool.address,
                     controller.address,
-                    manager.address
+                    manager.address,
+                    mockUnirouter.address
                 ]
             });
             break;

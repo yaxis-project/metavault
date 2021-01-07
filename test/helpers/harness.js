@@ -51,7 +51,7 @@ const deployProtocolContracts = async () => {
         globalThis.stableSwap3Pool.address,
         globalThis.vaultManager.address
     );
-    globalThis.unirouter = await MockUniswapRouter.new(constants.ZERO_ADDRESS);
+    globalThis.router = await MockUniswapRouter.new(constants.ZERO_ADDRESS);
 };
 
 exports.deployProtocolContracts = deployProtocolContracts;
@@ -73,11 +73,11 @@ const fundContracts = async () => {
     await globalThis.usdc.mint(globalThis.stableSwap3Pool.address, '1000000000');
     await globalThis.usdt.mint(globalThis.stableSwap3Pool.address, '1000000000');
     await globalThis.t3crv.mint(globalThis.stableSwap3Pool.address, INIT_BALANCE);
-    await globalThis.yax.mint(globalThis.unirouter.address, INIT_BALANCE);
-    await globalThis.weth.mint(globalThis.unirouter.address, INIT_BALANCE);
-    await globalThis.dai.mint(globalThis.unirouter.address, INIT_BALANCE);
-    await globalThis.usdc.mint(globalThis.unirouter.address, INIT_BALANCE);
-    await globalThis.usdt.mint(globalThis.unirouter.address, INIT_BALANCE);
+    await globalThis.yax.mint(globalThis.router.address, INIT_BALANCE);
+    await globalThis.weth.mint(globalThis.router.address, INIT_BALANCE);
+    await globalThis.dai.mint(globalThis.router.address, INIT_BALANCE);
+    await globalThis.usdc.mint(globalThis.router.address, INIT_BALANCE);
+    await globalThis.usdt.mint(globalThis.router.address, INIT_BALANCE);
 };
 
 exports.fundContracts = fundContracts;
@@ -156,12 +156,7 @@ const setupProtocol = async () => {
         0
     );
     await globalThis.converter.setStrategy(globalThis.strategy.address, true);
-    await globalThis.strategy.setUnirouter(globalThis.unirouter.address);
-    await globalThis.strategy.approveForSpender(
-        globalThis.weth.address,
-        globalThis.unirouter.address,
-        MAX
-    );
+    await globalThis.strategy.setRouter(globalThis.router.address);
 };
 
 exports.setupProtocol = setupProtocol;

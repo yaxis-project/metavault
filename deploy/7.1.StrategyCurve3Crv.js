@@ -11,7 +11,8 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
         deployer,
         gauge,
         minter,
-        stableSwap3Pool
+        stableSwap3Pool,
+        unirouter
     } = await getNamedAccounts();
     const chainId = await getChainId();
     const controller = await deployments.get('StrategyControllerV2');
@@ -33,7 +34,8 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
                     minter,
                     stableSwap3Pool,
                     controller.address,
-                    manager.address
+                    manager.address,
+                    unirouter
                 ]
             });
             break;
@@ -41,6 +43,7 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
             const mockStableSwap3Pool = await deployments.get('MockStableSwap3Pool');
             const mockGauge = await deployments.get('MockCurveGauge');
             const mockMinter = await deployments.get('MockCurveMinter');
+            const mockUnirouter = await deployments.get('MockUniswapRouter');
             await deploy('StrategyCurve3Crv', {
                 from: deployer,
                 args: [
@@ -55,7 +58,8 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
                     mockMinter.address,
                     mockStableSwap3Pool.address,
                     controller.address,
-                    manager.address
+                    manager.address,
+                    mockUnirouter.address
                 ]
             });
             break;

@@ -40,10 +40,11 @@ contract StrategyPickle3Crv is BaseStrategy {
         address _usdt,
         IStableSwap3Pool _stableSwap3Pool,
         address _controller,
-        address _vaultManager
+        address _vaultManager,
+        address _router
     )
         public
-        BaseStrategy(_controller, _vaultManager, _want, _weth)
+        BaseStrategy(_controller, _vaultManager, _want, _weth, _router)
     {
         p3crv = _p3crv;
         pickle = _pickle;
@@ -55,7 +56,7 @@ contract StrategyPickle3Crv is BaseStrategy {
         pickleJar = PickleJar(_p3crv);
         IERC20(_want).safeApprove(_p3crv, type(uint256).max);
         IERC20(_p3crv).safeApprove(address(pickleMasterChef), type(uint256).max);
-        IERC20(_pickle).safeApprove(address(unirouter), type(uint256).max);
+        IERC20(_pickle).safeApprove(address(_router), type(uint256).max);
     }
 
     function setStableForLiquidity(address _stableForAddLiquidity) external onlyAuthorized {

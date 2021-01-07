@@ -72,6 +72,7 @@ contract('StrategyControllerV2: live', async (accounts) => {
         this.MINTER = '0xd061D61a4d941c39E5453435B6345Dc261C2fcE0';
         this.PJAR = '0x1BB74b5DdC1f4fC91D6f9E7906cf68bc93538e33';
         this.PCHEF = '0xbD17B1ce622d73bD438b9E658acA5996dc394b0d';
+        this.UNISWAP = '0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D';
 
         this.yax = await MockERC20.at(this.YAX);
         this.dai = await MockERC20.at(this.DAI);
@@ -195,6 +196,7 @@ contract('StrategyControllerV2: live', async (accounts) => {
             this.STABLESWAP3POOL,
             this.controller.address,
             this.manager.address,
+            this.UNISWAP,
             { from: deployer }
         );
 
@@ -210,6 +212,7 @@ contract('StrategyControllerV2: live', async (accounts) => {
             this.STABLESWAP3POOL,
             this.controller.address,
             this.manager.address,
+            this.UNISWAP,
             { from: deployer }
         );
     });

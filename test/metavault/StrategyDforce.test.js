@@ -1,4 +1,4 @@
-const { INIT_BALANCE, MAX, ether, verbose } = require('../helpers/common');
+const { INIT_BALANCE, ether, verbose } = require('../helpers/common');
 const {
     afterStrategySetup,
     beforeStrategySetup,
@@ -29,14 +29,10 @@ contract('StrategyDforce', async (accounts) => {
             globalThis.converter.address,
             globalThis.controller.address,
             globalThis.vaultManager.address,
-            globalThis.weth.address
+            globalThis.weth.address,
+            globalThis.router.address
         );
-        await globalThis.strategy.approveForSpender(
-            globalThis.df.address,
-            globalThis.unirouter.address,
-            MAX
-        );
-        await globalThis.df.mint(globalThis.unirouter.address, INIT_BALANCE);
+        await globalThis.df.mint(globalThis.router.address, INIT_BALANCE);
         await globalThis.df.mint(globalThis.dRewards.address, INIT_BALANCE);
 
         await afterStrategySetup();
@@ -69,7 +65,7 @@ contract('StrategyDforce', async (accounts) => {
             globalThis.vaultManager.address,
             await globalThis.strategy.vaultManager()
         );
-        assert.equal(globalThis.unirouter.address, await globalThis.strategy.unirouter());
+        assert.equal(globalThis.router.address, await globalThis.strategy.router());
 
         // Implementation
         assert.equal(globalThis.dDai.address, await globalThis.strategy.dToken());
