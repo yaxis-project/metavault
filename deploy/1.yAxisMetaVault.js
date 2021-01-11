@@ -1,12 +1,26 @@
 module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
     const { deploy } = deployments;
     const chainId = await getChainId();
-    const { deployer, DAI, USDC, USDT, T3CRV, YAX } = await getNamedAccounts();
+    const { deployer } = await getNamedAccounts();
 
-    if (chainId == '42') {
+    // yAxisMetaVault is already deployed to mainnet
+    if (chainId != '1') {
+        const yax = await deployments.get('YAX');
+        const dai = await deployments.get('DAI');
+        const usdc = await deployments.get('USDC');
+        const usdt = await deployments.get('USDT');
+        const t3crv = await deployments.get('T3CRV');
         await deploy('yAxisMetaVault', {
             from: deployer,
-            args: [DAI, USDC, USDT, T3CRV, YAX, '10000000000000', 1]
+            args: [
+                dai.address,
+                usdc.address,
+                usdt.address,
+                t3crv.address,
+                yax.address,
+                '10000000000000',
+                1
+            ]
         });
     }
 };

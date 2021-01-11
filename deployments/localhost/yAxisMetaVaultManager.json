@@ -1,0 +1,828 @@
+{
+  "address": "0x8A791620dd6260079BF849Dc5567aDC3F2FdC318",
+  "abi": [
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_yax",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "constructor"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "name": "controllers",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "getHarvestFeeInfo",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        },
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        },
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "governance",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "contract IERC20",
+          "name": "_token",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_amount",
+          "type": "uint256"
+        },
+        {
+          "internalType": "address",
+          "name": "_to",
+          "type": "address"
+        }
+      ],
+      "name": "governanceRecoverUnsupported",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "harvester",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "insuranceFee",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "insurancePool",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "insurancePoolFee",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_controller",
+          "type": "address"
+        },
+        {
+          "internalType": "bool",
+          "name": "_status",
+          "type": "bool"
+        }
+      ],
+      "name": "setControllerStatus",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_governance",
+          "type": "address"
+        }
+      ],
+      "name": "setGovernance",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_harvester",
+          "type": "address"
+        }
+      ],
+      "name": "setHarvester",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "_insuranceFee",
+          "type": "uint256"
+        }
+      ],
+      "name": "setInsuranceFee",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_insurancePool",
+          "type": "address"
+        }
+      ],
+      "name": "setInsurancePool",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "_insurancePoolFee",
+          "type": "uint256"
+        }
+      ],
+      "name": "setInsurancePoolFee",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_stakingPool",
+          "type": "address"
+        }
+      ],
+      "name": "setStakingPool",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "_stakingPoolShareFee",
+          "type": "uint256"
+        }
+      ],
+      "name": "setStakingPoolShareFee",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_strategist",
+          "type": "address"
+        }
+      ],
+      "name": "setStrategist",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_treasury",
+          "type": "address"
+        }
+      ],
+      "name": "setTreasury",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "_treasuryBalance",
+          "type": "uint256"
+        }
+      ],
+      "name": "setTreasuryBalance",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "_treasuryFee",
+          "type": "uint256"
+        }
+      ],
+      "name": "setTreasuryFee",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_vault",
+          "type": "address"
+        },
+        {
+          "internalType": "bool",
+          "name": "_status",
+          "type": "bool"
+        }
+      ],
+      "name": "setVaultStatus",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "_withdrawalProtectionFee",
+          "type": "uint256"
+        }
+      ],
+      "name": "setWithdrawalProtectionFee",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_yax",
+          "type": "address"
+        }
+      ],
+      "name": "setYax",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "stakingPool",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "stakingPoolShareFee",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "strategist",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "treasury",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "treasuryBalance",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "treasuryFee",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "name": "vaults",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "withdrawalProtectionFee",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "yax",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    }
+  ],
+  "transactionHash": "0x9eab6202a4280a17575d232cbc2780c0e547fd0d175d44819994c5e91a7bc241",
+  "receipt": {
+    "to": null,
+    "from": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+    "contractAddress": "0x8A791620dd6260079BF849Dc5567aDC3F2FdC318",
+    "transactionIndex": 0,
+    "gasUsed": "1099043",
+    "logsBloom": "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+    "blockHash": "0xbf67b94d0abd95f56e480ff089555c8a45fe20a2bd5115b2e08fd8029ebd6095",
+    "transactionHash": "0x9eab6202a4280a17575d232cbc2780c0e547fd0d175d44819994c5e91a7bc241",
+    "logs": [],
+    "blockNumber": 11629904,
+    "cumulativeGasUsed": "1099043",
+    "status": 1,
+    "byzantium": true
+  },
+  "args": [
+    "0x5FbDB2315678afecb367f032d93F642f64180aa3"
+  ],
+  "solcInputHash": "29c097734f195176561e60c2670ea13c",
+  "metadata": "{\"compiler\":{\"version\":\"0.6.12+commit.27d51765\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_yax\",\"type\":\"address\"}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"controllers\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getHarvestFeeInfo\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"governance\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"contract IERC20\",\"name\":\"_token\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"_amount\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"_to\",\"type\":\"address\"}],\"name\":\"governanceRecoverUnsupported\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"harvester\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"insuranceFee\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"insurancePool\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"insurancePoolFee\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_controller\",\"type\":\"address\"},{\"internalType\":\"bool\",\"name\":\"_status\",\"type\":\"bool\"}],\"name\":\"setControllerStatus\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_governance\",\"type\":\"address\"}],\"name\":\"setGovernance\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_harvester\",\"type\":\"address\"}],\"name\":\"setHarvester\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_insuranceFee\",\"type\":\"uint256\"}],\"name\":\"setInsuranceFee\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_insurancePool\",\"type\":\"address\"}],\"name\":\"setInsurancePool\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_insurancePoolFee\",\"type\":\"uint256\"}],\"name\":\"setInsurancePoolFee\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_stakingPool\",\"type\":\"address\"}],\"name\":\"setStakingPool\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_stakingPoolShareFee\",\"type\":\"uint256\"}],\"name\":\"setStakingPoolShareFee\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_strategist\",\"type\":\"address\"}],\"name\":\"setStrategist\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_treasury\",\"type\":\"address\"}],\"name\":\"setTreasury\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_treasuryBalance\",\"type\":\"uint256\"}],\"name\":\"setTreasuryBalance\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_treasuryFee\",\"type\":\"uint256\"}],\"name\":\"setTreasuryFee\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_vault\",\"type\":\"address\"},{\"internalType\":\"bool\",\"name\":\"_status\",\"type\":\"bool\"}],\"name\":\"setVaultStatus\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_withdrawalProtectionFee\",\"type\":\"uint256\"}],\"name\":\"setWithdrawalProtectionFee\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_yax\",\"type\":\"address\"}],\"name\":\"setYax\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"stakingPool\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"stakingPoolShareFee\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"strategist\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"treasury\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"treasuryBalance\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"treasuryFee\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"vaults\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"withdrawalProtectionFee\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"yax\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"}],\"devdoc\":{\"kind\":\"dev\",\"methods\":{\"constructor\":{\"params\":{\"_yax\":\"The address of the YAX token\"}},\"governanceRecoverUnsupported(address,uint256,address)\":{\"params\":{\"_amount\":\"The amount to withdraw\",\"_to\":\"The address to send to\",\"_token\":\"The address of the token\"}},\"setControllerStatus(address,bool)\":{\"params\":{\"_controller\":\"The address of the controller\",\"_status\":\"The status of the controller\"}},\"setGovernance(address)\":{\"params\":{\"_governance\":\"The address of the governance\"}},\"setHarvester(address)\":{\"params\":{\"_harvester\":\"The address of the harvester\"}},\"setInsuranceFee(uint256)\":{\"details\":\"Throws if setting fee over 1%\",\"params\":{\"_insuranceFee\":\"The value for the insurance fee\"}},\"setInsurancePool(address)\":{\"params\":{\"_insurancePool\":\"The address of the insurance pool\"}},\"setInsurancePoolFee(uint256)\":{\"details\":\"Throws if setting fee over 20%\",\"params\":{\"_insurancePoolFee\":\"The value for the insurance pool fee\"}},\"setStakingPool(address)\":{\"params\":{\"_stakingPool\":\"The address of the staking pool\"}},\"setStakingPoolShareFee(uint256)\":{\"details\":\"Throws if setting fee over 50%\",\"params\":{\"_stakingPoolShareFee\":\"The value for the staking pool fee\"}},\"setStrategist(address)\":{\"params\":{\"_strategist\":\"The address of the strategist\"}},\"setTreasury(address)\":{\"params\":{\"_treasury\":\"The address of the treasury\"}},\"setTreasuryBalance(uint256)\":{\"details\":\"Strategies will read this value to determine whether or not to give the treasury the treasuryFee\",\"params\":{\"_treasuryBalance\":\"The maximum balance of the treasury\"}},\"setTreasuryFee(uint256)\":{\"details\":\"Throws if setting fee over 20%\",\"params\":{\"_treasuryFee\":\"The value for the treasury fee\"}},\"setVaultStatus(address,bool)\":{\"params\":{\"_status\":\"The status of the vault\",\"_vault\":\"The address of the vault\"}},\"setWithdrawalProtectionFee(uint256)\":{\"details\":\"Throws if setting fee over 1%\",\"params\":{\"_withdrawalProtectionFee\":\"The value for the withdrawal protection fee\"}},\"setYax(address)\":{\"params\":{\"_yax\":\"The address of the YAX token\"}}},\"title\":\"yAxisMetaVaultManager\",\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{\"getHarvestFeeInfo()\":{\"notice\":\"Returns a tuple of:     YAX token,     Staking pool address,     Staking pool share fee,     Treasury address,     Checks the balance of the treasury and returns the treasury fee         if below the treasuryBalance, or 0 if above\"},\"governanceRecoverUnsupported(address,uint256,address)\":{\"notice\":\"Allows governance to pull tokens out of this contract (it should never hold tokens)\"},\"insuranceFee()\":{\"notice\":\"The following fees are all mutable.  They are updated by governance (community vote).\"},\"setControllerStatus(address,bool)\":{\"notice\":\"Sets the status for a controller\"},\"setGovernance(address)\":{\"notice\":\"Sets the governance address\"},\"setHarvester(address)\":{\"notice\":\"Sets the harvester address\"},\"setInsuranceFee(uint256)\":{\"notice\":\"Sets the insurance fee\"},\"setInsurancePool(address)\":{\"notice\":\"Sets the insurance pool address\"},\"setInsurancePoolFee(uint256)\":{\"notice\":\"Sets the insurance pool fee\"},\"setStakingPool(address)\":{\"notice\":\"Sets the staking pool address\"},\"setStakingPoolShareFee(uint256)\":{\"notice\":\"Sets the staking pool share fee\"},\"setStrategist(address)\":{\"notice\":\"Sets the strategist address\"},\"setTreasury(address)\":{\"notice\":\"Sets the treasury address\"},\"setTreasuryBalance(uint256)\":{\"notice\":\"Sets the maximum treasury balance\"},\"setTreasuryFee(uint256)\":{\"notice\":\"Sets the treasury fee\"},\"setVaultStatus(address,bool)\":{\"notice\":\"Sets the status for a vault\"},\"setWithdrawalProtectionFee(uint256)\":{\"notice\":\"Sets the withdrawal protection fee\"},\"setYax(address)\":{\"notice\":\"Sets the YAX address\"}},\"notice\":\"This contract serves as the central point for governance-voted variables. Fees and permissioned addresses are stored and referenced in this contract only.\",\"version\":1}},\"settings\":{\"compilationTarget\":{\"contracts/metavault/yAxisMetaVaultManager.sol\":\"yAxisMetaVaultManager\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\",\"useLiteralContent\":true},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[]},\"sources\":{\"@openzeppelin/contracts/token/ERC20/IERC20.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\n\\npragma solidity >=0.6.0 <0.8.0;\\n\\n/**\\n * @dev Interface of the ERC20 standard as defined in the EIP.\\n */\\ninterface IERC20 {\\n    /**\\n     * @dev Returns the amount of tokens in existence.\\n     */\\n    function totalSupply() external view returns (uint256);\\n\\n    /**\\n     * @dev Returns the amount of tokens owned by `account`.\\n     */\\n    function balanceOf(address account) external view returns (uint256);\\n\\n    /**\\n     * @dev Moves `amount` tokens from the caller's account to `recipient`.\\n     *\\n     * Returns a boolean value indicating whether the operation succeeded.\\n     *\\n     * Emits a {Transfer} event.\\n     */\\n    function transfer(address recipient, uint256 amount) external returns (bool);\\n\\n    /**\\n     * @dev Returns the remaining number of tokens that `spender` will be\\n     * allowed to spend on behalf of `owner` through {transferFrom}. This is\\n     * zero by default.\\n     *\\n     * This value changes when {approve} or {transferFrom} are called.\\n     */\\n    function allowance(address owner, address spender) external view returns (uint256);\\n\\n    /**\\n     * @dev Sets `amount` as the allowance of `spender` over the caller's tokens.\\n     *\\n     * Returns a boolean value indicating whether the operation succeeded.\\n     *\\n     * IMPORTANT: Beware that changing an allowance with this method brings the risk\\n     * that someone may use both the old and the new allowance by unfortunate\\n     * transaction ordering. One possible solution to mitigate this race\\n     * condition is to first reduce the spender's allowance to 0 and set the\\n     * desired value afterwards:\\n     * https://github.com/ethereum/EIPs/issues/20#issuecomment-263524729\\n     *\\n     * Emits an {Approval} event.\\n     */\\n    function approve(address spender, uint256 amount) external returns (bool);\\n\\n    /**\\n     * @dev Moves `amount` tokens from `sender` to `recipient` using the\\n     * allowance mechanism. `amount` is then deducted from the caller's\\n     * allowance.\\n     *\\n     * Returns a boolean value indicating whether the operation succeeded.\\n     *\\n     * Emits a {Transfer} event.\\n     */\\n    function transferFrom(address sender, address recipient, uint256 amount) external returns (bool);\\n\\n    /**\\n     * @dev Emitted when `value` tokens are moved from one account (`from`) to\\n     * another (`to`).\\n     *\\n     * Note that `value` may be zero.\\n     */\\n    event Transfer(address indexed from, address indexed to, uint256 value);\\n\\n    /**\\n     * @dev Emitted when the allowance of a `spender` for an `owner` is set by\\n     * a call to {approve}. `value` is the new allowance.\\n     */\\n    event Approval(address indexed owner, address indexed spender, uint256 value);\\n}\\n\",\"keccak256\":\"0x5f02220344881ce43204ae4a6281145a67bc52c2bb1290a791857df3d19d78f5\",\"license\":\"MIT\"},\"contracts/metavault/IVaultManager.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\n\\npragma solidity 0.6.12;\\n\\ninterface IVaultManager {\\n    function controllers(address) external view returns (bool);\\n    function getHarvestFeeInfo() external view returns (address, address, uint256, address, uint256, address, uint256);\\n    function governance() external view returns (address);\\n    function harvester() external view returns (address);\\n    function insuranceFee() external view returns (uint256);\\n    function insurancePool() external view returns (address);\\n    function insurancePoolFee() external view returns (uint256);\\n    function stakingPool() external view returns (address);\\n    function stakingPoolShareFee() external view returns (uint256);\\n    function strategist() external view returns (address);\\n    function treasury() external view returns (address);\\n    function treasuryBalance() external view returns (uint256);\\n    function treasuryFee() external view returns (uint256);\\n    function vaults(address) external view returns (bool);\\n    function withdrawalProtectionFee() external view returns (uint256);\\n    function yax() external view returns (address);\\n}\\n\",\"keccak256\":\"0x9755c468ca7cd281bc678a1692f294765da5fa734d63c20fbdac12c31a665ed2\",\"license\":\"MIT\"},\"contracts/metavault/yAxisMetaVaultManager.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\n\\npragma solidity 0.6.12;\\n\\nimport \\\"@openzeppelin/contracts/token/ERC20/IERC20.sol\\\";\\n\\nimport \\\"./IVaultManager.sol\\\";\\n\\n/**\\n * @title yAxisMetaVaultManager\\n * @notice This contract serves as the central point for governance-voted\\n * variables. Fees and permissioned addresses are stored and referenced in\\n * this contract only.\\n */\\ncontract yAxisMetaVaultManager is IVaultManager { // solhint-disable-line contract-name-camelcase\\n    address public override governance;\\n    address public override harvester;\\n    address public override insurancePool;\\n    address public override stakingPool;\\n    address public override strategist;\\n    address public override treasury;\\n    address public override yax;\\n\\n    /**\\n     *  The following fees are all mutable.\\n     *  They are updated by governance (community vote).\\n     */\\n    uint256 public override insuranceFee;\\n    uint256 public override insurancePoolFee;\\n    uint256 public override stakingPoolShareFee;\\n    uint256 public override treasuryBalance;\\n    uint256 public override treasuryFee;\\n    uint256 public override withdrawalProtectionFee;\\n\\n    mapping(address => bool) public override vaults;\\n    mapping(address => bool) public override controllers;\\n\\n    /**\\n     * @param _yax The address of the YAX token\\n     */\\n    constructor(address _yax) public {\\n        yax = _yax;\\n        governance = msg.sender;\\n        strategist = msg.sender;\\n        harvester = msg.sender;\\n        stakingPoolShareFee = 2000;\\n        treasuryBalance = 20000e18;\\n        treasuryFee = 500;\\n        withdrawalProtectionFee = 10;\\n    }\\n\\n    /**\\n     * GOVERNANCE-ONLY FUNCTIONS\\n     */\\n\\n    /**\\n     * @notice Allows governance to pull tokens out of this contract\\n     * (it should never hold tokens)\\n     * @param _token The address of the token\\n     * @param _amount The amount to withdraw\\n     * @param _to The address to send to\\n     */\\n    function governanceRecoverUnsupported(\\n        IERC20 _token,\\n        uint256 _amount,\\n        address _to\\n    ) external {\\n        require(msg.sender == governance, \\\"!governance\\\");\\n        _token.transfer(_to, _amount);\\n    }\\n\\n    /**\\n     * @notice Sets the governance address\\n     * @param _governance The address of the governance\\n     */\\n    function setGovernance(address _governance) external {\\n        require(msg.sender == governance, \\\"!governance\\\");\\n        governance = _governance;\\n    }\\n\\n    /**\\n     * @notice Sets the insurance fee\\n     * @dev Throws if setting fee over 1%\\n     * @param _insuranceFee The value for the insurance fee\\n     */\\n    function setInsuranceFee(uint256 _insuranceFee) public {\\n        require(msg.sender == governance, \\\"!governance\\\");\\n        require(_insuranceFee <= 100, \\\"_insuranceFee over 1%\\\");\\n        insuranceFee = _insuranceFee;\\n    }\\n\\n    /**\\n     * @notice Sets the insurance pool address\\n     * @param _insurancePool The address of the insurance pool\\n     */\\n    function setInsurancePool(address _insurancePool) public {\\n        require(msg.sender == governance, \\\"!governance\\\");\\n        insurancePool = _insurancePool;\\n    }\\n\\n    /**\\n     * @notice Sets the insurance pool fee\\n     * @dev Throws if setting fee over 20%\\n     * @param _insurancePoolFee The value for the insurance pool fee\\n     */\\n    function setInsurancePoolFee(uint256 _insurancePoolFee) public {\\n        require(msg.sender == governance, \\\"!governance\\\");\\n        require(_insurancePoolFee <= 2000, \\\"_insurancePoolFee over 20%\\\");\\n        insurancePoolFee = _insurancePoolFee;\\n    }\\n\\n    /**\\n     * @notice Sets the staking pool address\\n     * @param _stakingPool The address of the staking pool\\n     */\\n    function setStakingPool(address _stakingPool) public {\\n        require(msg.sender == governance, \\\"!governance\\\");\\n        stakingPool = _stakingPool;\\n    }\\n\\n    /**\\n     * @notice Sets the staking pool share fee\\n     * @dev Throws if setting fee over 50%\\n     * @param _stakingPoolShareFee The value for the staking pool fee\\n     */\\n    function setStakingPoolShareFee(uint256 _stakingPoolShareFee) public {\\n        require(msg.sender == governance, \\\"!governance\\\");\\n        require(_stakingPoolShareFee <= 5000, \\\"_stakingPoolShareFee over 50%\\\");\\n        stakingPoolShareFee = _stakingPoolShareFee;\\n    }\\n\\n    /**\\n     * @notice Sets the strategist address\\n     * @param _strategist The address of the strategist\\n     */\\n    function setStrategist(address _strategist) external {\\n        require(msg.sender == governance, \\\"!governance\\\");\\n        strategist = _strategist;\\n    }\\n\\n    /**\\n     * @notice Sets the treasury address\\n     * @param _treasury The address of the treasury\\n     */\\n    function setTreasury(address _treasury) public {\\n        require(msg.sender == governance, \\\"!governance\\\");\\n        treasury = _treasury;\\n    }\\n\\n    /**\\n     * @notice Sets the maximum treasury balance\\n     * @dev Strategies will read this value to determine whether or not\\n     * to give the treasury the treasuryFee\\n     * @param _treasuryBalance The maximum balance of the treasury\\n     */\\n    function setTreasuryBalance(uint256 _treasuryBalance) public {\\n        require(msg.sender == governance, \\\"!governance\\\");\\n        treasuryBalance = _treasuryBalance;\\n    }\\n\\n    /**\\n     * @notice Sets the treasury fee\\n     * @dev Throws if setting fee over 20%\\n     * @param _treasuryFee The value for the treasury fee\\n     */\\n    function setTreasuryFee(uint256 _treasuryFee) public {\\n        require(msg.sender == governance, \\\"!governance\\\");\\n        require(_treasuryFee <= 2000, \\\"_treasuryFee over 20%\\\");\\n        treasuryFee = _treasuryFee;\\n    }\\n\\n    /**\\n     * @notice Sets the withdrawal protection fee\\n     * @dev Throws if setting fee over 1%\\n     * @param _withdrawalProtectionFee The value for the withdrawal protection fee\\n     */\\n    function setWithdrawalProtectionFee(uint256 _withdrawalProtectionFee) public {\\n        require(msg.sender == governance, \\\"!governance\\\");\\n        require(_withdrawalProtectionFee <= 100, \\\"_withdrawalProtectionFee over 1%\\\");\\n        withdrawalProtectionFee = _withdrawalProtectionFee;\\n    }\\n\\n    /**\\n     * @notice Sets the YAX address\\n     * @param _yax The address of the YAX token\\n     */\\n    function setYax(address _yax) external {\\n        require(msg.sender == governance, \\\"!governance\\\");\\n        yax = _yax;\\n    }\\n\\n    /**\\n     * (GOVERNANCE|STRATEGIST)-ONLY FUNCTIONS\\n     */\\n\\n    /**\\n     * @notice Sets the status for a controller\\n     * @param _controller The address of the controller\\n     * @param _status The status of the controller\\n     */\\n    function setControllerStatus(address _controller, bool _status) external {\\n        require(msg.sender == strategist || msg.sender == governance, \\\"!strategist\\\");\\n        controllers[_controller] = _status;\\n    }\\n\\n    /**\\n     * @notice Sets the harvester address\\n     * @param _harvester The address of the harvester\\n     */\\n    function setHarvester(address _harvester) external {\\n        require(msg.sender == strategist || msg.sender == governance, \\\"!strategist\\\");\\n        harvester = _harvester;\\n    }\\n\\n    /**\\n     * @notice Sets the status for a vault\\n     * @param _vault The address of the vault\\n     * @param _status The status of the vault\\n     */\\n    function setVaultStatus(address _vault, bool _status) external {\\n        require(msg.sender == strategist || msg.sender == governance, \\\"!strategist\\\");\\n        vaults[_vault] = _status;\\n    }\\n\\n    /**\\n     * EXTERNAL VIEW FUNCTIONS\\n     */\\n\\n    /**\\n     * @notice Returns a tuple of:\\n     *     YAX token,\\n     *     Staking pool address,\\n     *     Staking pool share fee,\\n     *     Treasury address,\\n     *     Checks the balance of the treasury and returns the treasury fee\\n     *         if below the treasuryBalance, or 0 if above\\n     */\\n    function getHarvestFeeInfo()\\n        external\\n        view\\n        override\\n        returns (address, address, uint256, address, uint256, address, uint256)\\n    {\\n        return (\\n            yax,\\n            stakingPool,\\n            stakingPoolShareFee,\\n            treasury,\\n            IERC20(yax).balanceOf(treasury) >= treasuryBalance ? 0 : treasuryFee,\\n            insurancePool,\\n            insurancePoolFee\\n        );\\n    }\\n}\\n\",\"keccak256\":\"0xae7f97c70ef6875c44494efbe5395d50da85ee2f3929a0952796bf1dedc9feee\",\"license\":\"MIT\"}},\"version\":1}",
+  "bytecode": "0x608060405234801561001057600080fd5b5060405161108b38038061108b8339818101604052602081101561003357600080fd5b5051600680546001600160a01b039092166001600160a01b03199283161790556000805482163390811790915560048054831682179055600180549092161790556107d060095569043c33c1937564800000600a9081556101f4600b55600c55610fe9806100a26000396000f3fe608060405234801561001057600080fd5b50600436106101f05760003560e01c8063825139091161010f578063b1c7d36f116100a2578063cc32d17611610071578063cc32d176146104e3578063da633d31146104eb578063da8c229e1461053f578063f0f4426014610565576101f0565b8063b1c7d36f1461047b578063ba32681e14610483578063c7b9d530146104a0578063cc08c4cc146104c6576101f0565b8063a622ee7c116100de578063a622ee7c146103ed578063a94c487e14610427578063ab033ea91461044d578063ab2adc0014610473576101f0565b806382513909146103925780638a513ef61461039a57806397c4fac7146103c8578063a33dd801146103d0576101f0565b80634bdaeac11161018757806360d712fc1161015657806360d712fc1461032257806361d027b3146103505780636b0243bc1461035857806377e741c714610375576101f0565b80634bdaeac1146102bf57806354575af4146102c75780635aa6e675146102fd578063603dfcda14610305576101f0565b80632f2a04be116101c35780632f2a04be1461026f5780633028f63a14610277578063313dab201461029d57806346821efa146102b7576101f0565b80630c56ae3b146101f55780630e9905751461021957806315de1daa146102415780631fe4a68614610267575b600080fd5b6101fd61058b565b604080516001600160a01b039092168252519081900360200190f35b61023f6004803603602081101561022f57600080fd5b50356001600160a01b031661059a565b005b61023f6004803603602081101561025757600080fd5b50356001600160a01b0316610609565b6101fd61068d565b6101fd61069c565b61023f6004803603602081101561028d57600080fd5b50356001600160a01b03166106ab565b6102a561071a565b60408051918252519081900360200190f35b6102a5610720565b6101fd610726565b61023f600480360360608110156102dd57600080fd5b506001600160a01b03813581169160208101359160409091013516610735565b6101fd61080a565b61023f6004803603602081101561031b57600080fd5b5035610819565b61023f6004803603604081101561033857600080fd5b506001600160a01b03813516906020013515156108c2565b6101fd61094f565b61023f6004803603602081101561036e57600080fd5b503561095e565b61023f6004803603602081101561038b57600080fd5b5035610a06565b6102a5610aa7565b61023f600480360360408110156103b057600080fd5b506001600160a01b0381351690602001351515610aad565b6102a5610b3a565b61023f600480360360208110156103e657600080fd5b5035610b40565b6104136004803603602081101561040357600080fd5b50356001600160a01b0316610b92565b604080519115158252519081900360200190f35b61023f6004803603602081101561043d57600080fd5b50356001600160a01b0316610ba7565b61023f6004803603602081101561046357600080fd5b50356001600160a01b0316610c16565b6101fd610c85565b6102a5610c94565b61023f6004803603602081101561049957600080fd5b5035610c9a565b61023f600480360360208110156104b657600080fd5b50356001600160a01b0316610d3a565b61023f600480360360208110156104dc57600080fd5b5035610da9565b6102a5610e52565b6104f3610e58565b604080516001600160a01b0398891681529688166020880152868101959095529286166060860152608085019190915290931660a083015260c082019290925290519081900360e00190f35b6104136004803603602081101561055557600080fd5b50356001600160a01b0316610f2f565b61023f6004803603602081101561057b57600080fd5b50356001600160a01b0316610f44565b6003546001600160a01b031681565b6000546001600160a01b031633146105e7576040805162461bcd60e51b815260206004820152600b60248201526a21676f7665726e616e636560a81b604482015290519081900360640190fd5b600680546001600160a01b0319166001600160a01b0392909216919091179055565b6004546001600160a01b031633148061062c57506000546001600160a01b031633145b61066b576040805162461bcd60e51b815260206004820152600b60248201526a085cdd1c985d1959da5cdd60aa1b604482015290519081900360640190fd5b600180546001600160a01b0319166001600160a01b0392909216919091179055565b6004546001600160a01b031681565b6006546001600160a01b031681565b6000546001600160a01b031633146106f8576040805162461bcd60e51b815260206004820152600b60248201526a21676f7665726e616e636560a81b604482015290519081900360640190fd5b600380546001600160a01b0319166001600160a01b0392909216919091179055565b600a5481565b60085481565b6001546001600160a01b031681565b6000546001600160a01b03163314610782576040805162461bcd60e51b815260206004820152600b60248201526a21676f7665726e616e636560a81b604482015290519081900360640190fd5b826001600160a01b031663a9059cbb82846040518363ffffffff1660e01b815260040180836001600160a01b0316815260200182815260200192505050602060405180830381600087803b1580156107d957600080fd5b505af11580156107ed573d6000803e3d6000fd5b505050506040513d602081101561080357600080fd5b5050505050565b6000546001600160a01b031681565b6000546001600160a01b03163314610866576040805162461bcd60e51b815260206004820152600b60248201526a21676f7665726e616e636560a81b604482015290519081900360640190fd5b6113888111156108bd576040805162461bcd60e51b815260206004820152601d60248201527f5f7374616b696e67506f6f6c5368617265466565206f76657220353025000000604482015290519081900360640190fd5b600955565b6004546001600160a01b03163314806108e557506000546001600160a01b031633145b610924576040805162461bcd60e51b815260206004820152600b60248201526a085cdd1c985d1959da5cdd60aa1b604482015290519081900360640190fd5b6001600160a01b03919091166000908152600d60205260409020805460ff1916911515919091179055565b6005546001600160a01b031681565b6000546001600160a01b031633146109ab576040805162461bcd60e51b815260206004820152600b60248201526a21676f7665726e616e636560a81b604482015290519081900360640190fd5b6064811115610a01576040805162461bcd60e51b815260206004820181905260248201527f5f7769746864726177616c50726f74656374696f6e466565206f766572203125604482015290519081900360640190fd5b600c55565b6000546001600160a01b03163314610a53576040805162461bcd60e51b815260206004820152600b60248201526a21676f7665726e616e636560a81b604482015290519081900360640190fd5b6107d0811115610aa2576040805162461bcd60e51b81526020600482015260156024820152745f7472656173757279466565206f7665722032302560581b604482015290519081900360640190fd5b600b55565b600c5481565b6004546001600160a01b0316331480610ad057506000546001600160a01b031633145b610b0f576040805162461bcd60e51b815260206004820152600b60248201526a085cdd1c985d1959da5cdd60aa1b604482015290519081900360640190fd5b6001600160a01b03919091166000908152600e60205260409020805460ff1916911515919091179055565b60075481565b6000546001600160a01b03163314610b8d576040805162461bcd60e51b815260206004820152600b60248201526a21676f7665726e616e636560a81b604482015290519081900360640190fd5b600a55565b600d6020526000908152604090205460ff1681565b6000546001600160a01b03163314610bf4576040805162461bcd60e51b815260206004820152600b60248201526a21676f7665726e616e636560a81b604482015290519081900360640190fd5b600280546001600160a01b0319166001600160a01b0392909216919091179055565b6000546001600160a01b03163314610c63576040805162461bcd60e51b815260206004820152600b60248201526a21676f7665726e616e636560a81b604482015290519081900360640190fd5b600080546001600160a01b0319166001600160a01b0392909216919091179055565b6002546001600160a01b031681565b60095481565b6000546001600160a01b03163314610ce7576040805162461bcd60e51b815260206004820152600b60248201526a21676f7665726e616e636560a81b604482015290519081900360640190fd5b6064811115610d35576040805162461bcd60e51b81526020600482015260156024820152745f696e737572616e6365466565206f76657220312560581b604482015290519081900360640190fd5b600755565b6000546001600160a01b03163314610d87576040805162461bcd60e51b815260206004820152600b60248201526a21676f7665726e616e636560a81b604482015290519081900360640190fd5b600480546001600160a01b0319166001600160a01b0392909216919091179055565b6000546001600160a01b03163314610df6576040805162461bcd60e51b815260206004820152600b60248201526a21676f7665726e616e636560a81b604482015290519081900360640190fd5b6107d0811115610e4d576040805162461bcd60e51b815260206004820152601a60248201527f5f696e737572616e6365506f6f6c466565206f76657220323025000000000000604482015290519081900360640190fd5b600855565b600b5481565b600654600354600954600554600a54604080516370a0823160e01b81526001600160a01b03938416600482018190529151600097889788978897889788978897958316969290941694929392909186916370a08231916024808301926020929190829003018186803b158015610ecd57600080fd5b505afa158015610ee1573d6000803e3d6000fd5b505050506040513d6020811015610ef757600080fd5b50511015610f0757600b54610f0a565b60005b600254600854959d949c50929a5090985096506001600160a01b031694509092509050565b600e6020526000908152604090205460ff1681565b6000546001600160a01b03163314610f91576040805162461bcd60e51b815260206004820152600b60248201526a21676f7665726e616e636560a81b604482015290519081900360640190fd5b600580546001600160a01b0319166001600160a01b039290921691909117905556fea264697066735822122098dd0316e6e42ee6d5e96652066abd5c01da63f0def796591b871fff9468cd4d64736f6c634300060c0033",
+  "deployedBytecode": "0x608060405234801561001057600080fd5b50600436106101f05760003560e01c8063825139091161010f578063b1c7d36f116100a2578063cc32d17611610071578063cc32d176146104e3578063da633d31146104eb578063da8c229e1461053f578063f0f4426014610565576101f0565b8063b1c7d36f1461047b578063ba32681e14610483578063c7b9d530146104a0578063cc08c4cc146104c6576101f0565b8063a622ee7c116100de578063a622ee7c146103ed578063a94c487e14610427578063ab033ea91461044d578063ab2adc0014610473576101f0565b806382513909146103925780638a513ef61461039a57806397c4fac7146103c8578063a33dd801146103d0576101f0565b80634bdaeac11161018757806360d712fc1161015657806360d712fc1461032257806361d027b3146103505780636b0243bc1461035857806377e741c714610375576101f0565b80634bdaeac1146102bf57806354575af4146102c75780635aa6e675146102fd578063603dfcda14610305576101f0565b80632f2a04be116101c35780632f2a04be1461026f5780633028f63a14610277578063313dab201461029d57806346821efa146102b7576101f0565b80630c56ae3b146101f55780630e9905751461021957806315de1daa146102415780631fe4a68614610267575b600080fd5b6101fd61058b565b604080516001600160a01b039092168252519081900360200190f35b61023f6004803603602081101561022f57600080fd5b50356001600160a01b031661059a565b005b61023f6004803603602081101561025757600080fd5b50356001600160a01b0316610609565b6101fd61068d565b6101fd61069c565b61023f6004803603602081101561028d57600080fd5b50356001600160a01b03166106ab565b6102a561071a565b60408051918252519081900360200190f35b6102a5610720565b6101fd610726565b61023f600480360360608110156102dd57600080fd5b506001600160a01b03813581169160208101359160409091013516610735565b6101fd61080a565b61023f6004803603602081101561031b57600080fd5b5035610819565b61023f6004803603604081101561033857600080fd5b506001600160a01b03813516906020013515156108c2565b6101fd61094f565b61023f6004803603602081101561036e57600080fd5b503561095e565b61023f6004803603602081101561038b57600080fd5b5035610a06565b6102a5610aa7565b61023f600480360360408110156103b057600080fd5b506001600160a01b0381351690602001351515610aad565b6102a5610b3a565b61023f600480360360208110156103e657600080fd5b5035610b40565b6104136004803603602081101561040357600080fd5b50356001600160a01b0316610b92565b604080519115158252519081900360200190f35b61023f6004803603602081101561043d57600080fd5b50356001600160a01b0316610ba7565b61023f6004803603602081101561046357600080fd5b50356001600160a01b0316610c16565b6101fd610c85565b6102a5610c94565b61023f6004803603602081101561049957600080fd5b5035610c9a565b61023f600480360360208110156104b657600080fd5b50356001600160a01b0316610d3a565b61023f600480360360208110156104dc57600080fd5b5035610da9565b6102a5610e52565b6104f3610e58565b604080516001600160a01b0398891681529688166020880152868101959095529286166060860152608085019190915290931660a083015260c082019290925290519081900360e00190f35b6104136004803603602081101561055557600080fd5b50356001600160a01b0316610f2f565b61023f6004803603602081101561057b57600080fd5b50356001600160a01b0316610f44565b6003546001600160a01b031681565b6000546001600160a01b031633146105e7576040805162461bcd60e51b815260206004820152600b60248201526a21676f7665726e616e636560a81b604482015290519081900360640190fd5b600680546001600160a01b0319166001600160a01b0392909216919091179055565b6004546001600160a01b031633148061062c57506000546001600160a01b031633145b61066b576040805162461bcd60e51b815260206004820152600b60248201526a085cdd1c985d1959da5cdd60aa1b604482015290519081900360640190fd5b600180546001600160a01b0319166001600160a01b0392909216919091179055565b6004546001600160a01b031681565b6006546001600160a01b031681565b6000546001600160a01b031633146106f8576040805162461bcd60e51b815260206004820152600b60248201526a21676f7665726e616e636560a81b604482015290519081900360640190fd5b600380546001600160a01b0319166001600160a01b0392909216919091179055565b600a5481565b60085481565b6001546001600160a01b031681565b6000546001600160a01b03163314610782576040805162461bcd60e51b815260206004820152600b60248201526a21676f7665726e616e636560a81b604482015290519081900360640190fd5b826001600160a01b031663a9059cbb82846040518363ffffffff1660e01b815260040180836001600160a01b0316815260200182815260200192505050602060405180830381600087803b1580156107d957600080fd5b505af11580156107ed573d6000803e3d6000fd5b505050506040513d602081101561080357600080fd5b5050505050565b6000546001600160a01b031681565b6000546001600160a01b03163314610866576040805162461bcd60e51b815260206004820152600b60248201526a21676f7665726e616e636560a81b604482015290519081900360640190fd5b6113888111156108bd576040805162461bcd60e51b815260206004820152601d60248201527f5f7374616b696e67506f6f6c5368617265466565206f76657220353025000000604482015290519081900360640190fd5b600955565b6004546001600160a01b03163314806108e557506000546001600160a01b031633145b610924576040805162461bcd60e51b815260206004820152600b60248201526a085cdd1c985d1959da5cdd60aa1b604482015290519081900360640190fd5b6001600160a01b03919091166000908152600d60205260409020805460ff1916911515919091179055565b6005546001600160a01b031681565b6000546001600160a01b031633146109ab576040805162461bcd60e51b815260206004820152600b60248201526a21676f7665726e616e636560a81b604482015290519081900360640190fd5b6064811115610a01576040805162461bcd60e51b815260206004820181905260248201527f5f7769746864726177616c50726f74656374696f6e466565206f766572203125604482015290519081900360640190fd5b600c55565b6000546001600160a01b03163314610a53576040805162461bcd60e51b815260206004820152600b60248201526a21676f7665726e616e636560a81b604482015290519081900360640190fd5b6107d0811115610aa2576040805162461bcd60e51b81526020600482015260156024820152745f7472656173757279466565206f7665722032302560581b604482015290519081900360640190fd5b600b55565b600c5481565b6004546001600160a01b0316331480610ad057506000546001600160a01b031633145b610b0f576040805162461bcd60e51b815260206004820152600b60248201526a085cdd1c985d1959da5cdd60aa1b604482015290519081900360640190fd5b6001600160a01b03919091166000908152600e60205260409020805460ff1916911515919091179055565b60075481565b6000546001600160a01b03163314610b8d576040805162461bcd60e51b815260206004820152600b60248201526a21676f7665726e616e636560a81b604482015290519081900360640190fd5b600a55565b600d6020526000908152604090205460ff1681565b6000546001600160a01b03163314610bf4576040805162461bcd60e51b815260206004820152600b60248201526a21676f7665726e616e636560a81b604482015290519081900360640190fd5b600280546001600160a01b0319166001600160a01b0392909216919091179055565b6000546001600160a01b03163314610c63576040805162461bcd60e51b815260206004820152600b60248201526a21676f7665726e616e636560a81b604482015290519081900360640190fd5b600080546001600160a01b0319166001600160a01b0392909216919091179055565b6002546001600160a01b031681565b60095481565b6000546001600160a01b03163314610ce7576040805162461bcd60e51b815260206004820152600b60248201526a21676f7665726e616e636560a81b604482015290519081900360640190fd5b6064811115610d35576040805162461bcd60e51b81526020600482015260156024820152745f696e737572616e6365466565206f76657220312560581b604482015290519081900360640190fd5b600755565b6000546001600160a01b03163314610d87576040805162461bcd60e51b815260206004820152600b60248201526a21676f7665726e616e636560a81b604482015290519081900360640190fd5b600480546001600160a01b0319166001600160a01b0392909216919091179055565b6000546001600160a01b03163314610df6576040805162461bcd60e51b815260206004820152600b60248201526a21676f7665726e616e636560a81b604482015290519081900360640190fd5b6107d0811115610e4d576040805162461bcd60e51b815260206004820152601a60248201527f5f696e737572616e6365506f6f6c466565206f76657220323025000000000000604482015290519081900360640190fd5b600855565b600b5481565b600654600354600954600554600a54604080516370a0823160e01b81526001600160a01b03938416600482018190529151600097889788978897889788978897958316969290941694929392909186916370a08231916024808301926020929190829003018186803b158015610ecd57600080fd5b505afa158015610ee1573d6000803e3d6000fd5b505050506040513d6020811015610ef757600080fd5b50511015610f0757600b54610f0a565b60005b600254600854959d949c50929a5090985096506001600160a01b031694509092509050565b600e6020526000908152604090205460ff1681565b6000546001600160a01b03163314610f91576040805162461bcd60e51b815260206004820152600b60248201526a21676f7665726e616e636560a81b604482015290519081900360640190fd5b600580546001600160a01b0319166001600160a01b039290921691909117905556fea264697066735822122098dd0316e6e42ee6d5e96652066abd5c01da63f0def796591b871fff9468cd4d64736f6c634300060c0033",
+  "devdoc": {
+    "kind": "dev",
+    "methods": {
+      "constructor": {
+        "params": {
+          "_yax": "The address of the YAX token"
+        }
+      },
+      "governanceRecoverUnsupported(address,uint256,address)": {
+        "params": {
+          "_amount": "The amount to withdraw",
+          "_to": "The address to send to",
+          "_token": "The address of the token"
+        }
+      },
+      "setControllerStatus(address,bool)": {
+        "params": {
+          "_controller": "The address of the controller",
+          "_status": "The status of the controller"
+        }
+      },
+      "setGovernance(address)": {
+        "params": {
+          "_governance": "The address of the governance"
+        }
+      },
+      "setHarvester(address)": {
+        "params": {
+          "_harvester": "The address of the harvester"
+        }
+      },
+      "setInsuranceFee(uint256)": {
+        "details": "Throws if setting fee over 1%",
+        "params": {
+          "_insuranceFee": "The value for the insurance fee"
+        }
+      },
+      "setInsurancePool(address)": {
+        "params": {
+          "_insurancePool": "The address of the insurance pool"
+        }
+      },
+      "setInsurancePoolFee(uint256)": {
+        "details": "Throws if setting fee over 20%",
+        "params": {
+          "_insurancePoolFee": "The value for the insurance pool fee"
+        }
+      },
+      "setStakingPool(address)": {
+        "params": {
+          "_stakingPool": "The address of the staking pool"
+        }
+      },
+      "setStakingPoolShareFee(uint256)": {
+        "details": "Throws if setting fee over 50%",
+        "params": {
+          "_stakingPoolShareFee": "The value for the staking pool fee"
+        }
+      },
+      "setStrategist(address)": {
+        "params": {
+          "_strategist": "The address of the strategist"
+        }
+      },
+      "setTreasury(address)": {
+        "params": {
+          "_treasury": "The address of the treasury"
+        }
+      },
+      "setTreasuryBalance(uint256)": {
+        "details": "Strategies will read this value to determine whether or not to give the treasury the treasuryFee",
+        "params": {
+          "_treasuryBalance": "The maximum balance of the treasury"
+        }
+      },
+      "setTreasuryFee(uint256)": {
+        "details": "Throws if setting fee over 20%",
+        "params": {
+          "_treasuryFee": "The value for the treasury fee"
+        }
+      },
+      "setVaultStatus(address,bool)": {
+        "params": {
+          "_status": "The status of the vault",
+          "_vault": "The address of the vault"
+        }
+      },
+      "setWithdrawalProtectionFee(uint256)": {
+        "details": "Throws if setting fee over 1%",
+        "params": {
+          "_withdrawalProtectionFee": "The value for the withdrawal protection fee"
+        }
+      },
+      "setYax(address)": {
+        "params": {
+          "_yax": "The address of the YAX token"
+        }
+      }
+    },
+    "title": "yAxisMetaVaultManager",
+    "version": 1
+  },
+  "userdoc": {
+    "kind": "user",
+    "methods": {
+      "getHarvestFeeInfo()": {
+        "notice": "Returns a tuple of:     YAX token,     Staking pool address,     Staking pool share fee,     Treasury address,     Checks the balance of the treasury and returns the treasury fee         if below the treasuryBalance, or 0 if above"
+      },
+      "governanceRecoverUnsupported(address,uint256,address)": {
+        "notice": "Allows governance to pull tokens out of this contract (it should never hold tokens)"
+      },
+      "insuranceFee()": {
+        "notice": "The following fees are all mutable.  They are updated by governance (community vote)."
+      },
+      "setControllerStatus(address,bool)": {
+        "notice": "Sets the status for a controller"
+      },
+      "setGovernance(address)": {
+        "notice": "Sets the governance address"
+      },
+      "setHarvester(address)": {
+        "notice": "Sets the harvester address"
+      },
+      "setInsuranceFee(uint256)": {
+        "notice": "Sets the insurance fee"
+      },
+      "setInsurancePool(address)": {
+        "notice": "Sets the insurance pool address"
+      },
+      "setInsurancePoolFee(uint256)": {
+        "notice": "Sets the insurance pool fee"
+      },
+      "setStakingPool(address)": {
+        "notice": "Sets the staking pool address"
+      },
+      "setStakingPoolShareFee(uint256)": {
+        "notice": "Sets the staking pool share fee"
+      },
+      "setStrategist(address)": {
+        "notice": "Sets the strategist address"
+      },
+      "setTreasury(address)": {
+        "notice": "Sets the treasury address"
+      },
+      "setTreasuryBalance(uint256)": {
+        "notice": "Sets the maximum treasury balance"
+      },
+      "setTreasuryFee(uint256)": {
+        "notice": "Sets the treasury fee"
+      },
+      "setVaultStatus(address,bool)": {
+        "notice": "Sets the status for a vault"
+      },
+      "setWithdrawalProtectionFee(uint256)": {
+        "notice": "Sets the withdrawal protection fee"
+      },
+      "setYax(address)": {
+        "notice": "Sets the YAX address"
+      }
+    },
+    "notice": "This contract serves as the central point for governance-voted variables. Fees and permissioned addresses are stored and referenced in this contract only.",
+    "version": 1
+  },
+  "storageLayout": {
+    "storage": [
+      {
+        "astId": 11348,
+        "contract": "contracts/metavault/yAxisMetaVaultManager.sol:yAxisMetaVaultManager",
+        "label": "governance",
+        "offset": 0,
+        "slot": "0",
+        "type": "t_address"
+      },
+      {
+        "astId": 11351,
+        "contract": "contracts/metavault/yAxisMetaVaultManager.sol:yAxisMetaVaultManager",
+        "label": "harvester",
+        "offset": 0,
+        "slot": "1",
+        "type": "t_address"
+      },
+      {
+        "astId": 11354,
+        "contract": "contracts/metavault/yAxisMetaVaultManager.sol:yAxisMetaVaultManager",
+        "label": "insurancePool",
+        "offset": 0,
+        "slot": "2",
+        "type": "t_address"
+      },
+      {
+        "astId": 11357,
+        "contract": "contracts/metavault/yAxisMetaVaultManager.sol:yAxisMetaVaultManager",
+        "label": "stakingPool",
+        "offset": 0,
+        "slot": "3",
+        "type": "t_address"
+      },
+      {
+        "astId": 11360,
+        "contract": "contracts/metavault/yAxisMetaVaultManager.sol:yAxisMetaVaultManager",
+        "label": "strategist",
+        "offset": 0,
+        "slot": "4",
+        "type": "t_address"
+      },
+      {
+        "astId": 11363,
+        "contract": "contracts/metavault/yAxisMetaVaultManager.sol:yAxisMetaVaultManager",
+        "label": "treasury",
+        "offset": 0,
+        "slot": "5",
+        "type": "t_address"
+      },
+      {
+        "astId": 11366,
+        "contract": "contracts/metavault/yAxisMetaVaultManager.sol:yAxisMetaVaultManager",
+        "label": "yax",
+        "offset": 0,
+        "slot": "6",
+        "type": "t_address"
+      },
+      {
+        "astId": 11370,
+        "contract": "contracts/metavault/yAxisMetaVaultManager.sol:yAxisMetaVaultManager",
+        "label": "insuranceFee",
+        "offset": 0,
+        "slot": "7",
+        "type": "t_uint256"
+      },
+      {
+        "astId": 11373,
+        "contract": "contracts/metavault/yAxisMetaVaultManager.sol:yAxisMetaVaultManager",
+        "label": "insurancePoolFee",
+        "offset": 0,
+        "slot": "8",
+        "type": "t_uint256"
+      },
+      {
+        "astId": 11376,
+        "contract": "contracts/metavault/yAxisMetaVaultManager.sol:yAxisMetaVaultManager",
+        "label": "stakingPoolShareFee",
+        "offset": 0,
+        "slot": "9",
+        "type": "t_uint256"
+      },
+      {
+        "astId": 11379,
+        "contract": "contracts/metavault/yAxisMetaVaultManager.sol:yAxisMetaVaultManager",
+        "label": "treasuryBalance",
+        "offset": 0,
+        "slot": "10",
+        "type": "t_uint256"
+      },
+      {
+        "astId": 11382,
+        "contract": "contracts/metavault/yAxisMetaVaultManager.sol:yAxisMetaVaultManager",
+        "label": "treasuryFee",
+        "offset": 0,
+        "slot": "11",
+        "type": "t_uint256"
+      },
+      {
+        "astId": 11385,
+        "contract": "contracts/metavault/yAxisMetaVaultManager.sol:yAxisMetaVaultManager",
+        "label": "withdrawalProtectionFee",
+        "offset": 0,
+        "slot": "12",
+        "type": "t_uint256"
+      },
+      {
+        "astId": 11390,
+        "contract": "contracts/metavault/yAxisMetaVaultManager.sol:yAxisMetaVaultManager",
+        "label": "vaults",
+        "offset": 0,
+        "slot": "13",
+        "type": "t_mapping(t_address,t_bool)"
+      },
+      {
+        "astId": 11395,
+        "contract": "contracts/metavault/yAxisMetaVaultManager.sol:yAxisMetaVaultManager",
+        "label": "controllers",
+        "offset": 0,
+        "slot": "14",
+        "type": "t_mapping(t_address,t_bool)"
+      }
+    ],
+    "types": {
+      "t_address": {
+        "encoding": "inplace",
+        "label": "address",
+        "numberOfBytes": "20"
+      },
+      "t_bool": {
+        "encoding": "inplace",
+        "label": "bool",
+        "numberOfBytes": "1"
+      },
+      "t_mapping(t_address,t_bool)": {
+        "encoding": "mapping",
+        "key": "t_address",
+        "label": "mapping(address => bool)",
+        "numberOfBytes": "32",
+        "value": "t_bool"
+      },
+      "t_uint256": {
+        "encoding": "inplace",
+        "label": "uint256",
+        "numberOfBytes": "32"
+      }
+    }
+  }
+}
