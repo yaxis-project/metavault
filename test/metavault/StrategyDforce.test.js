@@ -1,150 +1,112 @@
-const { INIT_BALANCE, ether, verbose } = require('../helpers/common');
-const {
-    afterStrategySetup,
-    beforeStrategySetup,
-    printBalances
-} = require('../helpers/harness');
+const chai = require('chai');
+const { expect } = chai;
+const { solidity } = require('ethereum-waffle');
+chai.use(solidity);
+const hardhat = require('hardhat');
+const { deployments, ethers } = hardhat;
+const { parseEther } = ethers.utils;
+const ether = parseEther;
+const { setupTest } = require('../helpers/setup');
 
-const StrategyDforce = artifacts.require('StrategyDforce');
-const MockERC20 = artifacts.require('MockERC20');
-const MockDErc20 = artifacts.require('MockDErc20');
-const MockDRewards = artifacts.require('MockDRewards');
+describe('StrategyDforce', () => {
+    let strategy,
+        deployer,
+        stakingPool,
+        treasury,
+        user,
+        yax,
+        dai,
+        usdt,
+        t3crv,
+        weth,
+        vault,
+        vaultManager,
+        harvester,
+        controller,
+        router;
 
-contract('StrategyDforce', async (accounts) => {
     before(async () => {
-        await beforeStrategySetup(accounts);
+        const config = await setupTest();
+        deployer = config.deployer;
+        stakingPool = config.stakingPool;
+        treasury = config.treasury;
+        user = config.user;
+        yax = config.yax;
+        dai = config.dai;
+        usdt = config.usdt;
+        t3crv = config.t3crv;
+        weth = config.weth;
+        vault = config.vault;
+        vaultManager = config.vaultManager;
+        harvester = config.harvester;
+        controller = config.controller;
+        router = config.router;
 
-        globalThis.df = await MockERC20.new('dForce', 'DF', 18);
-        globalThis.dDai = await MockDErc20.new('dForce DAI', 'dDAI', globalThis.dai.address);
-        globalThis.dRewards = await MockDRewards.new(
-            globalThis.dDai.address,
-            globalThis.df.address,
-            100
-        );
-        globalThis.strategy = await StrategyDforce.new(
-            globalThis.dai.address,
-            globalThis.dDai.address,
-            globalThis.dRewards.address,
-            globalThis.df.address,
-            globalThis.converter.address,
-            globalThis.controller.address,
-            globalThis.vaultManager.address,
-            globalThis.weth.address,
-            globalThis.router.address
-        );
-        await globalThis.df.mint(globalThis.router.address, INIT_BALANCE);
-        await globalThis.df.mint(globalThis.dRewards.address, INIT_BALANCE);
+        const Strategy = await deployments.get('StrategyDforce');
+        strategy = await ethers.getContractAt('StrategyDforce', Strategy.address, deployer);
 
-        await afterStrategySetup();
+        await harvester.addStrategy(t3crv.address, Strategy.address, 0, { from: deployer });
+        await controller.addStrategy(t3crv.address, Strategy.address, 0, { from: deployer });
     });
 
     beforeEach(async () => {
-        if (verbose) {
-            await printBalances('\n====== BEFORE ======');
-        }
-        assert.equal(0, await globalThis.t3crv.balanceOf(globalThis.controller.address));
-        assert.equal(0, await globalThis.t3crv.balanceOf(globalThis.strategy.address));
-        assert.equal(0, await globalThis.dai.balanceOf(globalThis.strategy.address));
+        expect(await t3crv.balanceOf(controller.address)).to.equal(0);
+        expect(await t3crv.balanceOf(strategy.address)).to.equal(0);
     });
 
     afterEach(async () => {
-        if (verbose) {
-            await printBalances('\n====== AFTER ======');
-        }
-        assert.equal(0, await globalThis.t3crv.balanceOf(globalThis.controller.address));
-        assert.equal(0, await globalThis.t3crv.balanceOf(globalThis.strategy.address));
-        assert.equal(0, await globalThis.dai.balanceOf(globalThis.strategy.address));
+        expect(await t3crv.balanceOf(controller.address)).to.equal(0);
+        expect(await t3crv.balanceOf(strategy.address)).to.equal(0);
     });
 
     it('should deploy with initial state set', async () => {
-        // BaseStrategy
-        assert.equal(globalThis.dai.address, await globalThis.strategy.want());
-        assert.equal(globalThis.weth.address, await globalThis.strategy.weth());
-        assert.equal(globalThis.controller.address, await globalThis.strategy.controller());
-        assert.equal(
-            globalThis.vaultManager.address,
-            await globalThis.strategy.vaultManager()
-        );
-        assert.equal(globalThis.router.address, await globalThis.strategy.router());
-
-        // Implementation
-        assert.equal(globalThis.dDai.address, await globalThis.strategy.dToken());
-        assert.equal(globalThis.dRewards.address, await globalThis.strategy.pool());
-        assert.equal(globalThis.df.address, await globalThis.strategy.DF());
-        assert.equal(globalThis.converter.address, await globalThis.strategy.converter());
+        expect(await strategy.want()).to.equal(dai.address);
+        expect(await strategy.weth()).to.equal(weth.address);
+        expect(await strategy.controller()).to.equal(controller.address);
+        expect(await strategy.vaultManager()).to.equal(vaultManager.address);
+        expect(await strategy.router()).to.equal(router.address);
     });
 
     it('should deposit DAI', async () => {
-        const _amount = ether('10');
-        await globalThis.vault.deposit(_amount, globalThis.dai.address, 1, true, {
-            from: globalThis.user
-        });
-        assert.equal(String(await globalThis.dai.balanceOf(globalThis.user)), ether('990'));
-        assert.isTrue(
-            (await globalThis.controller.balanceOf(globalThis.t3crv.address)).gt(ether('9'))
-        );
-        assert.isTrue(ether('1').gte(await globalThis.vault.getPricePerFullShare()));
+        await vault.deposit(ether('10'), dai.address, 1, true, { from: user });
+        expect(await dai.balanceOf(user)).to.equal(ether('990'));
+        expect(await controller.balanceOf(t3crv.address)).to.be.above(ether('9'));
+        expect(await vault.getPricePerFullShare()).to.be.least(ether('0.99999'));
     });
 
     it('should harvest', async () => {
-        assert.equal(0, await globalThis.yax.balanceOf(globalThis.stakingPool));
-        assert.equal(0, await globalThis.yax.balanceOf(globalThis.treasury));
-        await globalThis.harvester.harvestNextStrategy(globalThis.t3crv.address);
-        assert.isTrue((await globalThis.vault.getPricePerFullShare()).gt(ether('1')));
-        assert.isTrue(
-            (await globalThis.yax.balanceOf(globalThis.stakingPool)).gte(ether('0.095'))
-        );
-        assert.isTrue(
-            (await globalThis.yax.balanceOf(globalThis.treasury)).gte(ether('0.023'))
-        );
+        expect(await yax.balanceOf(stakingPool)).to.equal(0);
+        expect(await yax.balanceOf(treasury)).to.equal(0);
+        await harvester.harvestNextStrategy(t3crv.address);
+        expect(await vault.getPricePerFullShare()).to.be.above(ether('1'));
+        expect(await yax.balanceOf(stakingPool)).to.be.least(ether('0.095'));
+        expect(await yax.balanceOf(treasury)).to.be.least(ether('0.023'));
     });
 
     it('should withdraw to DAI', async () => {
-        assert.isTrue(
-            ether('10.02').eq((await globalThis.vault.userInfo(globalThis.user)).amount)
-        );
-        await globalThis.vault.withdraw(ether('5'), globalThis.dai.address, {
-            from: globalThis.user
-        });
-        assert.isTrue(
-            ether('5.02').eq((await globalThis.vault.userInfo(globalThis.user)).amount)
-        );
-        assert.isTrue((await globalThis.dai.balanceOf(globalThis.user)).gte(ether('994.99')));
+        expect((await vault.userInfo(user)).amount).to.equal(ether('10.02'));
+        await vault.withdraw(ether('5'), dai.address, { from: user });
+        expect((await vault.userInfo(user)).amount).to.equal(ether('5.02'));
+        expect(await dai.balanceOf(user)).to.be.least(ether('994.99'));
     });
 
     it('should withdrawAll to 3CRV', async () => {
-        await globalThis.vault.withdrawAll(globalThis.t3crv.address, {
-            from: globalThis.user
-        });
-        assert.equal(0, await globalThis.vault.balanceOf(globalThis.user));
-        assert.equal(0, await globalThis.t3crv.balanceOf(globalThis.controller.address));
-        assert.equal(0, await globalThis.t3crv.balanceOf(globalThis.strategy.address));
-        assert.equal(0, await globalThis.vault.totalSupply());
-        assert.isTrue((await globalThis.t3crv.balanceOf(globalThis.user)).gte(ether('1005')));
+        await vault.withdrawAll(t3crv.address, { from: user });
+        expect(await vault.balanceOf(user)).to.equal(0);
+        expect(await vault.totalSupply()).to.equal(0);
+        expect(await t3crv.balanceOf(user)).to.be.least(ether('1005'));
     });
 
     it('should deposit USDT', async () => {
-        const _amount = '10000000';
-        assert.equal(0, await globalThis.strategy.balanceOfPool());
-        assert.equal(0, await globalThis.controller.balanceOf(globalThis.t3crv.address));
-        await globalThis.vault.deposit(_amount, globalThis.usdt.address, 1, true, {
-            from: globalThis.user
-        });
-        assert.isTrue((await globalThis.strategy.balanceOfPool()).gt(ether('9')));
-        assert.isTrue(
-            (await globalThis.controller.balanceOf(globalThis.t3crv.address)).gt(ether('9'))
-        );
-        assert.isTrue((await globalThis.vault.getPricePerFullShare()).gte(ether('1')));
+        await vault.deposit('10000000', usdt.address, 1, true, { from: user });
+        expect(await strategy.balanceOfPool()).to.be.above(ether('9'));
+        expect(await controller.balanceOf(t3crv.address)).to.be.above(ether('9'));
+        expect(await vault.getPricePerFullShare()).to.be.above(ether('1'));
     });
 
     it('should withdrawAll by controller', async () => {
-        assert.equal(0, await globalThis.t3crv.balanceOf(globalThis.controller.address));
-        assert.isTrue(
-            (await globalThis.t3crv.balanceOf(globalThis.vault.address)).lt(ether('1'))
-        );
-        await globalThis.controller.withdrawAll(globalThis.strategy.address);
-        assert.isTrue(
-            (await globalThis.t3crv.balanceOf(globalThis.vault.address)).gte(ether('9.99'))
-        );
+        expect(await t3crv.balanceOf(vault.address)).to.be.below(ether('1'));
+        await controller.withdrawAll(strategy.address);
+        expect(await t3crv.balanceOf(vault.address)).to.be.least(ether('9.99'));
     });
 });

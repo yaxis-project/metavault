@@ -1,173 +1,97 @@
-const MockPickleJar = artifacts.require('MockPickleJar');
-const MockPickleMasterChef = artifacts.require('MockPickleMasterChef');
+const chai = require('chai');
+const { expect } = chai;
+const { solidity } = require('ethereum-waffle');
+chai.use(solidity);
+const hardhat = require('hardhat');
+const { deployments, ethers } = hardhat;
+const { parseEther } = ethers.utils;
+const ether = parseEther;
+const { setupTest } = require('../helpers/setup');
 
-const MockERC20 = artifacts.require('MockERC20');
-
-const verbose = process.env.VERBOSE;
-
-contract('mock_pickle_pool.test', async (accounts) => {
-    const { toWei } = web3.utils;
-    const { fromWei } = web3.utils;
-    const bob = accounts[1];
-
-    const MAX = web3.utils.toTwosComplement(-1);
-    const INIT_BALANCE = toWei('1000');
-
-    let PICKLE;
-    let T3CRV; // addresses
-    let pickle;
-    let t3crv; // MockERC20s
-
-    let pjar;
-    let PJAR;
-
-    let pchef;
-    let PCHEF;
+describe('MockPickleJar', () => {
+    let user, t3crv, pickle, pjar, pchef;
 
     before(async () => {
-        pickle = await MockERC20.new('Pickle', 'PICKLE', 18);
-        t3crv = await MockERC20.new('Curve.fi DAI/USDC/USDT', '3Crv', 18);
+        const config = await setupTest();
+        t3crv = config.t3crv;
+        user = config.user;
 
-        PICKLE = pickle.address;
-        T3CRV = t3crv.address;
+        const PICKLE = await deployments.get('PICKLE');
+        pickle = await ethers.getContractAt('MockERC20', PICKLE.address, user);
+        const T3CRV = await deployments.get('T3CRV');
+        t3crv = await ethers.getContractAt('MockERC20', T3CRV.address, user);
+        const PJAR = await deployments.get('MockPickleJar');
+        pjar = await ethers.getContractAt('MockPickleJar', PJAR.address, user);
+        const PCHEF = await deployments.get('MockPickleMasterChef');
+        pchef = await ethers.getContractAt('MockPickleMasterChef', PCHEF.address, user);
 
-        // constructor (IERC20 _t3crv)
-        pjar = await MockPickleJar.new(T3CRV);
-        PJAR = pjar.address;
-
-        // constructor(IERC20 _pickleToken, IERC20 _lpToken)
-        pchef = await MockPickleMasterChef.new(PICKLE, PJAR);
-        PCHEF = pchef.address;
-
-        await t3crv.approve(PJAR, MAX, { from: bob });
-        await pjar.approve(PCHEF, MAX, { from: bob });
-
-        await pickle.mint(PCHEF, INIT_BALANCE);
-
-        await t3crv.mint(bob, INIT_BALANCE);
+        //await pickle.faucet(ethers.utils.parseEther('1000'));
+        await t3crv.approve(pjar.address, ethers.utils.parseEther('1000'));
+        await pjar.approve(pchef.address, ethers.utils.parseEther('1000'));
     });
 
-    async function printBalances(title) {
-        console.log(title);
-        console.log('pjar T3CRV:      ', fromWei(await t3crv.balanceOf(PJAR)));
-        console.log('pjar PJAR:       ', fromWei(await pjar.balanceOf(PJAR)));
-        console.log('-------------------');
-        console.log('pchef PJAR:      ', fromWei(await pjar.balanceOf(PCHEF)));
-        console.log('pchef PICKLE:    ', fromWei(await pickle.balanceOf(PCHEF)));
-        console.log('-------------------');
-        console.log('bob T3CRV:       ', fromWei(await t3crv.balanceOf(bob)));
-        console.log('bob PJAR:        ', fromWei(await pjar.balanceOf(bob)));
-        console.log('bob PICKLE:      ', fromWei(await pickle.balanceOf(bob)));
-        console.log('-------------------');
-    }
-
-    beforeEach(async () => {
-        if (verbose) {
-            await printBalances('\n====== BEFORE ======');
-        }
+    it('pjar deposit', async () => {
+        const _amount = ether('10');
+        await pjar.deposit(_amount);
+        expect(await t3crv.balanceOf(user)).to.equal(ether('990'));
+        expect(await pjar.balanceOf(user)).to.equal('9900990099009900990'); // -1%
+        expect(await pjar.balance()).to.equal(ether('10'));
+        expect(await pjar.available()).to.be.least(ether('9.5'));
+        expect(await t3crv.balanceOf(pjar.address)).to.equal(ether('10'));
+        expect(await pjar.totalSupply()).to.equal('9900990099009900990');
     });
 
-    afterEach(async () => {
-        if (verbose) {
-            await printBalances('\n====== AFTER ======');
-        }
+    it('pjar withdraw', async () => {
+        const _amount = ether('1');
+        await pjar.withdraw(_amount);
+        expect(await t3crv.balanceOf(user)).to.equal(ether('991.01'));
+        expect(await pjar.balanceOf(user)).to.equal('8900990099009900990');
+        expect(await t3crv.balanceOf(pjar.address)).to.equal(ether('8.99'));
     });
 
-    describe('pjar should work', () => {
-        it('pjar deposit', async () => {
-            const _amount = toWei('10');
-            await pjar.deposit(_amount, { from: bob });
-            assert.equal(String(await t3crv.balanceOf(bob)), toWei('990'));
-            assert.equal(String(await pjar.balanceOf(bob)), '9900990099009900990'); // -1%
-            assert.equal(String(await pjar.balance()), toWei('10'));
-            assert.approximately(
-                Number(await pjar.available()),
-                Number(toWei('9.5')),
-                10 ** -12
-            ); // 95%
-            assert.equal(String(await t3crv.balanceOf(PJAR)), toWei('10'));
-            assert.equal(String(await pjar.totalSupply()), '9900990099009900990');
-        });
-
-        it('pjar withdraw', async () => {
-            const _amount = toWei('1');
-            await pjar.withdraw(_amount, { from: bob });
-            assert.equal(String(await t3crv.balanceOf(bob)), toWei('991.01'));
-            assert.equal(String(await pjar.balanceOf(bob)), '8900990099009900990');
-            assert.equal(String(await t3crv.balanceOf(PJAR)), toWei('8.99'));
-        });
-
-        it('pjar withdrawAll', async () => {
-            await pjar.withdrawAll({ from: bob });
-            assert.approximately(
-                Number(await t3crv.balanceOf(bob)),
-                Number(toWei('1000')),
-                10 ** -12
-            );
-            assert.equal(String(await t3crv.balanceOf(bob)), '999999999999999999999');
-            assert.equal(String(await pjar.balanceOf(bob)), '0');
-            assert.equal(String(await t3crv.balanceOf(PJAR)), '1'); // 1 wei left because of div precision math
-        });
+    it('pjar withdrawAll', async () => {
+        await pjar.withdrawAll();
+        expect(await t3crv.balanceOf(user)).to.equal('999999999999999999999');
+        expect(await pjar.balanceOf(user)).to.equal('0');
+        expect(await t3crv.balanceOf(pjar.address)).to.equal('1'); // 1 wei left because of div precision math
     });
 
-    describe('pchef should work', () => {
-        it('get PJAR (via pjar deposit)', async () => {
-            const _amount = toWei('100');
-            await pjar.deposit(_amount, { from: bob });
-            assert.approximately(
-                Number(await pjar.balanceOf(bob)),
-                Number(toWei('99.00990099009901')),
-                10 ** -12
-            ); // -1%
-        });
+    it('get PJAR (via pjar deposit)', async () => {
+        const _amount = ether('100');
+        await pjar.deposit(_amount);
+        expect(await pjar.balanceOf(user)).to.be.least(ether('99.00990099009900')); // -1%
+    });
 
-        it('pchef deposit', async () => {
-            const _pid = 14;
-            const _amount = toWei('10');
-            await pchef.deposit(_pid, _amount, { from: bob });
-            assert.approximately(
-                Number(await pjar.balanceOf(bob)),
-                Number(toWei('89.00990099009901')),
-                10 ** -12
-            );
-            assert.equal(String(await pjar.balanceOf(PCHEF)), toWei('10'));
-        });
+    it('pchef deposit', async () => {
+        const _pid = 14;
+        const _amount = ether('10');
+        await pchef.deposit(_pid, _amount);
+        expect(await pjar.balanceOf(user)).to.be.least(ether('89.00990099009900'));
+        expect(await pjar.balanceOf(pchef.address)).to.equal(ether('10'));
+    });
 
-        it('pchef deposit(0) - claim', async () => {
-            const _pid = 14;
-            await pchef.deposit(_pid, 0, { from: bob });
-            assert.approximately(
-                Number(await pjar.balanceOf(bob)),
-                Number(toWei('89.00990099009901')),
-                10 ** -12
-            );
-            assert.equal(String(await pjar.balanceOf(PCHEF)), toWei('10'));
-            assert.equal(String(await pickle.balanceOf(bob)), toWei('1'));
-        });
+    it('pchef deposit(0) - claim', async () => {
+        const _pid = 14;
+        await pchef.deposit(_pid, 0);
+        expect(await pjar.balanceOf(user)).to.be.least(ether('89.00990099009900'));
+        expect(await pjar.balanceOf(pchef.address)).to.equal(ether('10'));
+        expect(await pickle.balanceOf(user)).to.equal(ether('1'));
+    });
 
-        it('pchef withdraw', async () => {
-            const _pid = 14;
-            const _amount = toWei('1');
-            await pchef.withdraw(_pid, _amount, { from: bob });
-            assert.approximately(
-                Number(await pjar.balanceOf(bob)),
-                Number(toWei('90.00990099009901')),
-                10 ** -12
-            );
-            assert.equal(String(await pjar.balanceOf(PCHEF)), toWei('9'));
-        });
+    it('pchef withdraw', async () => {
+        const _pid = 14;
+        const _amount = ether('1');
+        await pchef.withdraw(_pid, _amount);
+        expect(await pjar.balanceOf(user)).to.be.least(ether('90.00990099009900'));
+        expect(await pjar.balanceOf(pchef.address)).to.equal(ether('9'));
+    });
 
-        it('pchef emergencyWithdraw', async () => {
-            const _pid = 14;
-            await pchef.emergencyWithdraw(_pid, { from: bob });
-            assert.approximately(
-                Number(await pjar.balanceOf(bob)),
-                Number(toWei('99.00990099009901')),
-                10 ** -12
-            );
-            assert.equal(String(await pjar.balanceOf(PCHEF)), toWei('0'));
-            const userInfo = await pchef.userInfo(14, bob);
-            assert.equal(String(userInfo.amount), '0');
-        });
+    it('pchef emergencyWithdraw', async () => {
+        const _pid = 14;
+        await pchef.emergencyWithdraw(_pid);
+        expect(await pjar.balanceOf(user)).to.be.least(ether('99.00990099009900'));
+        expect(await pjar.balanceOf(pchef.address)).to.equal(ether('0'));
+        const userInfo = await pchef.userInfo(14, user);
+        expect(userInfo.amount).to.equal('0');
     });
 });

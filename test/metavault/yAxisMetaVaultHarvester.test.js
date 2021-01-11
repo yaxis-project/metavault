@@ -1,397 +1,177 @@
-const {
-    constants,
-    ether,
-    expectEvent,
-    expectRevert,
-    time
-} = require('@openzeppelin/test-helpers');
+const chai = require('chai');
+const { expect } = chai;
+const { solidity } = require('ethereum-waffle');
+chai.use(solidity);
+const hardhat = require('hardhat');
+const { deployments, ethers } = hardhat;
+const { increaseTime, setupTest } = require('../helpers/setup');
 
-const yAxisMetaVault = artifacts.require('yAxisMetaVault');
-const yAxisMetaVaultManager = artifacts.require('yAxisMetaVaultManager');
-const yAxisMetaVaultHarvester = artifacts.require('yAxisMetaVaultHarvester');
-
-const StableSwap3PoolConverter = artifacts.require('StableSwap3PoolConverter');
-
-const StrategyControllerV2 = artifacts.require('StrategyControllerV2');
-const StrategyCurve3Crv = artifacts.require('StrategyCurve3Crv');
-const StrategyPickle3Crv = artifacts.require('StrategyPickle3Crv');
-
-const MockPickleJar = artifacts.require('MockPickleJar');
-const MockPickleMasterChef = artifacts.require('MockPickleMasterChef');
-const MockCurveGauge = artifacts.require('MockCurveGauge');
-const MockCurveMinter = artifacts.require('MockCurveMinter');
-
-const MockERC20 = artifacts.require('MockERC20');
-const MockStableSwap3Pool = artifacts.require('MockStableSwap3Pool');
-const MockUniswapRouter = artifacts.require('MockUniswapRouter');
-
-contract('yAxisMetaVaultHarvester', async (accounts) => {
-    const deployer = accounts[0];
-    const treasury = accounts[1];
-    const stakingPool = accounts[2];
-    const bob = accounts[3];
-
-    const MAX = web3.utils.toTwosComplement(-1);
-    const INIT_BALANCE = ether('1000');
-
-    let YAX, DAI, USDC, USDT, WETH, T3CRV, CRV; // addresses
-    let yax, dai, usdc, usdt, weth, t3crv, crv; // MockERC20s
-
-    let mvault;
-    let MVAULT;
-
-    let vmanager;
-    let VMANAGER;
-
-    let vharvester;
-    let VHARVESTER;
-
-    let stableSwap3Pool;
-    let STABLESWAP3POOL;
-
-    let converter;
-    let CONVERTER;
-
-    let gauge;
-    let GAUGE;
-
-    let minter;
-    let MINTER;
-
-    let pickle;
-    let PICKLE;
-
-    let pjar;
-    let PJAR;
-
-    let pchef;
-    let PCHEF;
-
-    let mcontroller;
-    let MCONTROLLER;
-
-    let mstrategyCrv;
-    let MSTRATEGYCRV;
-
-    let mstrategyCrv2;
-    let MSTRATEGYCRV2;
-
-    let mstrategyPickle;
-    let MSTRATEGYPICKLE;
-
-    let unirouter;
-    let UNIROUTER;
+describe('yAxisMetaVaultHarvester', () => {
+    let deployer,
+        user,
+        t3crv,
+        harvester,
+        controller,
+        vaultManager,
+        strategyCurve3Crv,
+        strategyDforce,
+        strategyPickle3Crv;
 
     before(async () => {
-        yax = await MockERC20.new('yAxis', 'YAX', 18);
-        dai = await MockERC20.new('Dai Stablecoin', 'DAI', 18);
-        usdc = await MockERC20.new('USD Coin', 'USDC', 6);
-        usdt = await MockERC20.new('Tether', 'USDT', 6);
-        weth = await MockERC20.new('Wrapped ETH', 'WETH', 18);
-        t3crv = await MockERC20.new('Curve.fi DAI/USDC/USDT', '3Crv', 18);
-        crv = await MockERC20.new('Curve DAO Token', 'CRV', 18);
-        pickle = await MockERC20.new('Pickle', 'PICKLE', 18);
-
-        YAX = yax.address;
-        DAI = dai.address;
-        USDC = usdc.address;
-        USDT = usdt.address;
-        WETH = weth.address;
-        T3CRV = t3crv.address;
-        CRV = crv.address;
-        PICKLE = pickle.address;
-
-        // constructor (IERC20 _tokenDAI, IERC20 _tokenUSDC, IERC20 _tokenUSDT, IERC20 _token3CRV, IERC20 _tokenYAX, uint _yaxPerBlock, uint _startBlock)
-        const _yaxPerBlock = ether('1');
-        const _startBlock = 1;
-        mvault = await yAxisMetaVault.new(
-            DAI,
-            USDC,
-            USDT,
-            T3CRV,
-            YAX,
-            _yaxPerBlock,
-            _startBlock
+        const config = await setupTest();
+        deployer = config.deployer;
+        user = config.user;
+        t3crv = config.t3crv;
+        controller = config.controller;
+        vaultManager = config.vaultManager;
+        harvester = config.harvester;
+        const StrategyCurve3Crv = await deployments.get('StrategyCurve3Crv');
+        strategyCurve3Crv = await ethers.getContractAt(
+            'StrategyCurve3Crv',
+            StrategyCurve3Crv.address,
+            deployer
         );
-        MVAULT = mvault.address;
-
-        // constructor (IERC20 _yax)
-        vmanager = await yAxisMetaVaultManager.new(YAX);
-        VMANAGER = vmanager.address;
-
-        // constructor (IERC20 _tokenDAI, IERC20 _tokenUSDC, IERC20 _tokenUSDT, IERC20 _token3CRV)
-        stableSwap3Pool = await MockStableSwap3Pool.new(DAI, USDC, USDT, T3CRV);
-        STABLESWAP3POOL = stableSwap3Pool.address;
-
-        // constructor (IERC20 _tokenDAI, IERC20 _tokenUSDC, IERC20 _tokenUSDT, IERC20 _token3CRV, IStableSwap3Pool _stableSwap3Pool, IVaultManager _vaultMaster)
-        converter = await StableSwap3PoolConverter.new(
-            DAI,
-            USDC,
-            USDT,
-            T3CRV,
-            STABLESWAP3POOL,
-            VMANAGER
+        const StrategyPickle3Crv = await deployments.get('StrategyPickle3Crv');
+        strategyPickle3Crv = await ethers.getContractAt(
+            'StrategyPickle3Crv',
+            StrategyPickle3Crv.address,
+            deployer
         );
-        CONVERTER = converter.address;
-
-        gauge = await MockCurveGauge.new(T3CRV);
-        GAUGE = gauge.address;
-
-        minter = await MockCurveMinter.new(CRV);
-        MINTER = minter.address;
-
-        await crv.mint(MINTER, ether('10'));
-
-        // constructor (IERC20 _t3crv)
-        pjar = await MockPickleJar.new(T3CRV);
-        PJAR = pjar.address;
-
-        // constructor(IERC20 _pickleToken, IERC20 _lpToken)
-        pchef = await MockPickleMasterChef.new(PICKLE, PJAR);
-        PCHEF = pchef.address;
-
-        await pickle.mint(PCHEF, INIT_BALANCE);
-
-        mcontroller = await StrategyControllerV2.new(VMANAGER);
-        MCONTROLLER = mcontroller.address;
-
-        vharvester = await yAxisMetaVaultHarvester.new(VMANAGER, MCONTROLLER);
-        VHARVESTER = vharvester.address;
-
-        unirouter = await MockUniswapRouter.new(constants.ZERO_ADDRESS);
-        UNIROUTER = unirouter.address;
-
-        // constructor(address _want, address _crv, address _weth, address _t3crv,
-        //         address _dai, address _usdc, address _usdt,
-        //         Gauge _gauge, Mintr _crvMintr,
-        //         IStableSwap3Pool _stableSwap3Pool, address _controller, IVaultManager _vaultManager)
-        mstrategyCrv = await StrategyCurve3Crv.new(
-            T3CRV,
-            CRV,
-            WETH,
-            T3CRV,
-            DAI,
-            USDC,
-            USDT,
-            GAUGE,
-            MINTER,
-            STABLESWAP3POOL,
-            MCONTROLLER,
-            VMANAGER,
-            UNIROUTER
+        const StrategyDforce = await deployments.get('StrategyDforce');
+        strategyDforce = await ethers.getContractAt(
+            'StrategyDforce',
+            StrategyDforce.address,
+            deployer
         );
-        MSTRATEGYCRV = mstrategyCrv.address;
-        mstrategyCrv2 = await StrategyCurve3Crv.new(
-            T3CRV,
-            CRV,
-            WETH,
-            T3CRV,
-            DAI,
-            USDC,
-            USDT,
-            GAUGE,
-            MINTER,
-            STABLESWAP3POOL,
-            MCONTROLLER,
-            VMANAGER,
-            UNIROUTER
+    });
+
+    it('should not allow unpermissioned callers', async () => {
+        const harvesterFail = await ethers.getContractAt(
+            'yAxisMetaVaultHarvester',
+            harvester.address,
+            user
         );
-        MSTRATEGYCRV2 = mstrategyCrv2.address;
-
-        // constructor(address _want, address _p3crv, address _pickle, address _weth, address _t3crv, address _dai, address _usdc, address _usdt, address _controller, IVaultManager _vaultManager)
-        mstrategyPickle = await StrategyPickle3Crv.new(
-            T3CRV,
-            PJAR,
-            PICKLE,
-            WETH,
-            T3CRV,
-            DAI,
-            USDC,
-            USDT,
-            STABLESWAP3POOL,
-            MCONTROLLER,
-            VMANAGER,
-            UNIROUTER
+        await expect(harvesterFail.setController(controller.address)).to.be.revertedWith(
+            '!strategist'
         );
-        MSTRATEGYPICKLE = mstrategyPickle.address;
-
-        yax.mint(UNIROUTER, INIT_BALANCE);
-        weth.mint(UNIROUTER, INIT_BALANCE);
-        crv.mint(UNIROUTER, INIT_BALANCE);
-        dai.mint(UNIROUTER, INIT_BALANCE);
-
-        await mvault.setConverter(CONVERTER);
-        await mvault.setVaultManager(VMANAGER);
-        await vmanager.setVaultStatus(MVAULT, true);
-        await vmanager.setTreasury(treasury);
-        await vmanager.setHarvester(VHARVESTER);
-        await vmanager.setStakingPool(stakingPool);
-        await vmanager.setWithdrawalProtectionFee(0);
-        await mvault.setController(MCONTROLLER);
-        await mcontroller.setVault(T3CRV, MVAULT);
-        await mstrategyPickle.setPickleMasterChef(PCHEF);
-        await mstrategyPickle.setStableForLiquidity(DAI);
-        await mcontroller.addStrategy(T3CRV, MSTRATEGYCRV, 0);
-        await mcontroller.addStrategy(T3CRV, MSTRATEGYPICKLE, 0);
-        await mcontroller.addStrategy(T3CRV, MSTRATEGYCRV2, 0);
-
-        await dai.approve(MVAULT, MAX, { from: bob });
-        await usdc.approve(MVAULT, MAX, { from: bob });
-        await usdt.approve(MVAULT, MAX, { from: bob });
-        await t3crv.approve(MVAULT, MAX, { from: bob });
-        await mvault.approve(MVAULT, MAX, { from: bob });
-
-        await yax.mint(MVAULT, INIT_BALANCE);
-        await dai.mint(STABLESWAP3POOL, INIT_BALANCE);
-        await usdc.mint(STABLESWAP3POOL, '1000000000');
-        await usdt.mint(STABLESWAP3POOL, '1000000000');
-        await t3crv.mint(STABLESWAP3POOL, INIT_BALANCE);
-
-        await dai.mint(bob, INIT_BALANCE);
-        await usdc.mint(bob, '1000000000');
-        await usdt.mint(bob, '1000000000');
-        await t3crv.mint(bob, INIT_BALANCE);
+        await expect(harvesterFail.setVaultManager(vaultManager.address)).to.be.revertedWith(
+            '!strategist'
+        );
+        await expect(harvesterFail.setHarvester(user, true)).to.be.revertedWith('!strategist');
+        await expect(
+            harvesterFail.addStrategy(t3crv.address, strategyCurve3Crv.address, 0)
+        ).to.be.revertedWith('!strategist');
+        await expect(
+            harvesterFail.harvest(controller.address, strategyCurve3Crv.address)
+        ).to.be.revertedWith('!harvester');
+        await expect(
+            harvesterFail.removeStrategy(t3crv.address, strategyCurve3Crv.address, 300)
+        ).to.be.revertedWith('!strategist');
     });
 
     it('should set the controller', async () => {
-        await expectRevert(
-            vharvester.setController(MCONTROLLER, { from: bob }),
-            '!strategist'
-        );
-        const tx = await vharvester.setController(MCONTROLLER);
-        expectEvent(tx.receipt, 'ControllerSet', {
-            controller: MCONTROLLER
-        });
-        assert.equal(MCONTROLLER, await vharvester.controller());
+        await expect(harvester.setController(controller.address))
+            .to.emit(harvester, 'ControllerSet')
+            .withArgs(controller.address);
+        expect(await harvester.controller()).to.equal(controller.address);
     });
 
     it('should set the vault manager', async () => {
-        await expectRevert(vharvester.setVaultManager(VMANAGER, { from: bob }), '!strategist');
-        const tx = await vharvester.setVaultManager(VMANAGER);
-        expectEvent(tx.receipt, 'VaultManagerSet', {
-            vaultManager: VMANAGER
-        });
-        assert.equal(VMANAGER, await vharvester.vaultManager());
+        await expect(harvester.setVaultManager(vaultManager.address))
+            .to.emit(harvester, 'VaultManagerSet')
+            .withArgs(vaultManager.address);
+        expect(await harvester.vaultManager()).to.equal(vaultManager.address);
     });
 
     it('should set harvesters', async () => {
-        await expectRevert(vharvester.setHarvester(bob, true, { from: bob }), '!strategist');
-        const tx = await vharvester.setHarvester(deployer, true, { from: deployer });
-        assert.isTrue(await vharvester.isHarvester(deployer));
-        expectEvent(tx.receipt, 'HarvesterSet', {
-            harvester: deployer,
-            status: true
-        });
+        await expect(harvester.setHarvester(deployer, true))
+            .to.emit(harvester, 'HarvesterSet')
+            .withArgs(deployer, true);
+        expect(await harvester.isHarvester(deployer)).to.be.true;
     });
 
     it('should add strategies', async () => {
-        await expectRevert(
-            vharvester.addStrategy(T3CRV, MSTRATEGYCRV, 0, { from: bob }),
-            '!strategist'
-        );
-        const tx = await vharvester.addStrategy(T3CRV, MSTRATEGYCRV, 0);
-        expectEvent(tx.receipt, 'StrategyAdded', {
-            token: T3CRV,
-            strategy: MSTRATEGYCRV,
-            timeout: '0'
-        });
+        await expect(harvester.addStrategy(t3crv.address, strategyCurve3Crv.address, 0))
+            .to.emit(harvester, 'StrategyAdded')
+            .withArgs(t3crv.address, strategyCurve3Crv.address, 0);
     });
 
     it('should harvest added strategies', async () => {
-        await expectRevert(
-            vharvester.harvest(MCONTROLLER, MSTRATEGYCRV, { from: bob }),
-            '!harvester'
-        );
-        const tx = await vharvester.harvest(MCONTROLLER, MSTRATEGYCRV);
-        expectEvent(tx.receipt, 'Harvest', {
-            controller: MCONTROLLER,
-            strategy: MSTRATEGYCRV
-        });
+        await expect(harvester.harvest(controller.address, strategyCurve3Crv.address))
+            .to.emit(harvester, 'Harvest')
+            .withArgs(controller.address, strategyCurve3Crv.address);
     });
 
     it('should add additional strategies', async () => {
-        let tx = await vharvester.addStrategy(T3CRV, MSTRATEGYPICKLE, 300);
-        expectEvent(tx.receipt, 'StrategyAdded', {
-            token: T3CRV,
-            strategy: MSTRATEGYPICKLE,
-            timeout: '300'
-        });
+        await expect(harvester.addStrategy(t3crv.address, strategyPickle3Crv.address, 300))
+            .to.emit(harvester, 'StrategyAdded')
+            .withArgs(t3crv.address, strategyPickle3Crv.address, 300);
 
-        let strategies = await vharvester.strategies(T3CRV);
-        assert.equal(300, strategies.timeout);
-        assert.equal(0, strategies.lastCalled);
-        let strategyAddresses = await vharvester.strategyAddresses(T3CRV);
-        assert.equal(2, strategyAddresses.length);
-        assert.equal(MSTRATEGYCRV, strategyAddresses[0]);
-        assert.equal(MSTRATEGYPICKLE, strategyAddresses[1]);
+        let strategies = await harvester.strategies(t3crv.address);
+        expect(strategies.timeout).to.equal(300);
+        expect(strategies.lastCalled).to.equal(0);
+        let strategyAddresses = await harvester.strategyAddresses(t3crv.address);
+        expect(strategyAddresses.length).to.equal(2);
+        expect(strategyAddresses[0]).to.equal(strategyCurve3Crv.address);
+        expect(strategyAddresses[1]).to.equal(strategyPickle3Crv.address);
 
-        tx = await vharvester.addStrategy(T3CRV, MSTRATEGYCRV2, 600);
-        expectEvent(tx.receipt, 'StrategyAdded', {
-            token: T3CRV,
-            strategy: MSTRATEGYCRV2,
-            timeout: '600'
-        });
+        await expect(harvester.addStrategy(t3crv.address, strategyDforce.address, 600))
+            .to.emit(harvester, 'StrategyAdded')
+            .withArgs(t3crv.address, strategyDforce.address, 600);
 
-        strategies = await vharvester.strategies(T3CRV);
-        assert.equal(600, strategies.timeout);
-        assert.equal(0, strategies.lastCalled);
-        strategyAddresses = await vharvester.strategyAddresses(T3CRV);
-        assert.equal(3, strategyAddresses.length);
-        assert.equal(MSTRATEGYCRV, strategyAddresses[0]);
-        assert.equal(MSTRATEGYPICKLE, strategyAddresses[1]);
-        assert.equal(MSTRATEGYCRV2, strategyAddresses[2]);
+        strategies = await harvester.strategies(t3crv.address);
+        expect(strategies.timeout).to.equal(600);
+        expect(strategies.lastCalled).to.equal(0);
+        strategyAddresses = await harvester.strategyAddresses(t3crv.address);
+        expect(strategyAddresses.length).to.equal(3);
+        expect(strategyAddresses[0]).to.equal(strategyCurve3Crv.address);
+        expect(strategyAddresses[1]).to.equal(strategyPickle3Crv.address);
+        expect(strategyAddresses[2]).to.equal(strategyDforce.address);
     });
 
     it('should rotate harvesting strategies', async () => {
-        const tx = await vharvester.harvestNextStrategy(T3CRV);
-        expectEvent(tx.receipt, 'Harvest', {
-            controller: MCONTROLLER,
-            strategy: MSTRATEGYCRV
-        });
+        await expect(harvester.harvestNextStrategy(t3crv.address))
+            .to.emit(harvester, 'Harvest')
+            .withArgs(controller.address, strategyCurve3Crv.address);
 
-        let strategyAddresses = await vharvester.strategyAddresses(T3CRV);
-        assert.equal(3, strategyAddresses.length);
-        assert.equal(MSTRATEGYPICKLE, strategyAddresses[0]);
-        assert.equal(MSTRATEGYCRV2, strategyAddresses[1]);
-        assert.equal(MSTRATEGYCRV, strategyAddresses[2]);
+        const strategyAddresses = await harvester.strategyAddresses(t3crv.address);
+        expect(strategyAddresses.length).to.equal(3);
+        expect(strategyAddresses[0]).to.equal(strategyPickle3Crv.address);
+        expect(strategyAddresses[1]).to.equal(strategyDforce.address);
+        expect(strategyAddresses[2]).to.equal(strategyCurve3Crv.address);
     });
 
     it('should not allow harvestNextStrategy until timeout has passed', async () => {
-        assert.isFalse(await vharvester.canHarvest(T3CRV));
-        await expectRevert(vharvester.harvestNextStrategy(T3CRV), '!canHarvest');
+        expect(await harvester.canHarvest(t3crv.address)).to.be.false;
+        await expect(harvester.harvestNextStrategy(t3crv.address)).to.be.revertedWith(
+            '!canHarvest'
+        );
 
-        await time.increase(601);
+        await increaseTime(601);
 
-        assert.isTrue(await vharvester.canHarvest(T3CRV));
-        const tx = await vharvester.harvestNextStrategy(T3CRV);
-        expectEvent(tx.receipt, 'Harvest', {
-            controller: MCONTROLLER,
-            strategy: MSTRATEGYPICKLE
-        });
+        expect(await harvester.canHarvest(t3crv.address)).to.be.true;
+        await expect(harvester.harvestNextStrategy(t3crv.address))
+            .to.emit(harvester, 'Harvest')
+            .withArgs(controller.address, strategyPickle3Crv.address);
 
-        let strategyAddresses = await vharvester.strategyAddresses(T3CRV);
-        assert.equal(3, strategyAddresses.length);
-        assert.equal(MSTRATEGYCRV2, strategyAddresses[0]);
-        assert.equal(MSTRATEGYCRV, strategyAddresses[1]);
-        assert.equal(MSTRATEGYPICKLE, strategyAddresses[2]);
+        const strategyAddresses = await harvester.strategyAddresses(t3crv.address);
+        expect(strategyAddresses.length).to.equal(3);
+        expect(strategyAddresses[0]).to.equal(strategyDforce.address);
+        expect(strategyAddresses[1]).to.equal(strategyCurve3Crv.address);
+        expect(strategyAddresses[2]).to.equal(strategyPickle3Crv.address);
     });
 
     it('should remove strategies', async () => {
-        await expectRevert(
-            vharvester.removeStrategy(T3CRV, MSTRATEGYCRV2, 300, { from: bob }),
-            '!strategist'
+        await expect(harvester.removeStrategy(t3crv.address, user, 300)).to.be.revertedWith(
+            '!found'
         );
-        await expectRevert(vharvester.removeStrategy(T3CRV, bob, 300), '!found');
-        const tx = await vharvester.removeStrategy(T3CRV, MSTRATEGYCRV2, 300);
-        expectEvent(tx.receipt, 'StrategyRemoved', {
-            token: T3CRV,
-            strategy: MSTRATEGYCRV2,
-            timeout: '300'
-        });
+        await expect(harvester.removeStrategy(t3crv.address, strategyDforce.address, 300))
+            .to.emit(harvester, 'StrategyRemoved')
+            .withArgs(t3crv.address, strategyDforce.address, 300);
 
-        let strategyAddresses = await vharvester.strategyAddresses(T3CRV);
-        assert.equal(2, strategyAddresses.length);
-        assert.equal(MSTRATEGYCRV, strategyAddresses[1]);
-        assert.equal(MSTRATEGYPICKLE, strategyAddresses[0]);
+        const strategyAddresses = await harvester.strategyAddresses(t3crv.address);
+        expect(strategyAddresses.length).to.equal(2);
+        expect(strategyAddresses[0]).to.equal(strategyPickle3Crv.address);
+        expect(strategyAddresses[1]).to.equal(strategyCurve3Crv.address);
     });
 });

@@ -11,12 +11,8 @@ module.exports = {
     globals: {
         Atomics: 'readonly',
         SharedArrayBuffer: 'readonly',
-        artifacts: true,
-        assert: true,
-        contract: true,
-        globalThis: true,
-        network: true,
-        web3: true
+        ethers: true,
+        network: true
     },
     parserOptions: {
         ecmaVersion: 2020

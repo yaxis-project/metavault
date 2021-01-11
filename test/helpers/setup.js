@@ -1,0 +1,92 @@
+const { deployments } = require('hardhat');
+
+exports.advanceBlocks = async (blocks) => {
+    for (let i = 0; i < blocks; i++) {
+        await network.provider.request({
+            method: 'evm_mine'
+        });
+    }
+};
+
+exports.increaseTime = async (time) => {
+    await network.provider.request({
+        method: 'evm_increaseTime',
+        params: [time]
+    });
+    await network.provider.request({
+        method: 'evm_mine'
+    });
+};
+
+exports.setupTest = deployments.createFixture(
+    async ({ deployments, getNamedAccounts, ethers }) => {
+        await deployments.fixture();
+        const { deployer, user, stakingPool, treasury } = await getNamedAccounts();
+        const YAX = await deployments.get('YAX');
+        const yax = await ethers.getContractAt('MockERC20', YAX.address, user);
+        const DAI = await deployments.get('DAI');
+        const dai = await ethers.getContractAt('MockERC20', DAI.address, user);
+        const USDC = await deployments.get('USDC');
+        const usdc = await ethers.getContractAt('MockERC20', USDC.address, user);
+        const USDT = await deployments.get('USDT');
+        const usdt = await ethers.getContractAt('MockERC20', USDT.address, user);
+        const T3CRV = await deployments.get('T3CRV');
+        const t3crv = await ethers.getContractAt('MockERC20', T3CRV.address, user);
+        const WETH = await deployments.get('WETH');
+        const weth = await ethers.getContractAt('MockERC20', WETH.address, user);
+        const Router = await deployments.get('MockUniswapRouter');
+        const router = await ethers.getContractAt(
+            'MockUniswapRouter',
+            Router.address,
+            deployer
+        );
+        const Vault = await deployments.get('yAxisMetaVault');
+        const vault = await ethers.getContractAt('yAxisMetaVault', Vault.address, user);
+        const Manager = await deployments.get('yAxisMetaVaultManager');
+        const vaultManager = await ethers.getContractAt(
+            'yAxisMetaVaultManager',
+            Manager.address,
+            deployer
+        );
+        const Controller = await deployments.get('StrategyControllerV2');
+        const controller = await ethers.getContractAt(
+            'StrategyControllerV2',
+            Controller.address,
+            deployer
+        );
+        const Harvester = await deployments.get('yAxisMetaVaultHarvester');
+        const harvester = await ethers.getContractAt(
+            'yAxisMetaVaultHarvester',
+            Harvester.address,
+            deployer
+        );
+
+        await dai.faucet(ethers.utils.parseEther('1000'));
+        await usdc.faucet('1000000000');
+        await usdt.faucet('1000000000');
+        await t3crv.faucet(ethers.utils.parseEther('1000'));
+        await dai.approve(Vault.address, ethers.utils.parseEther('1000'), { from: user });
+        await usdc.approve(Vault.address, ethers.utils.parseEther('1000'), { from: user });
+        await usdt.approve(Vault.address, ethers.utils.parseEther('1000'), { from: user });
+        await t3crv.approve(Vault.address, ethers.utils.parseEther('1000'), { from: user });
+        await vault.approve(Vault.address, ethers.utils.parseEther('1000'), { from: user });
+
+        return {
+            deployer,
+            stakingPool,
+            treasury,
+            user,
+            yax,
+            dai,
+            usdc,
+            usdt,
+            t3crv,
+            weth,
+            vault,
+            vaultManager,
+            harvester,
+            controller,
+            router
+        };
+    }
+);

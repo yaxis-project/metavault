@@ -1,16 +1,25 @@
-require('@nomiclabs/hardhat-truffle5');
+require('@nomiclabs/hardhat-waffle');
 require('hardhat-deploy');
+require('hardhat-deploy-ethers');
 
 // If not set, we only need to default these with something to get hardhat to run
-const kovanRpcUrl = process.env.KOVAN_RPC_URL || 'https://example.com';
-const mainnetRpcUrl = process.env.MAINNET_RPC_URL || 'https://example.com';
+const kovanRpcUrl = process.env.KOVAN_RPC_URL || 'http://localhost:8545';
+const mainnetRpcUrl = process.env.MAINNET_RPC_URL || 'http://localhost:8545';
 const kovanPrivateKey = process.env.KOVAN_PRIVATE_KEY || '0x00';
 const mainnetPrivateKey = process.env.MAINNET_PRIVATE_KEY || '0x00';
+const chainId = process.env.LIVE ? 1 : 31337;
+const live = process.env.LIVE ? true : false;
 
 module.exports = {
     defaultNetwork: 'hardhat',
     networks: {
-        hardhat: {},
+        hardhat: {
+            chainId: chainId,
+            forking: {
+                url: mainnetRpcUrl,
+                enabled: live
+            }
+        },
         kovan: {
             url: kovanRpcUrl,
             accounts: [kovanPrivateKey]
@@ -23,91 +32,128 @@ module.exports = {
     namedAccounts: {
         CRV: {
             1: '0xD533a949740bb3306d119CC777fa900bA034cd52',
-            42: '0x27793C6F8fdB370DA02786c0A1c47F7A0877bD67'
+            1337: '0xD533a949740bb3306d119CC777fa900bA034cd52'
         },
         DAI: {
             1: '0x6B175474E89094C44Da98b954EedeAC495271d0F',
-            42: '0xd7a4281A3D0C464c9d995d068FC7F486c1e0a5AB'
+            1337: '0x6B175474E89094C44Da98b954EedeAC495271d0F'
         },
         DF: {
             1: '0x431ad2ff6a9C365805eBaD47Ee021148d6f7DBe0',
-            42: '0x4a371D576006F61309AD87E7fAA7f02a50ec3F03'
+            1337: '0x431ad2ff6a9C365805eBaD47Ee021148d6f7DBe0'
         },
         dDAI: {
-            1: '0x02285AcaafEB533e03A7306C55EC031297df9224'
+            1: '0x02285AcaafEB533e03A7306C55EC031297df9224',
+            1337: '0x02285AcaafEB533e03A7306C55EC031297df9224'
         },
         dRewardsDAI: {
-            1: '0xD2fA07cD6Cd4A5A96aa86BacfA6E50bB3aaDBA8B'
+            1: '0xD2fA07cD6Cd4A5A96aa86BacfA6E50bB3aaDBA8B',
+            1337: '0xD2fA07cD6Cd4A5A96aa86BacfA6E50bB3aaDBA8B'
         },
         dRewardsUSDT: {
-            1: '0x324EebDAa45829c6A8eE903aFBc7B61AF48538df'
+            1: '0x324EebDAa45829c6A8eE903aFBc7B61AF48538df',
+            1337: '0x324EebDAa45829c6A8eE903aFBc7B61AF48538df'
         },
         dUSDT: {
+            1337: '0x868277d475E0e475E38EC5CdA2d9C83B5E1D9fc8',
             1: '0x868277d475E0e475E38EC5CdA2d9C83B5E1D9fc8'
         },
         deployer: {
+            default: 0,
             1: '0x36D68d13dD18Fe8076833Ef99245Ef33B00A7259',
+            1337: '0x36D68d13dD18Fe8076833Ef99245Ef33B00A7259',
             42: '0x36D68d13dD18Fe8076833Ef99245Ef33B00A7259'
         },
         gauge: {
-            1: '0xbFcF63294aD7105dEa65aA58F8AE5BE2D9d0952A'
+            1: '0xbFcF63294aD7105dEa65aA58F8AE5BE2D9d0952A',
+            1337: '0xbFcF63294aD7105dEa65aA58F8AE5BE2D9d0952A'
         },
         minter: {
-            1: '0xd061D61a4d941c39E5453435B6345Dc261C2fcE0'
+            1: '0xd061D61a4d941c39E5453435B6345Dc261C2fcE0',
+            1337: '0xd061D61a4d941c39E5453435B6345Dc261C2fcE0'
         },
         multisig: {
             1: '0xC1d40e197563dF727a4d3134E8BD1DeF4B498C6f',
+            1337: '0xC1d40e197563dF727a4d3134E8BD1DeF4B498C6f',
             42: '0x36D68d13dD18Fe8076833Ef99245Ef33B00A7259'
         },
+        oldController: {
+            1: '0x2ebE1461D2Fc6dabF079882CFc51e5013BbA49B6',
+            1337: '0x2ebE1461D2Fc6dabF079882CFc51e5013BbA49B6'
+        },
+        oldStrategyCrv: {
+            1: '0xd721d16a685f63A4e8C4e8c5988b76Bec6A85c90',
+            1337: '0xd721d16a685f63A4e8C4e8c5988b76Bec6A85c90'
+        },
         p3crv: {
-            1: '0x1BB74b5DdC1f4fC91D6f9E7906cf68bc93538e33'
+            1: '0x1BB74b5DdC1f4fC91D6f9E7906cf68bc93538e33',
+            1337: '0x1BB74b5DdC1f4fC91D6f9E7906cf68bc93538e33'
         },
         pchef: {
-            1: '0xbD17B1ce622d73bD438b9E658acA5996dc394b0d'
+            1: '0xbD17B1ce622d73bD438b9E658acA5996dc394b0d',
+            1337: '0xbD17B1ce622d73bD438b9E658acA5996dc394b0d'
         },
         PICKLE: {
             1: '0x429881672B9AE42b8EbA0E26cD9C73711b891Ca5',
-            42: '0xf38591C9d2FB28B6fF1b0635A1007Ff37eb9FC5B'
+            1337: '0x429881672B9AE42b8EbA0E26cD9C73711b891Ca5'
         },
         pjar: {
-            1: '0x1BB74b5DdC1f4fC91D6f9E7906cf68bc93538e33'
+            1: '0x1BB74b5DdC1f4fC91D6f9E7906cf68bc93538e33',
+            1337: '0x1BB74b5DdC1f4fC91D6f9E7906cf68bc93538e33'
         },
         stableSwap3Pool: {
-            1: '0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7'
+            1: '0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7',
+            1337: '0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7'
         },
         stakingPool: {
+            default: 2,
             1: '0xeF31Cb88048416E301Fee1eA13e7664b887BA7e8',
+            1337: '0xeF31Cb88048416E301Fee1eA13e7664b887BA7e8',
             42: '0x36D68d13dD18Fe8076833Ef99245Ef33B00A7259'
         },
         T3CRV: {
             1: '0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490',
-            42: '0x07A0D425B0d67e38EE041e280F70f0250491764b'
+            1337: '0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490'
         },
         timelock: {
             1: '0x66C5c16d13a38461648c1D097f219762D374B412',
+            1337: '0x66C5c16d13a38461648c1D097f219762D374B412',
+            42: '0x36D68d13dD18Fe8076833Ef99245Ef33B00A7259'
+        },
+        treasury: {
+            default: 1,
+            1: '0xC1d40e197563dF727a4d3134E8BD1DeF4B498C6f',
+            1337: '0xC1d40e197563dF727a4d3134E8BD1DeF4B498C6f',
             42: '0x36D68d13dD18Fe8076833Ef99245Ef33B00A7259'
         },
         unirouter: {
-            1: '0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D'
+            1: '0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D',
+            1337: '0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D'
+        },
+        user: {
+            default: 3,
+            1: '0x3f5CE5FBFe3E9af3971dD833D26bA9b5C936f0bE',
+            1337: '0x3f5CE5FBFe3E9af3971dD833D26bA9b5C936f0bE'
         },
         USDC: {
             1: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
-            42: '0xfC121274EDA82a438D56d9B059C42F9363945fc9'
+            1337: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48'
         },
         USDT: {
             1: '0xdAC17F958D2ee523a2206206994597C13D831ec7',
-            42: '0x2dc265244CE729802ca1122A408F6728D2422D28'
+            1337: '0xdAC17F958D2ee523a2206206994597C13D831ec7'
         },
         vault3crv: {
-            1: '0xBFbEC72F2450eF9Ab742e4A27441Fa06Ca79eA6a'
+            1: '0xBFbEC72F2450eF9Ab742e4A27441Fa06Ca79eA6a',
+            1337: '0xBFbEC72F2450eF9Ab742e4A27441Fa06Ca79eA6a'
         },
         WETH: {
             1: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
-            42: '0x47D7169F3225CDd461fA82E954b1A3C28E3ce626'
+            1337: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2'
         },
         YAX: {
             1: '0xb1dC9124c395c1e97773ab855d66E879f053A289',
-            42: '0xA8805A1680a8fe99DdcBd4b9456eeE702331fAA8'
+            1337: '0xb1dC9124c395c1e97773ab855d66E879f053A289'
         }
     },
     solidity: {
