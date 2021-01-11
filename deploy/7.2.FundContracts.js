@@ -1,5 +1,3 @@
-/* eslint-disable no-case-declarations */
-
 module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
     const { ethers } = require('hardhat');
     const { deployer } = await getNamedAccounts();

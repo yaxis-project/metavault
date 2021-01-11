@@ -106,3 +106,4 @@ dist
 # Hardhat
 cache/
 artifacts/
+deployments/localhost/
