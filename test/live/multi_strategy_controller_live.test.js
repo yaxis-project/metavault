@@ -13,10 +13,10 @@ const fromWeiWithDecimals = formatUnits;
 const verbose = process.env.VERBOSE;
 
 describe('StrategyControllerV2: live', () => {
-    let user,
-        deployer,
-        multisig,
-        timelock,
+    let userAddr,
+        deployerAddr,
+        multisigAddr,
+        timelockAddr,
         stakingPoolAddr,
         yax,
         dai,
@@ -37,7 +37,6 @@ describe('StrategyControllerV2: live', () => {
         oldStrategyCrvAddr;
 
     before(async () => {
-        await deployments.fixture();
         const {
             deployer,
             user,
@@ -55,7 +54,51 @@ describe('StrategyControllerV2: live', () => {
             oldController,
             oldStrategyCrv
         } = await getNamedAccounts();
+        await network.provider.request({
+            method: 'hardhat_reset',
+            params: [
+                {
+                    forking: {
+                        jsonRpcUrl: process.env.MAINNET_RPC_URL
+                    }
+                }
+            ]
+        });
+        await network.provider.request({
+            method: 'hardhat_impersonateAccount',
+            params: [user]
+        });
+        await network.provider.request({
+            method: 'hardhat_impersonateAccount',
+            params: [deployer]
+        });
+        await network.provider.request({
+            method: 'hardhat_impersonateAccount',
+            params: [multisig]
+        });
+        await network.provider.request({
+            method: 'hardhat_impersonateAccount',
+            params: [timelock]
+        });
+        const userSigner = await ethers.provider.getSigner(user);
+        await userSigner.sendTransaction({
+            to: deployer,
+            value: ethers.utils.parseEther('100')
+        });
+        await userSigner.sendTransaction({
+            to: multisig,
+            value: ethers.utils.parseEther('100')
+        });
+        await userSigner.sendTransaction({
+            to: timelock,
+            value: ethers.utils.parseEther('100')
+        });
+        await deployments.fixture();
         pickleChef = pchef;
+        userAddr = user;
+        deployerAddr = deployer;
+        multisigAddr = multisig;
+        timelockAddr = timelock;
         stakingPoolAddr = stakingPool;
         oldStrategyCrvAddr = oldStrategyCrv;
         yax = await ethers.getContractAt('MockERC20', YAX, user);
@@ -66,6 +109,12 @@ describe('StrategyControllerV2: live', () => {
         pickleJar = await ethers.getContractAt('MockERC20', pjar, user);
         vaultUser = await ethers.getContractAt('yAxisMetaVault', vault3crv, user);
         vaultGov = await ethers.getContractAt('yAxisMetaVault', vault3crv, timelock);
+        const VaultManager = await deployments.get('yAxisMetaVaultManager');
+        vaultManager = await ethers.getContractAt(
+            'yAxisMetaVaultManager',
+            VaultManager.address,
+            deployer
+        );
         const Converter = await deployments.get('StableSwap3PoolConverter');
         converter = await ethers.getContractAt(
             'StableSwap3PoolConverter',
@@ -107,25 +156,24 @@ describe('StrategyControllerV2: live', () => {
         await usdt.approve(vaultUser.address, ethers.constants.MaxUint256);
         await t3crv.approve(vaultUser.address, ethers.constants.MaxUint256);
         await vaultUser.approve(vaultUser.address, ethers.constants.MaxUint256);
-        console.log('FIXTURES COMPLETE');
     });
 
     after(async () => {
         await network.provider.request({
             method: 'hardhat_stopImpersonatingAccount',
-            params: [user]
+            params: [userAddr]
         });
         await network.provider.request({
             method: 'hardhat_stopImpersonatingAccount',
-            params: [deployer]
+            params: [deployerAddr]
         });
         await network.provider.request({
             method: 'hardhat_stopImpersonatingAccount',
-            params: [multisig]
+            params: [multisigAddr]
         });
         await network.provider.request({
             method: 'hardhat_stopImpersonatingAccount',
-            params: [timelock]
+            params: [timelockAddr]
         });
         await network.provider.request({
             method: 'hardhat_reset',
@@ -149,13 +197,16 @@ describe('StrategyControllerV2: live', () => {
         console.log('--------------------');
         console.log(
             'user balances:      %s DAI/ %s USDC/ %s USDT/ %s T3CRV/ %s YAX',
-            fromWei(await dai.balanceOf(user)),
-            fromWeiWithDecimals(await usdc.balanceOf(user), 6),
-            fromWeiWithDecimals(await usdt.balanceOf(user), 6),
-            fromWei(await t3crv.balanceOf(user)),
-            fromWei(await yax.balanceOf(user))
+            fromWei(await dai.balanceOf(userAddr)),
+            fromWeiWithDecimals(await usdc.balanceOf(userAddr), 6),
+            fromWeiWithDecimals(await usdt.balanceOf(userAddr), 6),
+            fromWei(await t3crv.balanceOf(userAddr)),
+            fromWei(await yax.balanceOf(userAddr))
         );
-        console.log('user staked:       ', fromWei((await vaultUser.userInfo(user)).amount));
+        console.log(
+            'user staked:       ',
+            fromWei((await vaultUser.userInfo(userAddr)).amount)
+        );
         console.log('--------------------');
     };
 
@@ -179,12 +230,12 @@ describe('StrategyControllerV2: live', () => {
     it('should setup the deployed contracts', async () => {
         expect(await vaultManager.vaults(vaultUser.address)).to.be.true;
         expect(await vaultManager.controllers(controller.address)).to.be.true;
-        expect(await vaultManager.treasury()).to.equal(multisig);
+        expect(await vaultManager.treasury()).to.equal(multisigAddr);
         expect(await vaultManager.stakingPool()).to.equal(stakingPoolAddr);
         expect(await vaultManager.harvester()).to.equal(harvester.address);
         expect(await harvester.vaultManager()).to.equal(vaultManager.address);
         expect(await harvester.controller()).to.equal(controller.address);
-        expect(await harvester.isHarvester(deployer)).to.be.true;
+        expect(await harvester.isHarvester(deployerAddr)).to.be.true;
         const strategyAddresses = await harvester.strategyAddresses(t3crv.address);
         expect(strategyAddresses.length).to.equal(2);
         expect(strategyAddresses[0]).to.equal(strategyCrv.address);
@@ -203,8 +254,8 @@ describe('StrategyControllerV2: live', () => {
         expect(strategies.length).to.equal(2);
         expect(strategies[0]).to.equal(strategyCrv.address);
         expect(strategies[1]).to.equal(strategyPickle.address);
-        expect(await vaultManager.strategist()).to.equal(multisig);
-        expect(await vaultManager.governance()).to.equal(timelock);
+        expect(await vaultManager.strategist()).to.equal(multisigAddr);
+        expect(await vaultManager.governance()).to.equal(timelockAddr);
     });
 
     it('should set the new controller on the vault', async () => {

@@ -1,32 +1,7 @@
-const { ethers } = require('hardhat');
 module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
     const { deploy } = deployments;
-    const { deployer, multisig, timelock, user } = await getNamedAccounts();
+    const { deployer } = await getNamedAccounts();
     const chainId = await getChainId();
-
-    if (process.env.LIVE) {
-        await network.provider.request({
-            method: 'hardhat_impersonateAccount',
-            params: [user]
-        });
-        await network.provider.request({
-            method: 'hardhat_impersonateAccount',
-            params: [deployer]
-        });
-        await network.provider.request({
-            method: 'hardhat_impersonateAccount',
-            params: [multisig]
-        });
-        await network.provider.request({
-            method: 'hardhat_impersonateAccount',
-            params: [timelock]
-        });
-        const userSigner = await ethers.provider.getSigner(user);
-        await userSigner.sendTransaction({
-            to: deployer,
-            value: ethers.utils.parseEther('100')
-        });
-    }
 
     if (chainId != '1') {
         await deploy('YAX', {
