@@ -9,6 +9,14 @@ const kovanPrivateKey = process.env.KOVAN_PRIVATE_KEY || '0x00';
 const mainnetPrivateKey = process.env.MAINNET_PRIVATE_KEY || '0x00';
 const chainId = process.env.LIVE ? 1 : 31337;
 
+task('contracts', 'Prints the contract addresses for a network').setAction(async () => {
+    // eslint-disable-next-line no-undef
+    const contracts = await deployments.all();
+    for (const contract in contracts) {
+        console.log(contract, contracts[contract].address);
+    }
+});
+
 module.exports = {
     defaultNetwork: 'hardhat',
     networks: {

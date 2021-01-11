@@ -12,7 +12,8 @@ module.exports = {
         Atomics: 'readonly',
         SharedArrayBuffer: 'readonly',
         ethers: true,
-        network: true
+        network: true,
+        task: true
     },
     parserOptions: {
         ecmaVersion: 2020

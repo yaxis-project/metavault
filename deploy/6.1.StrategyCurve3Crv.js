@@ -1,7 +1,6 @@
-/* eslint-disable no-case-declarations */
 module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
     const { deploy } = deployments;
-    const {
+    let {
         CRV,
         DAI,
         USDC,
@@ -18,69 +17,61 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
     const controller = await deployments.get('StrategyControllerV2');
     const manager = await deployments.get('yAxisMetaVaultManager');
 
-    if (chainId == '1') {
-        await deploy('StrategyCurve3Crv', {
-            from: deployer,
-            args: [
-                T3CRV,
-                CRV,
-                WETH,
-                T3CRV,
-                DAI,
-                USDC,
-                USDT,
-                gauge,
-                minter,
-                stableSwap3Pool,
-                controller.address,
-                manager.address,
-                unirouter
-            ]
-        });
-    } else {
+    if (chainId != '1') {
         const dai = await deployments.get('DAI');
+        DAI = dai.address;
         const usdc = await deployments.get('USDC');
+        USDC = usdc.address;
         const usdt = await deployments.get('USDT');
+        USDT = usdt.address;
+        const t3crv = await deployments.get('T3CRV');
+        T3CRV = t3crv.address;
         const weth = await deployments.get('WETH');
+        WETH = weth.address;
         await deploy('CRV', {
             from: deployer,
             contract: 'MockERC20',
             args: ['Curve.fi', 'CRV', 18]
         });
-        const CRV = await deployments.get('CRV');
-        const crv = await ethers.getContractAt('MockERC20', CRV.address, deployer);
-        const t3crv = await deployments.get('T3CRV');
+        let crv = await deployments.get('CRV');
+        CRV = crv.address;
+        crv = await ethers.getContractAt('MockERC20', CRV, deployer);
         await deploy('MockCurveGauge', {
             from: deployer,
             args: [t3crv.address]
         });
         await deploy('MockCurveMinter', {
             from: deployer,
-            args: [CRV.address]
+            args: [crv.address]
         });
         const mockStableSwap3Pool = await deployments.get('MockStableSwap3Pool');
+        stableSwap3Pool = mockStableSwap3Pool.address;
         const mockGauge = await deployments.get('MockCurveGauge');
+        gauge = mockGauge.address;
         const mockMinter = await deployments.get('MockCurveMinter');
+        minter = mockMinter.address;
         const router = await deployments.get('MockUniswapRouter');
-        await deploy('StrategyCurve3Crv', {
-            from: deployer,
-            args: [
-                t3crv.address,
-                CRV.address,
-                weth.address,
-                t3crv.address,
-                dai.address,
-                usdc.address,
-                usdt.address,
-                mockGauge.address,
-                mockMinter.address,
-                mockStableSwap3Pool.address,
-                controller.address,
-                manager.address,
-                router.address
-            ]
-        });
+        unirouter = router.address;
         await crv.mint(mockMinter.address, ethers.utils.parseEther('1000'));
         await crv.mint(router.address, ethers.utils.parseEther('1000'));
     }
+
+    await deploy('StrategyCurve3Crv', {
+        from: deployer,
+        args: [
+            T3CRV,
+            CRV,
+            WETH,
+            T3CRV,
+            DAI,
+            USDC,
+            USDT,
+            gauge,
+            minter,
+            stableSwap3Pool,
+            controller.address,
+            manager.address,
+            unirouter
+        ]
+    });
 };
