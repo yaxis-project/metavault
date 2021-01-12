@@ -5,6 +5,7 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
 
     await deploy('StrategyControllerV2', {
         from: deployer,
+        log: true,
         args: [manager.address]
     });
 };

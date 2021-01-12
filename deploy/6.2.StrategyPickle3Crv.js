@@ -1,5 +1,5 @@
 module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
-    const { deploy } = deployments;
+    const { deploy, execute } = deployments;
     let {
         DAI,
         USDC,
@@ -30,6 +30,7 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
         WETH = weth.address;
         await deploy('PICKLE', {
             from: deployer,
+            log: true,
             contract: 'MockERC20',
             args: ['Pickle', 'PICKLE', 18]
         });
@@ -38,12 +39,14 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
         pickle = await ethers.getContractAt('MockERC20', PICKLE, deployer);
         await deploy('MockPickleJar', {
             from: deployer,
+            log: true,
             args: [T3CRV]
         });
         const mockPickleJar = await deployments.get('MockPickleJar');
         pjar = mockPickleJar.address;
-        await deploy('MockPickleMasterChef', {
+        const deployedPchef = await deploy('MockPickleMasterChef', {
             from: deployer,
+            log: true,
             args: [PICKLE, mockPickleJar.address]
         });
         const PCHEF = await deployments.get('MockPickleMasterChef');
@@ -52,11 +55,20 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
         stableSwap3Pool = mockStableSwap3Pool.address;
         const mockUnirouter = await deployments.get('MockUniswapRouter');
         unirouter = mockUnirouter.address;
-        await pickle.mint(pchef, ethers.utils.parseEther('1000'));
+        if (deployedPchef.newlyDeployed) {
+            await execute(
+                'PICKLE',
+                { from: deployer },
+                'mint',
+                pchef,
+                ethers.utils.parseEther('1000')
+            );
+        }
     }
 
-    await deploy('StrategyPickle3Crv', {
+    const deployedStrategy = await deploy('StrategyPickle3Crv', {
         from: deployer,
+        log: true,
         args: [
             T3CRV,
             pjar,
@@ -72,16 +84,9 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
             unirouter
         ]
     });
-    const Strategy = await deployments.get('StrategyPickle3Crv');
-    const strategy = await ethers.getContractAt(
-        'StrategyPickle3Crv',
-        Strategy.address,
-        deployer
-    );
-    if ((await strategy.stableForAddLiquidity()) != DAI) {
-        await strategy.setStableForLiquidity(DAI);
-    }
-    if ((await strategy.pickleMasterChef()) != pchef) {
-        await strategy.setPickleMasterChef(pchef);
+
+    if (deployedStrategy.newlyDeployed) {
+        await execute('StrategyPickle3Crv', { from: deployer }, 'setStableForLiquidity', DAI);
+        await execute('StrategyPickle3Crv', { from: deployer }, 'setPickleMasterChef', pchef);
     }
 };

@@ -4,6 +4,7 @@ const { parseEther } = ethers.utils;
 const ether = parseEther;
 
 module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
+    const { execute } = deployments;
     const { ethers } = require('hardhat');
     let {
         DAI,
@@ -52,40 +53,148 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
         const vault = await ethers.getContractAt('yAxisMetaVault', Vault.address, deployer);
 
         if ((await vault.controller()) != controller.address) {
-            await vault.setEarnLowerlimit(0);
-            await vault.setTotalDepositCap(0);
-            await vault.setVaultManager(VaultManager.address);
-            await vault.setConverter(Converter.address);
-            await vault.setController(Controller.address);
-        }
-    } else {
-        // mainnet
-        if ((await controller.strategies()).length < 2) {
-            await harvester.addStrategy(T3CRV, StrategyCurve3Crv.address, 86400);
-            await harvester.addStrategy(T3CRV, StrategyPickle3Crv.address, 43200);
-            await controller.addStrategy(T3CRV, StrategyCurve3Crv.address, 0);
-            await controller.addStrategy(T3CRV, StrategyPickle3Crv.address, ether('1000000'));
+            await execute('yAxisMetaVault', { from: deployer }, 'setEarnLowerlimit', 0);
+            await execute('yAxisMetaVault', { from: deployer }, 'setTotalDepositCap', 0);
+            await execute(
+                'yAxisMetaVault',
+                { from: deployer },
+                'setVaultManager',
+                VaultManager.address
+            );
+            await execute(
+                'yAxisMetaVault',
+                { from: deployer },
+                'setConverter',
+                Converter.address
+            );
+            await execute(
+                'yAxisMetaVault',
+                { from: deployer },
+                'setController',
+                Controller.address
+            );
         }
     }
 
     if ((await vaultManager.stakingPool()) != stakingPool) {
-        await vaultManager.setVaultStatus(vault3crv, true);
-        await vaultManager.setControllerStatus(Controller.address, true);
-        await vaultManager.setHarvester(Harvester.address);
-        await vaultManager.setTreasury(treasury);
-        await vaultManager.setStakingPool(stakingPool);
+        await execute(
+            'yAxisMetaVaultManager',
+            { from: deployer },
+            'setVaultStatus',
+            vault3crv,
+            true
+        );
+        await execute(
+            'yAxisMetaVaultManager',
+            { from: deployer },
+            'setControllerStatus',
+            Controller.address,
+            true
+        );
+        await execute(
+            'yAxisMetaVaultManager',
+            { from: deployer },
+            'setHarvester',
+            Harvester.address
+        );
+        await execute('yAxisMetaVaultManager', { from: deployer }, 'setTreasury', treasury);
+        await execute(
+            'yAxisMetaVaultManager',
+            { from: deployer },
+            'setStakingPool',
+            stakingPool
+        );
     }
 
     if (!(await harvester.isHarvester(deployer))) {
-        await harvester.setVaultManager(VaultManager.address);
-        await harvester.setController(Controller.address);
-        await harvester.setHarvester(deployer, true);
+        await execute(
+            'yAxisMetaVaultHarvester',
+            { from: deployer },
+            'setVaultManager',
+            VaultManager.address
+        );
+        await execute(
+            'yAxisMetaVaultHarvester',
+            { from: deployer },
+            'setController',
+            Controller.address
+        );
+        await execute(
+            'yAxisMetaVaultHarvester',
+            { from: deployer },
+            'setHarvester',
+            deployer,
+            true
+        );
     }
 
     if ((await controller.vaults(T3CRV)) != vault3crv) {
-        await controller.setConverter(T3CRV, DAI, Converter.address);
-        await controller.setConverter(T3CRV, USDC, Converter.address);
-        await controller.setConverter(T3CRV, USDT, Converter.address);
-        await controller.setVault(T3CRV, vault3crv);
+        await execute(
+            'StrategyControllerV2',
+            { from: deployer },
+            'setConverter',
+            T3CRV,
+            DAI,
+            Converter.address
+        );
+        await execute(
+            'StrategyControllerV2',
+            { from: deployer },
+            'setConverter',
+            T3CRV,
+            USDC,
+            Converter.address
+        );
+        await execute(
+            'StrategyControllerV2',
+            { from: deployer },
+            'setConverter',
+            T3CRV,
+            USDT,
+            Converter.address
+        );
+        await execute(
+            'StrategyControllerV2',
+            { from: deployer },
+            'setVault',
+            T3CRV,
+            vault3crv
+        );
+
+        // mainnet
+        if (chainId == '1' && (await controller.strategies(T3CRV)).length < 2) {
+            await execute(
+                'yAxisMetaVaultHarvester',
+                { from: deployer },
+                'addStrategy',
+                T3CRV,
+                StrategyCurve3Crv.address,
+                86400
+            );
+            await execute(
+                'yAxisMetaVaultHarvester',
+                { from: deployer },
+                'addStrategy',
+                T3CRV,
+                StrategyPickle3Crv.address,
+                43200
+            );
+            await execute(
+                'StrategyControllerV2',
+                { from: deployer },
+                'addStrategy',
+                T3CRV,
+                StrategyCurve3Crv.address,
+                0
+            );
+            await execute(
+                'StrategyControllerV2',
+                { from: deployer },
+                'addStrategy',
+                T3CRV,
+                StrategyPickle3Crv.address,
+                ether('1000000')
+            );
+        }
     }
 };

@@ -254,8 +254,8 @@ describe('StrategyControllerV2: live', () => {
         expect(strategies.length).to.equal(2);
         expect(strategies[0]).to.equal(strategyCrv.address);
         expect(strategies[1]).to.equal(strategyPickle.address);
-        expect(await vaultManager.strategist()).to.equal(multisigAddr);
-        expect(await vaultManager.governance()).to.equal(timelockAddr);
+        expect(await vaultManager.strategist()).to.equal(deployerAddr);
+        expect(await vaultManager.governance()).to.equal(deployerAddr);
     });
 
     it('should set the new controller on the vault', async () => {

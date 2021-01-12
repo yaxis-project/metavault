@@ -65,7 +65,8 @@ contract StrategyPickle3Crv is BaseStrategy {
 
     function setPickleMasterChef(PickleMasterChef _pickleMasterChef) external onlyAuthorized {
         pickleMasterChef = _pickleMasterChef;
-        IERC20(p3crv).safeApprove(address(pickleMasterChef), type(uint256).max);
+        IERC20(p3crv).safeApprove(address(_pickleMasterChef), 0);
+        IERC20(p3crv).safeApprove(address(_pickleMasterChef), type(uint256).max);
     }
 
     function setPoolId(uint _poolId) external onlyAuthorized {
