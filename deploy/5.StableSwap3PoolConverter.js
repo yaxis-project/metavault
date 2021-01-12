@@ -19,6 +19,7 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
 
     await deploy('StableSwap3PoolConverter', {
         from: deployer,
+        log: true,
         args: [DAI, USDC, USDT, T3CRV, stableSwap3Pool, manager.address]
     });
 };

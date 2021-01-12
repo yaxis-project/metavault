@@ -6,6 +6,7 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
 
     await deploy('yAxisMetaVaultHarvester', {
         from: deployer,
+        log: true,
         args: [manager.address, controller.address]
     });
 };

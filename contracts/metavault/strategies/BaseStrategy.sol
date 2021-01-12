@@ -95,6 +95,8 @@ abstract contract BaseStrategy is IStrategy {
     function setRouter(address _router) external {
         require(msg.sender == vaultManager.governance(), "!governance");
         router = ISwap(_router);
+        IERC20(weth).safeApprove(address(_router), 0);
+        IERC20(weth).safeApprove(address(_router), type(uint256).max);
     }
 
     /**

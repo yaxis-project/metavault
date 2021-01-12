@@ -1,5 +1,5 @@
 module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
-    const { deploy } = deployments;
+    const { deploy, execute } = deployments;
     let {
         CRV,
         DAI,
@@ -31,6 +31,7 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
         await deploy('CRV', {
             from: deployer,
             contract: 'MockERC20',
+            log: true,
             args: ['Curve.fi', 'CRV', 18]
         });
         let crv = await deployments.get('CRV');
@@ -38,10 +39,12 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
         crv = await ethers.getContractAt('MockERC20', CRV, deployer);
         await deploy('MockCurveGauge', {
             from: deployer,
+            log: true,
             args: [t3crv.address]
         });
-        await deploy('MockCurveMinter', {
+        const deployedMinter = await deploy('MockCurveMinter', {
             from: deployer,
+            log: true,
             args: [crv.address]
         });
         const mockStableSwap3Pool = await deployments.get('MockStableSwap3Pool');
@@ -52,12 +55,27 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
         minter = mockMinter.address;
         const router = await deployments.get('MockUniswapRouter');
         unirouter = router.address;
-        await crv.mint(mockMinter.address, ethers.utils.parseEther('1000'));
-        await crv.mint(router.address, ethers.utils.parseEther('1000'));
+        if (deployedMinter.newlyDeployed) {
+            await execute(
+                'CRV',
+                { from: deployer },
+                'mint',
+                mockMinter.address,
+                ethers.utils.parseEther('1000')
+            );
+            await execute(
+                'CRV',
+                { from: deployer },
+                'mint',
+                router.address,
+                ethers.utils.parseEther('1000')
+            );
+        }
     }
 
     await deploy('StrategyCurve3Crv', {
         from: deployer,
+        log: true,
         args: [
             T3CRV,
             CRV,

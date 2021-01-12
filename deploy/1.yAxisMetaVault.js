@@ -12,6 +12,7 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
         const t3crv = await deployments.get('T3CRV');
         await deploy('yAxisMetaVault', {
             from: deployer,
+            log: true,
             args: [
                 dai.address,
                 usdc.address,
