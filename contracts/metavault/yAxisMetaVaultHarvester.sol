@@ -169,7 +169,7 @@ contract yAxisMetaVaultHarvester { // solhint-disable-line contract-name-camelca
      * rotates the strategies
      * @param _token The address of the token
      */
-    function harvestNextStrategy(address _token) external onlyHarvester {
+    function harvestNextStrategy(address _token) external {
         require(canHarvest(_token), "!canHarvest");
         address strategy = strategies[_token].addresses[0];
         harvest(controller, strategy);
