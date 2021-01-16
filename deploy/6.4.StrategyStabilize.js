@@ -1,6 +1,14 @@
 module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
     const { deploy, execute } = deployments;
-    let { DAI, STBZ, WETH, zpaDAI, STBZOperator, deployer, unirouter } = await getNamedAccounts();
+    let {
+        DAI,
+        STBZ,
+        WETH,
+        zpaDAI,
+        STBZOperator,
+        deployer,
+        unirouter
+    } = await getNamedAccounts();
     const chainId = await getChainId();
     const controller = await deployments.get('StrategyControllerV2');
     const vaultManager = await deployments.get('yAxisMetaVaultManager');
