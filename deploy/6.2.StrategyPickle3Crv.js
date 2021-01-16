@@ -66,7 +66,7 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
         }
     }
 
-    const deployedStrategy = await deploy('StrategyPickle3Crv', {
+    await deploy('StrategyPickle3Crv', {
         from: deployer,
         log: true,
         args: [
@@ -74,19 +74,15 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
             pjar,
             PICKLE,
             WETH,
-            T3CRV,
             DAI,
             USDC,
             USDT,
+            DAI,
+            pchef,
             stableSwap3Pool,
             controller.address,
             manager.address,
             unirouter
         ]
     });
-
-    if (deployedStrategy.newlyDeployed) {
-        await execute('StrategyPickle3Crv', { from: deployer }, 'setStableForLiquidity', DAI);
-        await execute('StrategyPickle3Crv', { from: deployer }, 'setPickleMasterChef', pchef);
-    }
 };

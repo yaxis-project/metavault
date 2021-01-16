@@ -9,24 +9,21 @@ import "./BaseStrategy.sol";
 
 contract StrategyCurve3Crv is BaseStrategy {
     // used for Crv -> weth -> [dai/usdc/usdt] -> 3crv route
-    address public crv = address(0xD533a949740bb3306d119CC777fa900bA034cd52);
-    address public t3crv = address(0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490);
+    address public immutable crv;
 
     // for add_liquidity via curve.fi to get back 3CRV (use getMostPremium() for the best stable coin used in the route)
-    address public dai = address(0x6B175474E89094C44Da98b954EedeAC495271d0F);
-    address public usdc = address(0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48);
-    address public usdt = address(0xdAC17F958D2ee523a2206206994597C13D831ec7);
+    address public immutable dai;
+    address public immutable usdc;
+    address public immutable usdt;
 
-    Mintr public crvMintr = Mintr(0xd061D61a4d941c39E5453435B6345Dc261C2fcE0);
-    IStableSwap3Pool public stableSwap3Pool = IStableSwap3Pool(0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7);
-
-    Gauge public gauge = Gauge(0xbFcF63294aD7105dEa65aA58F8AE5BE2D9d0952A); // 3Crv Gauge
+    Mintr public immutable crvMintr;
+    IStableSwap3Pool public immutable stableSwap3Pool;
+    Gauge public immutable gauge; // 3Crv Gauge
 
     constructor(
         address _want,
         address _crv,
         address _weth,
-        address _t3crv,
         address _dai,
         address _usdc,
         address _usdt,
@@ -40,20 +37,19 @@ contract StrategyCurve3Crv is BaseStrategy {
         public
         BaseStrategy(_controller, _vaultManager, _want, _weth, _router)
     {
-        if (_crv != address(0)) crv = _crv;
-        if (_t3crv != address(0)) t3crv = _t3crv;
-        if (_dai != address(0)) dai = _dai;
-        if (_usdc != address(0)) usdc = _usdc;
-        if (_usdt != address(0)) usdt = _usdt;
-        if (address(_stableSwap3Pool) != address(0)) stableSwap3Pool = _stableSwap3Pool;
-        if (address(_gauge) != address(0)) gauge = _gauge;
-        if (address(_crvMintr) != address(0)) crvMintr = _crvMintr;
-        IERC20(_want).safeApprove(address(gauge), type(uint256).max);
-        IERC20(crv).safeApprove(address(_router), type(uint256).max);
-        IERC20(dai).safeApprove(address(stableSwap3Pool), type(uint256).max);
-        IERC20(usdc).safeApprove(address(stableSwap3Pool), type(uint256).max);
-        IERC20(usdt).safeApprove(address(stableSwap3Pool), type(uint256).max);
-        IERC20(t3crv).safeApprove(address(stableSwap3Pool), type(uint256).max);
+        crv = _crv;
+        dai = _dai;
+        usdc = _usdc;
+        usdt = _usdt;
+        stableSwap3Pool = _stableSwap3Pool;
+        gauge = _gauge;
+        crvMintr = _crvMintr;
+        IERC20(_want).safeApprove(address(_gauge), type(uint256).max);
+        IERC20(_crv).safeApprove(address(_router), type(uint256).max);
+        IERC20(_dai).safeApprove(address(_stableSwap3Pool), type(uint256).max);
+        IERC20(_usdc).safeApprove(address(_stableSwap3Pool), type(uint256).max);
+        IERC20(_usdt).safeApprove(address(_stableSwap3Pool), type(uint256).max);
+        IERC20(_want).safeApprove(address(_stableSwap3Pool), type(uint256).max);
     }
 
     function _deposit() internal override {

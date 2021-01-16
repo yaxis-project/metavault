@@ -80,7 +80,6 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
             T3CRV,
             CRV,
             WETH,
-            T3CRV,
             DAI,
             USDC,
             USDT,

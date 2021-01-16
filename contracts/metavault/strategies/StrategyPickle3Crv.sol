@@ -10,21 +10,20 @@ import "../../interfaces/PickleMasterChef.sol";
 import "./BaseStrategy.sol";
 
 contract StrategyPickle3Crv is BaseStrategy {
-    address public p3crv = address(0x1BB74b5DdC1f4fC91D6f9E7906cf68bc93538e33);
+    address public immutable p3crv;
 
     // used for pickle -> weth -> [stableForAddLiquidity] -> 3crv route
-    address public pickle = address(0x429881672B9AE42b8EbA0E26cD9C73711b891Ca5);
-    address public t3crv = address(0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490);
+    address public immutable pickle;
 
     // for add_liquidity via curve.fi to get back 3CRV
     // (set stableForAddLiquidity for the best stable coin used in the route)
-    address public dai = address(0x6B175474E89094C44Da98b954EedeAC495271d0F);
-    address public usdc = address(0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48);
-    address public usdt = address(0xdAC17F958D2ee523a2206206994597C13D831ec7);
+    address public immutable dai;
+    address public immutable usdc;
+    address public immutable usdt;
 
-    PickleJar public pickleJar;
-    PickleMasterChef public pickleMasterChef = PickleMasterChef(0xbD17B1ce622d73bD438b9E658acA5996dc394b0d);
-    uint public poolId = 14;
+    PickleJar public immutable pickleJar;
+    PickleMasterChef public pickleMasterChef;
+    uint256 public poolId = 14;
 
     IStableSwap3Pool public stableSwap3Pool;
     address public stableForAddLiquidity;
@@ -34,10 +33,11 @@ contract StrategyPickle3Crv is BaseStrategy {
         address _p3crv,
         address _pickle,
         address _weth,
-        address _t3crv,
         address _dai,
         address _usdc,
         address _usdt,
+        address _stableForAddLiquidity,
+        PickleMasterChef _pickleMasterChef,
         IStableSwap3Pool _stableSwap3Pool,
         address _controller,
         address _vaultManager,
@@ -48,14 +48,15 @@ contract StrategyPickle3Crv is BaseStrategy {
     {
         p3crv = _p3crv;
         pickle = _pickle;
-        t3crv = _t3crv;
         dai = _dai;
         usdc = _usdc;
         usdt = _usdt;
+        pickleMasterChef = _pickleMasterChef;
+        stableForAddLiquidity = _stableForAddLiquidity;
         stableSwap3Pool = _stableSwap3Pool;
         pickleJar = PickleJar(_p3crv);
         IERC20(_want).safeApprove(_p3crv, type(uint256).max);
-        IERC20(_p3crv).safeApprove(address(pickleMasterChef), type(uint256).max);
+        IERC20(_p3crv).safeApprove(address(_pickleMasterChef), type(uint256).max);
         IERC20(_pickle).safeApprove(address(_router), type(uint256).max);
     }
 
