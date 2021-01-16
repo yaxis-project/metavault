@@ -101,13 +101,13 @@ describe('StrategyStabilize', () => {
         await vault.deposit('10000000', usdt.address, 1, true, { from: user });
         expect(await strategy.balanceOfPool()).to.be.above(ether('9'));
         expect(await controller.balanceOf(t3crv.address)).to.be.above(ether('9'));
-        expect(await vault.getPricePerFullShare()).to.be.above(ether('0.99999'));
+        expect(await vault.getPricePerFullShare()).to.be.least(ether('0.99999'));
     });
 
     it('should withdrawAll by controller', async () => {
         expect(await t3crv.balanceOf(vault.address)).to.be.below(ether('1'));
         await controller.withdrawAll(strategy.address);
-        const fee = await strategy.calculateWithdrawFee(ether('10'));
+        const fee = await strategy.calculateZPATokenWithdrawFee(ether('10'));
         expect(await t3crv.balanceOf(vault.address)).to.be.least(ether('9.99').sub(fee));
     });
 });
