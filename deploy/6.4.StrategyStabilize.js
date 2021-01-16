@@ -18,8 +18,8 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
             log: true,
             args: ['Stabilize Token', 'STBZ', 18]
         });
-        stbz = await deployments.get('STBZ');
-        STBZ = stbz.address;
+        STBZ = await deployments.get('STBZ');
+        STBZ = STBZ.address;
         await deploy('zpaDAI', {
             from: deployer,
             contract: 'MockzpaToken',
