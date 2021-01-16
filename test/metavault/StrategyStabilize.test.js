@@ -101,7 +101,7 @@ describe('StrategyStabilize', () => {
         await vault.deposit('10000000', usdt.address, 1, true, { from: user });
         expect(await strategy.balanceOfPool()).to.be.above(ether('9'));
         expect(await controller.balanceOf(t3crv.address)).to.be.above(ether('9'));
-        expect(await vault.getPricePerFullShare()).to.be.above(ether('1'));
+        expect(await vault.getPricePerFullShare()).to.be.above(ether('0.99999'));
     });
 
     it('should withdrawAll by controller', async () => {

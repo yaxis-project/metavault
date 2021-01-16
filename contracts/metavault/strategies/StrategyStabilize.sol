@@ -13,11 +13,11 @@ contract StrategyStabilize is BaseStrategy {
     uint256 public immutable poolId;
     IConverter public converter;
 
-    uint256 depositTime; // The time the strategy made a deposit into zpa-Token, every deposit resets the time
-    uint256 constant divisionFactor = 100000;
-    uint256 constant initialFee = 1000; // 1000 = 1%, 100000 = 100%, max fee restricted in contract is 10%
-    uint256 constant endFee = 100; // 100 = 0.1%
-    uint256 constant feeDuration = 604800; // The amount of seconds it takes from the initial to end fee
+    uint256 private depositTime; // The time the strategy made a deposit into zpa-Token, every deposit resets the time
+    uint256 private constant DIVISION_FACTOR = 100000;
+    uint256 private constant INITIAL_FEE = 1000; // 1000 = 1%, 100000 = 100%, max fee restricted in contract is 10%
+    uint256 private constant END_FEE = 100; // 100 = 0.1%
+    uint256 private constant FEE_DURATION = 604800; // The amount of seconds it takes from the initial to end fee
 
     constructor(
         address _underlying,
@@ -60,22 +60,22 @@ contract StrategyStabilize is BaseStrategy {
         uint256 _depositTime = depositTime;
         if (_depositTime == 0) {
             // Never deposited
-            _depositTime = now; // Give the max fee
+            _depositTime = block.timestamp; // Give the max fee
         }
 
-        uint256 feeSubtraction = initialFee.sub(endFee).mul(now.sub(_depositTime)).div(feeDuration);
-        if (feeSubtraction > initialFee.sub(endFee)) {
+        uint256 feeSubtraction = INITIAL_FEE.sub(END_FEE).mul(block.timestamp.sub(_depositTime)).div(FEE_DURATION);
+        if (feeSubtraction > INITIAL_FEE.sub(END_FEE)) {
             // Cannot reduce fee more than this
-            feeSubtraction = initialFee.sub(endFee);
+            feeSubtraction = INITIAL_FEE.sub(END_FEE);
         }
-        uint256 fee = initialFee.sub(feeSubtraction);
-        return amount.mul(fee).div(divisionFactor);
+        uint256 fee = INITIAL_FEE.sub(feeSubtraction);
+        return amount.mul(fee).div(DIVISION_FACTOR);
     }
 
     function _deposit() internal override {
         uint256 amount = balanceOfWant();
         if (amount > 0) {
-            depositTime = now;
+            depositTime = block.timestamp;
             IZPAToken(zpaToken).deposit(amount);
         }
         amount = balanceOfzpaToken();
@@ -98,10 +98,10 @@ contract StrategyStabilize is BaseStrategy {
     }
 
     function _withdraw(uint256 _amount) internal override {
-        uint256 fee = calculateWithdrawFee(_amount);
+        /*uint256 fee = calculateWithdrawFee(_amount);
         if (fee > 0) {
             _amount = _amount.sub(fee);
-        }
+        }*/
         _amount = _amount.mul(1e18).div(IZPAToken(zpaToken).pricePerToken());
         uint256 _before = balanceOfzpaToken();
         IZPAPool(pool).withdraw(poolId, _amount);

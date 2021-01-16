@@ -42,7 +42,7 @@ contract MockzpaToken is ERC20, IZPAToken {
         uint256 _toMint = _amount.mul(1e18).div(pricePerToken());
         IERC20(underlyingAsset).safeTransferFrom(msg.sender, address(this), _amount);
         _mint(msg.sender, _toMint);
-        userInfo[_msgSender()].depositTime = now; // Update the deposit time
+        userInfo[_msgSender()].depositTime = block.timestamp; // Update the deposit time
     }
 
     function redeem(uint256 _amount) external override {
@@ -52,10 +52,10 @@ contract MockzpaToken is ERC20, IZPAToken {
         // Pay fee upon withdrawing
         if (userInfo[_msgSender()].depositTime == 0) {
             // The user has never deposited here
-            userInfo[_msgSender()].depositTime = now; // Give them the max fee
+            userInfo[_msgSender()].depositTime = block.timestamp; // Give them the max fee
         }
 
-        uint256 feeSubtraction = initialFee.sub(endFee).mul(now.sub(userInfo[_msgSender()].depositTime)).div(feeDuration);
+        uint256 feeSubtraction = initialFee.sub(endFee).mul(block.timestamp.sub(userInfo[_msgSender()].depositTime)).div(feeDuration);
         if (feeSubtraction > initialFee.sub(endFee)) {
             // Cannot reduce fee more than this
             feeSubtraction = initialFee.sub(endFee);
