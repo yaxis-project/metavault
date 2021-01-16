@@ -46,17 +46,18 @@ contract StrategyStabilize is BaseStrategy {
     }
 
     function balanceOfPool() public view override returns (uint256) {
+        uint256 zpaBalance = balanceOfzpaToken();
         return (IZPAPool(pool).poolBalance(poolId, address(this)))
             .mul(IZPAToken(zpaToken).pricePerToken())
             .div(1e18)
-            .add(balanceOfzpaToken());
+            .add(zpaBalance).sub(calculateZPATokenWithdrawFee(zpaBalance));
     }
 
     function balanceOfzpaToken() public view returns (uint256) {
         return IERC20(zpaToken).balanceOf(address(this));
     }
 
-    function calculateWithdrawFee(uint256 amount) public view returns (uint256) {
+    function calculateZPATokenWithdrawFee(uint256 amount) public view returns (uint256) {
         uint256 _depositTime = depositTime;
         if (_depositTime == 0) {
             // Never deposited
@@ -98,10 +99,6 @@ contract StrategyStabilize is BaseStrategy {
     }
 
     function _withdraw(uint256 _amount) internal override {
-        /*uint256 fee = calculateWithdrawFee(_amount);
-        if (fee > 0) {
-            _amount = _amount.sub(fee);
-        }*/
         _amount = _amount.mul(1e18).div(IZPAToken(zpaToken).pricePerToken());
         uint256 _before = balanceOfzpaToken();
         IZPAPool(pool).withdraw(poolId, _amount);
