@@ -94,6 +94,12 @@ module.exports = {
             1: '0xeF31Cb88048416E301Fee1eA13e7664b887BA7e8',
             42: '0x36D68d13dD18Fe8076833Ef99245Ef33B00A7259'
         },
+        STBZ: {
+            1: '0xb987d48ed8f2c468d52d6405624eadba5e76d723'
+        },
+        STBZOperator: {
+            1: '0xEe9156C93ebB836513968F92B4A67721f3cEa08a'
+        },
         T3CRV: {
             1: '0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490'
         },
@@ -127,6 +133,22 @@ module.exports = {
         },
         YAX: {
             1: '0xb1dC9124c395c1e97773ab855d66E879f053A289'
+        },
+        zpaUSDC: {
+            1: '0x4dEaD8338cF5cb31122859b2Aec2b60416D491f0',
+            poolId: 5
+        },
+        zpaUSDT: {
+            1: '0x6B2e59b8EbE61B5ee0EF30021b7740C63F597654',
+            poolId: 6
+        },
+        zpaDAI: {
+            1: '0xfa8c04d342FBe24d871ea77807b1b93eC42A57ea',
+            poolId: 8
+        },
+        zpasUSD: {
+            1: '0x89Cc19cece29acbD41F931F3dD61A10C1627E4c4',
+            poolId: 7
         }
     },
     solidity: {

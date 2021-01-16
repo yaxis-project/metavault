@@ -1,15 +1,18 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.6.2;
 
-interface zpaToken {
+interface IZPAToken {
     function deposit(uint256) external;
     function redeem(uint256) external;
     function underlyingAsset() external view returns (address);
     function pricePerToken() external view returns (uint256);
-    function calculateWithdrawFee() external view returns (uint256);
+
+    function initialFee() external view returns (uint256);
+    function endFee() external view returns (uint256);
+    function feeDuration() external view returns (uint256);
 }
 
-interface zpaPool {
+interface IZPAPool {
     function deposit(uint256, uint256) external;
     function withdraw(uint256, uint256) external;
     function exit(uint256, uint256) external;
