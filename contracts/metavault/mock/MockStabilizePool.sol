@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.6.2;
+pragma solidity ^0.6.12;
 
 import "@openzeppelin/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import "../../interfaces/Stabilize.sol";
 
-contract MockStabilizePool is zpaPool {
+contract MockStabilizePool is IZPAPool {
     using SafeERC20 for IERC20;
     using SafeMath for uint256;
 
@@ -30,16 +30,16 @@ contract MockStabilizePool is zpaPool {
     ) public {
         lpToken = IERC20(_lpToken);
         rewardToken = IERC20(_rewardToken);
-        rewardEarned = _rewardRate;
+        rewardRate = _rewardRate;
     }
 
     function deposit(uint256 _pid, uint256 _amount) external override {
-        userInfo[_pid][msg.sender] = userInfo[_pid][msg.sender].add(_amount);
+        userInfo[_pid][msg.sender].amount = userInfo[_pid][msg.sender].amount.add(_amount);
         lpToken.safeTransferFrom(msg.sender, address(this), _amount);
     }
 
-    function withdraw(uint256 _pid, uint256 _amount) external override {
-        userInfo[_pid][msg.sender] -= _amount;
+    function withdraw(uint256 _pid, uint256 _amount) public override {
+        userInfo[_pid][msg.sender].amount = userInfo[_pid][msg.sender].amount.sub(_amount);
         lpToken.safeTransfer(msg.sender, _amount);
     }
 
