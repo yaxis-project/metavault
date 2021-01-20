@@ -11,6 +11,8 @@ contract StrategyIdle is BaseStrategy {
     address public immutable IDLE;
     address public immutable COMP;
     IConverter public converter;
+    uint256 public virtualPrice;
+    bool public protected;
 
     constructor(
         address _underlying,
@@ -34,12 +36,32 @@ contract StrategyIdle is BaseStrategy {
         IERC20(_COMP).safeApprove(address(_router), type(uint256).max);
         IERC20(_underlying).safeApprove(address(_converter), type(uint256).max);
         IERC20(_underlying).safeApprove(_idleYieldToken, type(uint256).max);
+        virtualPrice = IIdleTokenV3_1(_idleYieldToken).tokenPrice();
+        protected = true;
+    }
+
+    modifier updateVirtualPrice() {
+        if (protected) {
+            require(virtualPrice <= IIdleTokenV3_1(idleYieldToken).tokenPrice(), "virtual price is higher than needed");
+        }
+        _;
+        virtualPrice = IIdleTokenV3_1(idleYieldToken).tokenPrice();
+    }
+
+    function setProtected(bool _protected) public onlyAuthorized {
+        protected = _protected;
     }
 
     function balanceOfPool() public view override returns (uint256) {
+        // NOTE: The use of virtual price is okay for appreciating assets inside IDLE,
+        // but would be wrong and exploitable if funds were lost by IDLE, indicated by
+        // the virtualPrice being greater than the token price.
+        if (protected) {
+            require(virtualPrice <= IIdleTokenV3_1(idleYieldToken).tokenPrice(), "virtual price is higher than needed");
+        }
         uint256 balance = balanceOfYieldToken();
         return balance
-            .mul(IIdleTokenV3_1(idleYieldToken).tokenPrice())
+            .mul(virtualPrice)
             .div(1e18);
     }
 
@@ -47,18 +69,14 @@ contract StrategyIdle is BaseStrategy {
         return IERC20(idleYieldToken).balanceOf(address(this));
     }
 
-    function calculateFee(uint256 amount) public view returns (uint256) {
-        return 0;
-    }
-
-    function _deposit() internal override {
+    function _deposit() internal override updateVirtualPrice {
         uint256 balance = balanceOfWant();
         if (balance > 0) {
             IIdleTokenV3_1(idleYieldToken).mintIdleToken(balance, true, address(0));
         }
     }
 
-    function _harvest() internal override {
+    function _harvest() internal override updateVirtualPrice {
         IIdleTokenV3_1(idleYieldToken).redeemIdleToken(0);
         uint256 remainingWeth = _payHarvestFees(IDLE);
 
@@ -71,7 +89,7 @@ contract StrategyIdle is BaseStrategy {
         _deposit();
     }
 
-    function _withdraw(uint256 _amount) internal override {
+    function _withdraw(uint256 _amount) internal override updateVirtualPrice {
         _amount = _amount.mul(1e18).div(IIdleTokenV3_1(idleYieldToken).tokenPrice());
         IIdleTokenV3_1(idleYieldToken).redeemIdleToken(_amount);
 
@@ -84,7 +102,7 @@ contract StrategyIdle is BaseStrategy {
         }
     }
 
-    function _withdrawAll() internal override {
+    function _withdrawAll() internal override updateVirtualPrice {
         uint256 balance = balanceOfYieldToken();
         IIdleTokenV3_1(idleYieldToken).redeemIdleToken(balance);
 

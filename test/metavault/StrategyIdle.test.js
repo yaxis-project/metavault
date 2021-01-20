@@ -107,7 +107,6 @@ describe('StrategyIdle', () => {
     it('should withdrawAll by controller', async () => {
         expect(await t3crv.balanceOf(vault.address)).to.be.below(ether('1.26'));
         await controller.withdrawAll(strategy.address);
-        const fee = await strategy.calculateFee(ether('10'));
-        expect(await t3crv.balanceOf(vault.address)).to.be.least(ether('9.99').sub(fee));
+        expect(await t3crv.balanceOf(vault.address)).to.be.least(ether('9.99'));
     });
 });
