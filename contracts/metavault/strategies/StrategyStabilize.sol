@@ -46,9 +46,12 @@ contract StrategyStabilize is BaseStrategy {
     }
 
     function balanceOfPool() public view override returns (uint256) {
-        uint256 zpaBalance = balanceOfzpaToken();
+        IZPAToken _zpaToken = IZPAToken(zpaToken);
+        uint256 zpaBalance = balanceOfzpaToken()
+                            .mul(_zpaToken.pricePerToken())
+                            .div(1e18);
         return (IZPAPool(pool).poolBalance(poolId, address(this)))
-            .mul(IZPAToken(zpaToken).pricePerToken())
+            .mul(_zpaToken.pricePerToken())
             .div(1e18)
             .add(zpaBalance).sub(calculateZPATokenWithdrawFee(zpaBalance));
     }
