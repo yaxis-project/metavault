@@ -9,6 +9,12 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
     if (chainId != '1') {
         const dai = await deployments.get('DAI');
         DAI = dai.address;
+        await deploy('COMP', {
+            from: deployer,
+            log: true,
+            contract: 'MockERC20',
+            args: ['Compound', 'COMP', 18]
+        });
         const comp = await deployments.get('COMP');
         COMP = comp.address;
         const weth = await deployments.get('WETH');
@@ -78,8 +84,9 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
             unirouter
         ]
     });
-    const Strategy = await deployments.get('StrategyIdle');
+
     if (deployedStrategy.newlyDeployed) {
+        const Strategy = await deployments.get('StrategyIdle');
         await execute(
             'StableSwap3PoolConverter',
             { from: deployer },

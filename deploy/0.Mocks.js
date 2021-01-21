@@ -10,12 +10,6 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
             contract: 'MockERC20',
             args: ['yAxis', 'YAX', 18]
         });
-        await deploy('COMP', {
-            from: deployer,
-            log: true,
-            contract: 'MockERC20',
-            args: ['Compound', 'COMP', 18]
-        });
         await deploy('DAI', {
             from: deployer,
             log: true,
