@@ -34,6 +34,9 @@ module.exports = {
         }
     },
     namedAccounts: {
+        COMP: {
+            1: '0xc00e94Cb662C3520282E6f5717214004A7f26888'
+        },
         CRV: {
             1: '0xD533a949740bb3306d119CC777fa900bA034cd52'
         },
@@ -61,6 +64,18 @@ module.exports = {
         },
         gauge: {
             1: '0xbFcF63294aD7105dEa65aA58F8AE5BE2D9d0952A'
+        },
+        IDLE: {
+            1: '0x875773784Af8135eA0ef43b5a374AaD105c5D39e'
+        },
+        idleDAI: {
+            1: '0x3fE7940616e5Bc47b0775a0dccf6237893353bB4'
+        },
+        idleUSDT: {
+            1: '0xF34842d05A1c888Ca02769A633DF37177415C2f8'
+        },
+        idleUSDC: {
+            1: '0x5274891bEC421B39D23760c04A6755eCB444797C'
         },
         minter: {
             1: '0xd061D61a4d941c39E5453435B6345Dc261C2fcE0'
