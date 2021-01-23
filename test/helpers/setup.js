@@ -21,7 +21,13 @@ exports.increaseTime = async (time) => {
 exports.setupTest = deployments.createFixture(
     async ({ deployments, getNamedAccounts, ethers }) => {
         await deployments.fixture();
-        const { deployer, user, stakingPool, treasury } = await getNamedAccounts();
+        const {
+            deployer,
+            user,
+            stakingPool,
+            treasury,
+            insurancePool
+        } = await getNamedAccounts();
         const YAX = await deployments.get('YAX');
         const yax = await ethers.getContractAt('MockERC20', YAX.address, user);
         const DAI = await deployments.get('DAI');
@@ -75,6 +81,7 @@ exports.setupTest = deployments.createFixture(
             deployer,
             stakingPool,
             treasury,
+            insurancePool,
             user,
             yax,
             dai,

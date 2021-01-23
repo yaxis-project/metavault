@@ -142,24 +142,6 @@ contract StableSwap3PoolConverter is IConverter {
         token3CRV.safeTransfer(msg.sender, _shareAmount);
     }
 
-    function get_dy(int128 i, int128 j, uint256 dx) external override view returns (uint256) {
-        return stableSwap3Pool.get_dy(i, j, dx);
-    }
-
-    function exchange(
-        int128 i,
-        int128 j,
-        uint256 dx,
-        uint256 min_dy
-    ) external override onlyAuthorized returns (uint256 dy) {
-        IERC20 _output = tokens[uint8(j)];
-        uint256 _before = _output.balanceOf(address(this));
-        stableSwap3Pool.exchange(i, j, dx, min_dy);
-        uint256 _after = _output.balanceOf(address(this));
-        dy = _after.sub(_before);
-        _output.safeTransfer(msg.sender, dy);
-    }
-
     function calc_token_amount(
         uint256[3] calldata amounts,
         bool deposit
