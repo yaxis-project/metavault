@@ -18,8 +18,8 @@ module.exports = {
     parserOptions: {
         ecmaVersion: 2020
     },
-    ignorePatterns: ['node_modules/', 'dist/'],
+    ignorePatterns: ['node_modules/', 'dist/', 'coverage/'],
     rules: {
-        'standard/no-callback-literal': 0
+        'eol-last': ['error', 'always']
     }
 };

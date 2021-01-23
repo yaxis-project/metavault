@@ -19,8 +19,6 @@ interface IConverter {
     function convert_stables(
         uint[3] calldata amounts
     ) external returns (uint _shareAmount); // 0: DAI, 1: USDC, 2: USDT
-    function get_dy(int128 i, int128 j, uint dx) external view returns (uint);
-    function exchange(int128 i, int128 j, uint dx, uint min_dy) external returns (uint dy);
     function calc_token_amount(
         uint[3] calldata amounts,
         bool deposit

@@ -120,8 +120,4 @@ contract StrategyCurve3Crv is BaseStrategy {
     function balanceOfPool() public view override returns (uint) {
         return gauge.balanceOf(address(this));
     }
-
-    function claimableTokens() external view returns (uint) {
-        return gauge.claimable_tokens(address(this));
-    }
 }

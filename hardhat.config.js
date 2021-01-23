@@ -77,6 +77,9 @@ module.exports = {
         idleUSDC: {
             1: '0x5274891bEC421B39D23760c04A6755eCB444797C'
         },
+        insurancePool: {
+            default: 4
+        },
         minter: {
             1: '0xd061D61a4d941c39E5453435B6345Dc261C2fcE0'
         },
