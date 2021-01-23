@@ -29,6 +29,7 @@ contract StrategyPickle3Crv is BaseStrategy {
     address public stableForAddLiquidity;
 
     constructor(
+        string memory _name,
         address _want,
         address _p3crv,
         address _pickle,
@@ -44,7 +45,7 @@ contract StrategyPickle3Crv is BaseStrategy {
         address _router
     )
         public
-        BaseStrategy(_controller, _vaultManager, _want, _weth, _router)
+        BaseStrategy(_name, _controller, _vaultManager, _want, _weth, _router)
     {
         p3crv = _p3crv;
         pickle = _pickle;

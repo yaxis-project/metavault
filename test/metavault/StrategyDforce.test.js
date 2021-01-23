@@ -60,6 +60,7 @@ describe('StrategyDforce', () => {
     });
 
     it('should deploy with initial state set', async () => {
+        expect(await strategy.name()).to.equal('DForce: DAI');
         expect(await strategy.want()).to.equal(dai.address);
         expect(await strategy.weth()).to.equal(weth.address);
         expect(await strategy.controller()).to.equal(controller.address);

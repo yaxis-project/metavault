@@ -5,6 +5,7 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
     const controller = await deployments.get('StrategyControllerV2');
     const vaultManager = await deployments.get('yAxisMetaVaultManager');
     const Converter = await deployments.get('StableSwap3PoolConverter');
+    const name = 'DForce: DAI';
 
     if (chainId != '1') {
         const dai = await deployments.get('DAI');
@@ -58,6 +59,7 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
         from: deployer,
         log: true,
         args: [
+            name,
             DAI,
             dDAI,
             dRewardsDAI,

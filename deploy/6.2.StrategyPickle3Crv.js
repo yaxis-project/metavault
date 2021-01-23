@@ -16,6 +16,7 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
     const chainId = await getChainId();
     const controller = await deployments.get('StrategyControllerV2');
     const manager = await deployments.get('yAxisMetaVaultManager');
+    const name = 'Pickle Finance: 3CRV';
 
     if (chainId != '1') {
         const dai = await deployments.get('DAI');
@@ -70,6 +71,7 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
         from: deployer,
         log: true,
         args: [
+            name,
             T3CRV,
             pjar,
             PICKLE,

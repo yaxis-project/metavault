@@ -63,6 +63,7 @@ describe('StrategyPickle3Crv', () => {
     });
 
     it('should deploy with initial state set', async () => {
+        expect(await strategy.name()).to.equal('Pickle Finance: 3CRV');
         expect(await strategy.want()).to.equal(t3crv.address);
         expect(await strategy.weth()).to.equal(weth.address);
         expect(await strategy.controller()).to.equal(controller.address);
