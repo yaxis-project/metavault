@@ -38,6 +38,7 @@ abstract contract BaseStrategy is IStrategy {
 
     address public immutable override want;
     address public immutable weth;
+    string public override name;
     address public controller;
     IVaultManager public vaultManager;
     ISwap public router;
@@ -50,12 +51,14 @@ abstract contract BaseStrategy is IStrategy {
      * @param _router The address of the router for swapping tokens
      */
     constructor(
+        string memory _name,
         address _controller,
         address _vaultManager,
         address _want,
         address _weth,
         address _router
     ) public {
+        name = _name;
         want = _want;
         controller = _controller;
         vaultManager = IVaultManager(_vaultManager);

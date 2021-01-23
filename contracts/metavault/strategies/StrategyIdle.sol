@@ -13,6 +13,7 @@ contract StrategyIdle is BaseStrategy {
     IConverter public converter;
 
     constructor(
+        string memory _name,
         address _underlying,
         address _idleYieldToken,
         address _IDLE,
@@ -24,7 +25,7 @@ contract StrategyIdle is BaseStrategy {
         address _router
     )
         public
-        BaseStrategy(_controller, _vaultManager, _underlying, _weth, _router)
+        BaseStrategy(_name, _controller, _vaultManager, _underlying, _weth, _router)
     {
         idleYieldToken = _idleYieldToken;
         IDLE = _IDLE;

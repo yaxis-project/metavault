@@ -20,6 +20,7 @@ contract StrategyStabilize is BaseStrategy {
     uint256 private constant FEE_DURATION = 604800; // The amount of seconds it takes from the initial to end fee
 
     constructor(
+        string memory _name,
         address _underlying,
         address _zpaToken,
         address _pool,
@@ -32,7 +33,7 @@ contract StrategyStabilize is BaseStrategy {
         address _router
     )
         public
-        BaseStrategy(_controller, _vaultManager, _underlying, _weth, _router)
+        BaseStrategy(_name, _controller, _vaultManager, _underlying, _weth, _router)
     {
         zpaToken = _zpaToken;
         pool = _pool;

@@ -21,6 +21,7 @@ contract StrategyCurve3Crv is BaseStrategy {
     Gauge public immutable gauge; // 3Crv Gauge
 
     constructor(
+        string memory _name,
         address _want,
         address _crv,
         address _weth,
@@ -35,7 +36,7 @@ contract StrategyCurve3Crv is BaseStrategy {
         address _router
     )
         public
-        BaseStrategy(_controller, _vaultManager, _want, _weth, _router)
+        BaseStrategy(_name, _controller, _vaultManager, _want, _weth, _router)
     {
         crv = _crv;
         dai = _dai;

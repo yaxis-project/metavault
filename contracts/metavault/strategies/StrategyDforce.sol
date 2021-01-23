@@ -13,6 +13,7 @@ contract StrategyDforce is BaseStrategy {
     IConverter public converter;
 
     constructor(
+        string memory _name,
         address _underlying,
         address _dToken,
         address _pool,
@@ -24,7 +25,7 @@ contract StrategyDforce is BaseStrategy {
         address _router
     )
         public
-        BaseStrategy(_controller, _vaultManager, _underlying, _weth, _router)
+        BaseStrategy(_name, _controller, _vaultManager, _underlying, _weth, _router)
     {
         dToken = _dToken;
         pool = _pool;
