@@ -51,7 +51,7 @@ contract StrategyFlamIncome is BaseStrategy {
         IERC20(IVault(_vault).token()).safeApprove(_vault, type(uint256).max);
     }
 
-    function _deposit() internal override virtual {
+    function _deposit() internal override {
         uint256 _amount = balanceOfWant();
         if (_amount > 0) {
             IVault(vault).deposit(_amount);
@@ -63,7 +63,7 @@ contract StrategyFlamIncome is BaseStrategy {
         return;
     }
 
-    function _withdraw(uint256 _amount) internal override virtual {
+    function _withdraw(uint256 _amount) internal override {
         _amount = _amount.mul(1e18).div(priceE18());
         IVault(vault).withdraw(_amount);
         _amount = balanceOfWant();
@@ -72,8 +72,8 @@ contract StrategyFlamIncome is BaseStrategy {
         }
     }
 
-    function _withdrawAll() internal override virtual {
-        uint _amount = IERC20(vault).balanceOf(address(this));
+    function _withdrawAll() internal override {
+        uint256 _amount = IERC20(vault).balanceOf(address(this));
         if (_amount > 0) {
             IVault(vault).withdrawAll();
             _amount = balanceOfWant();
@@ -81,11 +81,11 @@ contract StrategyFlamIncome is BaseStrategy {
         }
     }
 
-    function balanceOfPool() public view override virtual returns (uint256) {
+    function balanceOfPool() public view override returns (uint256) {
         if (ERC20(vault).totalSupply() == 0) return 0;
 
-        uint shares = IERC20(vault).balanceOf(address(this));
-        uint balance = shares.mul(priceE18());
+        uint256 shares = IERC20(vault).balanceOf(address(this));
+        uint256 balance = shares.mul(priceE18());
         return balance.div(1e18);
     }
 
@@ -95,7 +95,7 @@ contract StrategyFlamIncome is BaseStrategy {
         converter.convert(_from, _to, _amount);
     }
 
-    function priceE18() public view returns (uint) {
+    function priceE18() public view returns (uint256) {
         return IVault(vault).priceE18();
     }
 }

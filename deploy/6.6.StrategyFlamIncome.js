@@ -1,12 +1,11 @@
 module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
     const { deploy, execute } = deployments;
-    let { USDT, WETH, deployer, unirouter } = await getNamedAccounts();
+    let { USDT, WETH, deployer, unirouter, flamIncomeUSDT } = await getNamedAccounts();
     const chainId = await getChainId();
     const controller = await deployments.get('StrategyControllerV2');
     const vaultManager = await deployments.get('yAxisMetaVaultManager');
     const Converter = await deployments.get('StableSwap3PoolConverter');
 
-    let flamIncomeUSDT;
     if (chainId != '1') {
         const usdt = await deployments.get('USDT');
         USDT = usdt.address;

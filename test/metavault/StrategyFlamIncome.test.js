@@ -18,7 +18,6 @@ describe('StrategyFlamIncome', () => {
         weth,
         vault,
         vaultManager,
-        harvester,
         controller,
         router;
 
@@ -32,7 +31,6 @@ describe('StrategyFlamIncome', () => {
         weth = config.weth;
         vault = config.vault;
         vaultManager = config.vaultManager;
-        harvester = config.harvester;
         controller = config.controller;
         router = config.router;
 
@@ -43,7 +41,6 @@ describe('StrategyFlamIncome', () => {
             deployer
         );
 
-        await harvester.addStrategy(t3crv.address, Strategy.address, 0, { from: deployer });
         await controller.addStrategy(t3crv.address, Strategy.address, 0, { from: deployer });
     });
 
@@ -58,6 +55,7 @@ describe('StrategyFlamIncome', () => {
     });
 
     it('should deploy with initial state set', async () => {
+        expect(await strategy.name()).to.equal('FlamIncome: USDT');
         expect(await strategy.want()).to.equal(usdt.address);
         expect(await strategy.weth()).to.equal(weth.address);
         expect(await strategy.controller()).to.equal(controller.address);
@@ -71,10 +69,6 @@ describe('StrategyFlamIncome', () => {
         expect(await usdt.balanceOf(user)).to.equal('990000000');
         expect(await controller.balanceOf(t3crv.address)).to.be.above(ether('9'));
         expect(await vault.getPricePerFullShare()).to.be.least(ether('0.99999'));
-    });
-
-    it('should harvest', async () => {
-        await harvester.harvestNextStrategy(t3crv.address);
     });
 
     it('should withdraw to DAI', async () => {
