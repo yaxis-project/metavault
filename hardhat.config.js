@@ -153,6 +153,12 @@ module.exports = {
         YAX: {
             1: '0xb1dC9124c395c1e97773ab855d66E879f053A289'
         },
+        yvDAI: {
+            1: '0x19D3364A399d251E894aC732651be8B0E4e85001'
+        },
+        yvUSDC: {
+            1: '0x5f18C75AbDAe578b483E5F43f12a39cF75b973a9'
+        },
         zpaUSDC: {
             1: '0x4dEaD8338cF5cb31122859b2Aec2b60416D491f0',
             poolId: 5
