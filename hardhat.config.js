@@ -174,6 +174,9 @@ module.exports = {
         zpasUSD: {
             1: '0x89Cc19cece29acbD41F931F3dD61A10C1627E4c4',
             poolId: 7
+        },
+        flamIncomeUSDT: {
+            1: '0x54bE9254ADf8D5c8867a91E44f44c27f0c88e88A'
         }
     },
     solidity: {

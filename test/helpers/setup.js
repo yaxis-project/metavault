@@ -60,6 +60,12 @@ exports.setupTest = deployments.createFixture(
             Controller.address,
             deployer
         );
+        const Converter = await deployments.get('StableSwap3PoolConverter');
+        const converter = await ethers.getContractAt(
+            'StableSwap3PoolConverter',
+            Converter.address,
+            deployer
+        );
         const Harvester = await deployments.get('yAxisMetaVaultHarvester');
         const harvester = await ethers.getContractAt(
             'yAxisMetaVaultHarvester',
@@ -93,6 +99,7 @@ exports.setupTest = deployments.createFixture(
             vaultManager,
             harvester,
             controller,
+            converter,
             router
         };
     }
