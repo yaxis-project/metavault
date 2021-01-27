@@ -62,13 +62,13 @@ contract StrategydYdXSoloMargin is BaseStrategy {
       Account.Info[] memory accounts = new Account.Info[](1);
       accounts[0] = Account.Info({
         owner: address(this),
-        number: 0
+        number: 0 // Should be MARGIN
       });
 
       Actions.ActionArgs[] memory actions = new Actions.ActionArgs[](1);
       actions[0] = Actions.ActionArgs({
         actionType: Actions.ActionType.Deposit,
-        accountId: 0, // Should be MARGIN
+        accountId: 0,
         amount: Types.AssetAmount({
           sign: true,
           denomination: Types.AssetDenomination.Wei,
@@ -95,13 +95,13 @@ contract StrategydYdXSoloMargin is BaseStrategy {
     Account.Info[] memory accounts = new Account.Info[](1);
     accounts[0] = Account.Info({
       owner: address(this),
-      number: 0
+      number: 0 // Should be MARGIN
     });
 
     Actions.ActionArgs[] memory actions = new Actions.ActionArgs[](1);
     actions[0] = Actions.ActionArgs({
       actionType: Actions.ActionType.Withdraw,
-      accountId: 0, // Should be MARGIN
+      accountId: 0,
       amount: Types.AssetAmount({
         sign: false,
         denomination: Types.AssetDenomination.Wei,
@@ -133,7 +133,7 @@ contract StrategydYdXSoloMargin is BaseStrategy {
   function balanceOfPool() public view override returns (uint256) {
     Account.Info memory account = Account.Info({
       owner: address(this),
-      number: 0
+      number: 0 // Should be MARGIN
     });
     Types.Wei memory balance = ISoloMargin(dYdX).getAccountWei(account, marketId);
     if (balance.sign) {
