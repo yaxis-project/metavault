@@ -177,6 +177,9 @@ module.exports = {
         },
         flamIncomeUSDT: {
             1: '0x54bE9254ADf8D5c8867a91E44f44c27f0c88e88A'
+        },
+        dYdXSoloMargin: {
+            1: '0x1E0447b19BB6EcFdAe1e4AE1694b0C3659614e4e'
         }
     },
     solidity: {
