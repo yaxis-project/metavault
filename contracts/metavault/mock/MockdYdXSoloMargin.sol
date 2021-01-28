@@ -11,124 +11,124 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "../../interfaces/dYdXSoloMargin.sol";
 
 contract MockdYdXSoloMargin is ISoloMargin {
-  using SafeERC20 for IERC20;
-  using Address for address;
-  using SafeMath for uint256;
-  using SafeMath for uint128;
+    using SafeERC20 for IERC20;
+    using Address for address;
+    using SafeMath for uint256;
+    using SafeMath for uint128;
 
-  // Store balances as (Account => (MarketID => balance))
-  mapping(address => mapping(uint256 => uint128)) balances;
+    // Store balances as (Account => (MarketID => balance))
+    mapping(address => mapping(uint256 => uint128)) balances;
 
-  // Mapping of tokens as (MarketID => token)
-  mapping(uint256 => address) tokens;
+    // Mapping of tokens as (MarketID => token)
+    mapping(uint256 => address) tokens;
 
-  constructor (uint256[] memory _marketIds, address[] memory _addresses) public {
-    require(_marketIds.length == _addresses.length, "marketIds.length != addresses.length");
-    for (uint256 i = 0; i < _marketIds.length; i++) {
-      tokens[_marketIds[i]] = _addresses[i];
+    constructor (uint256[] memory _marketIds, address[] memory _addresses) public {
+        require(_marketIds.length == _addresses.length, "marketIds.length != addresses.length");
+        for (uint256 i = 0; i < _marketIds.length; i++) {
+            tokens[_marketIds[i]] = _addresses[i];
+        }
     }
-  }
 
-  function operate(Account.Info[] memory accounts, Actions.ActionArgs[] memory actions) public override {
-    _verifyInputs(accounts, actions);
+    function operate(Account.Info[] memory accounts, Actions.ActionArgs[] memory actions) public override {
+        _verifyInputs(accounts, actions);
 
-    _runActions(
-      accounts,
-      actions
-    );
-  }
-
-  function _verifyInputs(
-    Account.Info[] memory accounts,
-    Actions.ActionArgs[] memory actions
-  ) private pure {
-    require(actions.length != 0, "Cannot have zero actions");
-    require(accounts.length != 0, "Cannot have zero accounts");
-
-    for (uint256 a = 0; a < accounts.length; a++) {
-      for (uint256 b = a + 1; b < accounts.length; b++) {
-        require(!Account.equals(accounts[a], accounts[b]), "Cannot duplicate accounts");
-      }
+        _runActions(
+            accounts,
+            actions
+        );
     }
-  }
 
-  function _runActions(
-    Account.Info[] memory accounts,
-    Actions.ActionArgs[] memory actions
-  ) private {
-    for (uint256 i = 0; i < actions.length; i++) {
-      Actions.ActionArgs memory action = actions[i];
-      Actions.ActionType actionType = action.actionType;
+    function _verifyInputs(
+        Account.Info[] memory accounts,
+        Actions.ActionArgs[] memory actions
+    ) private pure {
+        require(actions.length != 0, "Cannot have zero actions");
+        require(accounts.length != 0, "Cannot have zero accounts");
 
-      if (actionType == Actions.ActionType.Deposit) {
-        _deposit(Actions.parseDepositArgs(accounts, action));
-      } else if (actionType == Actions.ActionType.Withdraw) {
-        _withdraw(Actions.parseWithdrawArgs(accounts, action));
-      }
+        for (uint256 a = 0; a < accounts.length; a++) {
+            for (uint256 b = a + 1; b < accounts.length; b++) {
+                require(!Account.equals(accounts[a], accounts[b]), "Cannot duplicate accounts");
+            }
+        }
     }
-  }
 
-  function _deposit(
-    Actions.DepositArgs memory args
-  )
-    private
-  {
-    require(
-      args.from == msg.sender || args.from == args.account.owner,
-      "Invalid deposit source"
-    );
+    function _runActions(
+        Account.Info[] memory accounts,
+        Actions.ActionArgs[] memory actions
+    ) private {
+        for (uint256 i = 0; i < actions.length; i++) {
+            Actions.ActionArgs memory action = actions[i];
+            Actions.ActionType actionType = action.actionType;
 
-    // We'll not implement all cases in this mock, for simplicity
-    require(args.amount.denomination == Types.AssetDenomination.Wei, "!Types.AssetDenomination.Wei");
-    IERC20(tokens[args.market]).safeTransferFrom(args.from, address(this), args.amount.value);
+            if (actionType == Actions.ActionType.Deposit) {
+                _deposit(Actions.parseDepositArgs(accounts, action));
+            } else if (actionType == Actions.ActionType.Withdraw) {
+                _withdraw(Actions.parseWithdrawArgs(accounts, action));
+            }
+        }
+    }
 
-    uint128 newBalance = to128(SafeMath.add(balances[args.account.owner][args.market], args.amount.value));
-    balances[args.account.owner][args.market] = newBalance;
-  }
+    function _deposit(
+        Actions.DepositArgs memory args
+    )
+        private
+    {
+        require(
+            args.from == msg.sender || args.from == args.account.owner,
+            "Invalid deposit source"
+        );
 
-  function _withdraw(
-    Actions.WithdrawArgs memory args
-  )
-  private
-  {
-    require(
-      msg.sender == args.account.owner,
-      "Not valid operator"
-    );
-    require(args.amount.value <= balances[args.account.owner][args.market], "!balance");
-    require(!args.amount.sign, "should receive negative amount");
-    IERC20(tokens[args.market]).safeTransfer(args.to, args.amount.value);
+        // We'll not implement all cases in this mock, for simplicity
+        require(args.amount.denomination == Types.AssetDenomination.Wei, "!Types.AssetDenomination.Wei");
+        IERC20(tokens[args.market]).safeTransferFrom(args.from, address(this), args.amount.value);
 
-    uint128 newBalance = to128(SafeMath.sub(balances[args.account.owner][args.market], args.amount.value));
-    balances[args.account.owner][args.market] = newBalance;
-  }
+        uint128 newBalance = to128(SafeMath.add(balances[args.account.owner][args.market], args.amount.value));
+        balances[args.account.owner][args.market] = newBalance;
+    }
 
-  function getMarketTokenAddress(uint256 marketId) external override view returns (address) {
-    return tokens[marketId];
-  }
+    function _withdraw(
+        Actions.WithdrawArgs memory args
+    )
+        private
+    {
+        require(
+            msg.sender == args.account.owner,
+            "Not valid operator"
+        );
+        require(args.amount.value <= balances[args.account.owner][args.market], "!balance");
+        require(!args.amount.sign, "should receive negative amount");
+        IERC20(tokens[args.market]).safeTransfer(args.to, args.amount.value);
 
-  function getAccountWei(Account.Info memory account, uint256 marketId)
-    external
-    override
-    view
-    returns (Types.Wei memory)
-  {
-    Types.Wei memory balance = Types.Wei({
-      sign: true,
-      value: balances[account.owner][marketId]
-    });
-    return balance;
-  }
+        uint128 newBalance = to128(SafeMath.sub(balances[args.account.owner][args.market], args.amount.value));
+        balances[args.account.owner][args.market] = newBalance;
+    }
 
-  function to128(
-    uint256 number
-  )
-    internal
-    pure
-    returns (uint128)
-  {
-    uint128 result = uint128(number);
-    require(result == number, "Unsafe cast to uint128");
-    return result;
-  }
+    function getMarketTokenAddress(uint256 marketId) external override view returns (address) {
+        return tokens[marketId];
+    }
+
+    function getAccountWei(Account.Info memory account, uint256 marketId)
+        external
+        override
+        view
+        returns (Types.Wei memory)
+    {
+        Types.Wei memory balance = Types.Wei({
+            sign: true,
+            value: balances[account.owner][marketId]
+        });
+        return balance;
+    }
+
+    function to128(
+        uint256 number
+    )
+        internal
+        pure
+        returns (uint128)
+    {
+        uint128 result = uint128(number);
+        require(result == number, "Unsafe cast to uint128");
+        return result;
+    }
 }

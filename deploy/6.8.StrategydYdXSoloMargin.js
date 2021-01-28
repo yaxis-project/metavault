@@ -28,13 +28,13 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
         dYdXSoloMargin = deployeddYdXSoloMargin.address;
     }
 
-    const deployedStrategyUSDC = await deploy('StrategydYdXSoloMarginUSDC', {
+    const deployedStrategy = await deploy('StrategydYdXSoloMargin', {
         from: deployer,
         contract: 'StrategydYdXSoloMargin',
         log: true,
         args: [
             dYdXSoloMargin,
-            2,
+            3, // Market IDs are documented here: https://docs.dydx.exchange/#solo-markets
             Converter.address,
             controller.address,
             vaultManager.address,
@@ -42,33 +42,8 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
             unirouter
         ]
     });
-    if (deployedStrategyUSDC.newlyDeployed) {
-        const Strategy = await deployments.get('StrategydYdXSoloMarginUSDC');
-        await execute(
-            'StableSwap3PoolConverter',
-            { from: deployer },
-            'setStrategy',
-            Strategy.address,
-            true
-        );
-    }
-
-    const deployedStrategyDAI = await deploy('StrategydYdXSoloMarginDAI', {
-        from: deployer,
-        contract: 'StrategydYdXSoloMargin',
-        log: true,
-        args: [
-            dYdXSoloMargin,
-            3,
-            Converter.address,
-            controller.address,
-            vaultManager.address,
-            WETH,
-            unirouter
-        ]
-    });
-    if (deployedStrategyDAI.newlyDeployed) {
-        const Strategy = await deployments.get('StrategydYdXSoloMarginDAI');
+    if (deployedStrategy.newlyDeployed) {
+        const Strategy = await deployments.get('StrategydYdXSoloMargin');
         await execute(
             'StableSwap3PoolConverter',
             { from: deployer },

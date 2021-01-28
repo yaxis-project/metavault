@@ -34,7 +34,7 @@ describe('StrategydYdXSoloMargin', () => {
         controller = config.controller;
         router = config.router;
 
-        const Strategy = await deployments.get('StrategydYdXSoloMarginDAI');
+        const Strategy = await deployments.get('StrategydYdXSoloMargin');
         strategy = await ethers.getContractAt(
             'StrategydYdXSoloMargin',
             Strategy.address,
