@@ -6,7 +6,7 @@ import "../../interfaces/Stabilize.sol";
 import "../interfaces/IConverter.sol";
 import "./BaseStrategy.sol";
 
-contract StrategyStabilize is BaseStrategy {
+contract StrategyStabilizeV2 is BaseStrategy {
     address public immutable zpaToken;
     address public immutable pool;
     address public immutable STBZ;

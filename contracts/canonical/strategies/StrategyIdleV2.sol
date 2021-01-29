@@ -6,7 +6,7 @@ import "../../interfaces/Idle.sol";
 import "../interfaces/IConverter.sol";
 import "./BaseStrategy.sol";
 
-contract StrategyIdle is BaseStrategy {
+contract StrategyIdleV2 is BaseStrategy {
     address public immutable idleYieldToken;
     address public immutable IDLE;
     address public immutable COMP;

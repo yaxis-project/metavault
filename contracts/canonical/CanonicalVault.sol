@@ -243,7 +243,6 @@ contract CanonicalVault is ERC20, ICanonicalVault {
         checkContract
     {
         require(IController(controller).vaults(_output) == address(this), "!_output");
-        uint256 _userBal = balanceOf(msg.sender);
         uint256 _rate = (balance().mul(_shares)).div(totalSupply());
         _burn(msg.sender, _shares);
 

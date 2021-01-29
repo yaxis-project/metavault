@@ -9,7 +9,7 @@ import "../../interfaces/PickleMasterChef.sol";
 
 import "./BaseStrategy.sol";
 
-contract StrategyPickle3Crv is BaseStrategy {
+contract StrategyPickle3CrvV2 is BaseStrategy {
     address public immutable p3crv;
 
     // used for pickle -> weth -> [stableForAddLiquidity] -> 3crv route
