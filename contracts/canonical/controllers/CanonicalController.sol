@@ -320,7 +320,7 @@ contract CanonicalController is IController {
      */
     function earn(address _token, uint256 _amount) external override onlyVault(_token) {
         // get the first strategy that will accept the deposit
-        address _strategy = getBestStrategyEarn(msg.sender, _token, _amount);
+        address _strategy = getBestStrategyEarn(msg.sender, _amount);
         if (_strategy != address(0)) {
             // get the want token of the strategy
             address _want = IStrategy(_strategy).want();
@@ -423,7 +423,6 @@ contract CanonicalController is IController {
      */
     function getBestStrategyEarn(
         address _vault,
-        address _token,
         uint256 _amount
     ) public view returns (address _strategy) {
         uint256 k = _vaultDetails[_vault].strategies.length;
