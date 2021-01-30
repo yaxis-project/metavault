@@ -18,12 +18,12 @@ contract StrategyIdleV2 is BaseStrategy {
         address _IDLE,
         address _COMP,
         address _controller,
-        address _vaultManager,
+        address _manager,
         address _weth,
         address _router
     )
         public
-        BaseStrategy(_name, _controller, _vaultManager, _underlying, _weth, _router)
+        BaseStrategy(_name, _controller, _manager, _underlying, _weth, _router)
     {
         idleYieldToken = _idleYieldToken;
         IDLE = _IDLE;

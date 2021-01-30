@@ -9,7 +9,7 @@ import "../interfaces/IController.sol";
 import "../interfaces/IConverter.sol";
 import "../interfaces/ICanonicalVault.sol";
 import "../interfaces/IStrategy.sol";
-import "../interfaces/IVaultManager.sol";
+import "../interfaces/IManager.sol";
 
 /**
  * @title StrategyControllerV3
@@ -22,7 +22,7 @@ contract CanonicalController is IController {
 
     bool public globalInvestEnabled;
     uint256 public maxStrategies;
-    IVaultManager public vaultManager;
+    IManager public manager;
 
     struct VaultDetail {
         address converter;
@@ -71,10 +71,10 @@ contract CanonicalController is IController {
     );
 
     /**
-     * @param _vaultManager The address of the vaultManager
+     * @param _manager The address of the manager
      */
-    constructor(address _vaultManager) public {
-        vaultManager = IVaultManager(_vaultManager);
+    constructor(address _manager) public {
+        manager = IManager(_manager);
         globalInvestEnabled = true;
         maxStrategies = 10;
     }
@@ -115,10 +115,10 @@ contract CanonicalController is IController {
     /**
      * @notice Sets the address of the vault manager contract
      * @dev Only callable by governance
-     * @param _vaultManager The address of the vault manager
+     * @param _manager The address of the vault manager
      */
-    function setVaultManager(address _vaultManager) external onlyGovernance {
-        vaultManager = IVaultManager(_vaultManager);
+    function setVaultManager(address _manager) external onlyGovernance {
+        manager = IManager(_manager);
     }
 
     /**
@@ -137,7 +137,7 @@ contract CanonicalController is IController {
     ) external onlyStrategist {
         IStrategy(_strategy).withdraw(_token);
         IERC20(_token).safeTransfer(
-            vaultManager.governance(),
+            manager.governance(),
             IERC20(_token).balanceOf(address(this))
         );
     }
@@ -152,7 +152,7 @@ contract CanonicalController is IController {
         address _token,
         uint256 _amount
     ) external onlyStrategist {
-        IERC20(_token).safeTransfer(vaultManager.governance(), _amount);
+        IERC20(_token).safeTransfer(manager.governance(), _amount);
     }
 
     /**
@@ -494,13 +494,13 @@ contract CanonicalController is IController {
      */
 
     modifier onlyGovernance() {
-        require(msg.sender == vaultManager.governance(), "!governance");
+        require(msg.sender == manager.governance(), "!governance");
         _;
     }
 
     modifier onlyStrategist() {
-        require(msg.sender == vaultManager.strategist()
-             || msg.sender == vaultManager.governance(),
+        require(msg.sender == manager.strategist()
+             || msg.sender == manager.governance(),
              "!strategist"
         );
         _;
@@ -508,9 +508,9 @@ contract CanonicalController is IController {
 
     modifier onlyHarvester() {
         require(
-            msg.sender == vaultManager.harvester() ||
-            msg.sender == vaultManager.strategist() ||
-            msg.sender == vaultManager.governance(),
+            msg.sender == manager.harvester() ||
+            msg.sender == manager.strategist() ||
+            msg.sender == manager.governance(),
             "!harvester"
         );
         _;

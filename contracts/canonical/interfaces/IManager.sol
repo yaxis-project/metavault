@@ -2,7 +2,7 @@
 
 pragma solidity 0.6.12;
 
-interface IVaultManager {
+interface IManager {
     function controllers(address) external view returns (bool);
     function getHarvestFeeInfo() external view returns (address, address, uint256, address, uint256, address, uint256);
     function governance() external view returns (address);

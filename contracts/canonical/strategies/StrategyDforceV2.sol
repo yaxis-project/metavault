@@ -18,12 +18,12 @@ contract StrategyDforceV2 is BaseStrategy {
         address _pool,
         address _DF,
         address _controller,
-        address _vaultManager,
+        address _manager,
         address _weth,
         address _router
     )
         public
-        BaseStrategy(_name, _controller, _vaultManager, _underlying, _weth, _router)
+        BaseStrategy(_name, _controller, _manager, _underlying, _weth, _router)
     {
         dToken = _dToken;
         pool = _pool;

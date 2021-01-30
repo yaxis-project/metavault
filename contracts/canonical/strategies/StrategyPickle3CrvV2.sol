@@ -41,11 +41,11 @@ contract StrategyPickle3CrvV2 is BaseStrategy {
         PickleMasterChef _pickleMasterChef,
         IStableSwap3Pool _stableSwap3Pool,
         address _controller,
-        address _vaultManager,
+        address _manager,
         address _router
     )
         public
-        BaseStrategy(_name, _controller, _vaultManager, _want, _weth, _router)
+        BaseStrategy(_name, _controller, _manager, _want, _weth, _router)
     {
         p3crv = _p3crv;
         pickle = _pickle;

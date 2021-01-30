@@ -26,12 +26,12 @@ contract StrategyStabilizeV2 is BaseStrategy {
         uint256 _poolId,
         address _STBZ,
         address _controller,
-        address _vaultManager,
+        address _manager,
         address _weth,
         address _router
     )
         public
-        BaseStrategy(_name, _controller, _vaultManager, _underlying, _weth, _router)
+        BaseStrategy(_name, _controller, _manager, _underlying, _weth, _router)
     {
         zpaToken = _zpaToken;
         pool = _pool;

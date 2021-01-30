@@ -9,7 +9,7 @@ import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 
 import "../interfaces/IStableSwap3Pool.sol";
 import "../interfaces/ISwap.sol";
-import "../interfaces/IVaultManager.sol";
+import "../interfaces/IManager.sol";
 import "../interfaces/IStrategy.sol";
 import "../interfaces/IController.sol";
 
@@ -40,12 +40,12 @@ abstract contract BaseStrategy is IStrategy {
     address public immutable weth;
     string public override name;
     address public controller;
-    IVaultManager public vaultManager;
+    IManager public manager;
     ISwap public router;
 
     /**
      * @param _controller The address of the controller
-     * @param _vaultManager The address of the vaultManager
+     * @param _manager The address of the manager
      * @param _want The desired token of the strategy
      * @param _weth The address of WETH
      * @param _router The address of the router for swapping tokens
@@ -53,7 +53,7 @@ abstract contract BaseStrategy is IStrategy {
     constructor(
         string memory _name,
         address _controller,
-        address _vaultManager,
+        address _manager,
         address _want,
         address _weth,
         address _router
@@ -61,7 +61,7 @@ abstract contract BaseStrategy is IStrategy {
         name = _name;
         want = _want;
         controller = _controller;
-        vaultManager = IVaultManager(_vaultManager);
+        manager = IManager(_manager);
         weth = _weth;
         router = ISwap(_router);
         IERC20(_weth).safeApprove(address(_router), type(uint256).max);
@@ -78,7 +78,7 @@ abstract contract BaseStrategy is IStrategy {
      * @param _amount The amount to spend
      */
     function approveForSpender(IERC20 _token, address _spender, uint256 _amount) external {
-        require(msg.sender == vaultManager.governance(), "!governance");
+        require(msg.sender == manager.governance(), "!governance");
         _token.safeApprove(_spender, _amount);
     }
 
@@ -87,7 +87,7 @@ abstract contract BaseStrategy is IStrategy {
      * @param _controller The address of the controller
      */
     function setController(address _controller) external {
-        require(msg.sender == vaultManager.governance(), "!governance");
+        require(msg.sender == manager.governance(), "!governance");
         controller = _controller;
     }
 
@@ -96,7 +96,7 @@ abstract contract BaseStrategy is IStrategy {
      * @param _router The address of the router
      */
     function setRouter(address _router) external {
-        require(msg.sender == vaultManager.governance(), "!governance");
+        require(msg.sender == manager.governance(), "!governance");
         router = ISwap(_router);
         IERC20(weth).safeApprove(address(_router), 0);
         IERC20(weth).safeApprove(address(_router), type(uint256).max);
@@ -217,7 +217,7 @@ abstract contract BaseStrategy is IStrategy {
                 uint256 treasuryFee,
                 address insurance,
                 uint256 insurancePoolFee
-            ) = vaultManager.getHarvestFeeInfo();
+            ) = manager.getHarvestFeeInfo();
 
             uint256 _fee;
 
@@ -280,8 +280,8 @@ abstract contract BaseStrategy is IStrategy {
 
     modifier onlyAuthorized() {
         require(msg.sender == controller
-             || msg.sender == vaultManager.strategist()
-             || msg.sender == vaultManager.governance(),
+             || msg.sender == manager.strategist()
+             || msg.sender == manager.governance(),
              "!authorized"
         );
         _;

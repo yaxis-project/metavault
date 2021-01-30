@@ -9,7 +9,7 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import "@openzeppelin/contracts/GSN/Context.sol";
 
-import "./interfaces/IVaultManager.sol";
+import "./interfaces/IManager.sol";
 import "./interfaces/IController.sol";
 import "./interfaces/IConverter.sol";
 import "./interfaces/ICanonicalVault.sol";
@@ -23,7 +23,7 @@ contract CanonicalVault is ERC20, ICanonicalVault {
 
     // Governance-updated variables
     address public override controller;
-    address public override vaultManager;
+    address public override manager;
 
     // Strategist|Governance-updated variables
     uint256 public min;
@@ -43,8 +43,12 @@ contract CanonicalVault is ERC20, ICanonicalVault {
 
     constructor(
         string memory _name,
-        string memory _symbol
+        string memory _symbol,
+        address _manager,
+        address _controller
     ) public ERC20(_name, _symbol) {
+        manager = _manager;
+        controller = _controller;
         min = 9500;
         earnLowerlimit = 500 ether;
         totalDepositCap = 10000000 ether;
@@ -92,13 +96,13 @@ contract CanonicalVault is ERC20, ICanonicalVault {
         controller = _controller;
     }
 
-    function setVaultManager(
-        address _vaultManager
+    function setManager(
+        address _manager
     )
         external
         onlyGovernance
     {
-        vaultManager = _vaultManager;
+        manager = _manager;
     }
 
     function setMin(
@@ -143,13 +147,11 @@ contract CanonicalVault is ERC20, ICanonicalVault {
         override
     {
         IController _controller = IController(controller);
-        if (address(_controller) != address(0)) {
-            if (_controller.investEnabled()) {
-                uint256 _balance = available(_token);
-                IERC20(_token).safeTransfer(address(_controller), _balance);
-                _controller.earn(_token, _balance);
-                emit Earn(_token, _balance);
-            }
+        if (_controller.investEnabled()) {
+            uint256 _balance = available(_token);
+            IERC20(_token).safeTransfer(address(_controller), _balance);
+            _controller.earn(_token, _balance);
+            emit Earn(_token, _balance);
         }
     }
 
@@ -246,10 +248,10 @@ contract CanonicalVault is ERC20, ICanonicalVault {
         uint256 _rate = (balance().mul(_shares)).div(totalSupply());
         _burn(msg.sender, _shares);
 
-        if (vaultManager != address(0)) {
+        if (manager != address(0)) {
             // expected 0.1% of withdrawal go back to vault (for auto-compounding) to protect withdrawals
             // it is updated by governance (community vote)
-            uint256 _withdrawalProtectionFee = IVaultManager(vaultManager).withdrawalProtectionFee();
+            uint256 _withdrawalProtectionFee = IManager(manager).withdrawalProtectionFee();
             if (_withdrawalProtectionFee > 0) {
                 uint256 _withdrawalProtection = _rate.mul(_withdrawalProtectionFee).div(MAX);
                 _rate = _rate.sub(_withdrawalProtection);
@@ -326,7 +328,7 @@ contract CanonicalVault is ERC20, ICanonicalVault {
         view
         returns (uint256)
     {
-        return IVaultManager(vaultManager).withdrawalProtectionFee().mul(_amount).div(MAX);
+        return IManager(manager).withdrawalProtectionFee().mul(_amount).div(MAX);
     }
 
     /**
@@ -349,13 +351,13 @@ contract CanonicalVault is ERC20, ICanonicalVault {
     }
 
     modifier onlyGovernance() {
-        require(msg.sender == IVaultManager(vaultManager).governance(), "!governance");
+        require(msg.sender == IManager(manager).governance(), "!governance");
         _;
     }
 
     modifier onlyStrategist() {
-        require(msg.sender == IVaultManager(vaultManager).strategist()
-             || msg.sender == IVaultManager(vaultManager).governance(),
+        require(msg.sender == IManager(manager).strategist()
+             || msg.sender == IManager(manager).governance(),
              "!strategist"
         );
         _;

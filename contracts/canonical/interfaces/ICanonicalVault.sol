@@ -11,7 +11,7 @@ interface ICanonicalVault {
     function getPricePerFullShare() external view returns (uint256);
     function getTokens() external view returns (address[] memory);
     function removeToken(address _token) external;
-    function vaultManager() external view returns (address);
+    function manager() external view returns (address);
     function withdraw(uint256 _amount, address _output) external;
     function withdrawFee(uint256 _amount) external view returns (uint256);
 }
