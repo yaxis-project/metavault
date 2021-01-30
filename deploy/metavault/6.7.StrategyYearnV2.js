@@ -1,6 +1,6 @@
 module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
     const { deploy, execute } = deployments;
-    let { WETH, yvDAI, deployer, unirouter } = await getNamedAccounts();
+    let { DAI, WETH, yvDAI, deployer, unirouter } = await getNamedAccounts();
     const chainId = await getChainId();
     const controller = await deployments.get('StrategyControllerV2');
     const vaultManager = await deployments.get('yAxisMetaVaultManager');
@@ -9,6 +9,7 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
 
     if (chainId != '1') {
         const dai = await deployments.get('DAI');
+        DAI = dai.address;
         const weth = await deployments.get('WETH');
         WETH = weth.address;
         await deploy('yvDAI', {
@@ -29,6 +30,7 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
         args: [
             name,
             yvDAI,
+            DAI,
             Converter.address,
             controller.address,
             vaultManager.address,
@@ -48,3 +50,5 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
         );
     }
 };
+
+module.exports.tags = ['metavault'];

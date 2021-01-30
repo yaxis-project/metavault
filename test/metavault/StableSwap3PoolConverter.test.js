@@ -4,13 +4,13 @@ const { solidity } = require('ethereum-waffle');
 chai.use(solidity);
 const hardhat = require('hardhat');
 const { deployments, ethers } = hardhat;
-const { setupTest } = require('../helpers/setup');
+const { setupTestMetavault } = require('../helpers/setup');
 
 describe('StableSwap3PoolConverter', () => {
     let converter, deployer, user, dai, usdc, usdt, t3crv, yax, stableSwap3Pool, vaultManager;
 
     before(async () => {
-        const config = await setupTest();
+        const config = await setupTestMetavault();
         user = await ethers.provider.getSigner(config.user);
         deployer = config.deployer;
         yax = config.yax;

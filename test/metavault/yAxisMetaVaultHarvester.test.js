@@ -4,7 +4,7 @@ const { solidity } = require('ethereum-waffle');
 chai.use(solidity);
 const hardhat = require('hardhat');
 const { deployments, ethers } = hardhat;
-const { increaseTime, setupTest } = require('../helpers/setup');
+const { increaseTime, setupTestMetavault } = require('../helpers/setup');
 
 describe('yAxisMetaVaultHarvester', () => {
     let deployer,
@@ -18,7 +18,7 @@ describe('yAxisMetaVaultHarvester', () => {
         strategyPickle3Crv;
 
     before(async () => {
-        const config = await setupTest();
+        const config = await setupTestMetavault();
         deployer = config.deployer;
         user = config.user;
         t3crv = config.t3crv;

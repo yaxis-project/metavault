@@ -10,3 +10,5 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
         args: [manager.address, controller.address]
     });
 };
+
+module.exports.tags = ['metavault', 'live'];

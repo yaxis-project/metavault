@@ -6,7 +6,7 @@ const hardhat = require('hardhat');
 const { deployments, ethers } = hardhat;
 const { parseEther } = ethers.utils;
 const ether = parseEther;
-const { setupTest } = require('../helpers/setup');
+const { setupTestMetavault } = require('../helpers/setup');
 
 describe('StrategyCurve3Crv', () => {
     let strategy,
@@ -23,7 +23,7 @@ describe('StrategyCurve3Crv', () => {
         router;
 
     before(async () => {
-        const config = await setupTest();
+        const config = await setupTestMetavault();
         deployer = config.deployer;
         user = await ethers.provider.getSigner(config.user);
         insurancePool = config.insurancePool;

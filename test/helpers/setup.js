@@ -18,9 +18,9 @@ exports.increaseTime = async (time) => {
     });
 };
 
-exports.setupTest = deployments.createFixture(
+exports.setupTestMetavault = deployments.createFixture(
     async ({ deployments, getNamedAccounts, ethers }) => {
-        await deployments.fixture();
+        await deployments.fixture('metavault');
         const {
             deployer,
             user,

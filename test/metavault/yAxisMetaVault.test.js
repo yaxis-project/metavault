@@ -6,13 +6,13 @@ const hardhat = require('hardhat');
 const { deployments, ethers } = hardhat;
 const { parseEther } = ethers.utils;
 const ether = parseEther;
-const { advanceBlocks, setupTest } = require('../helpers/setup');
+const { advanceBlocks, setupTestMetavault } = require('../helpers/setup');
 
 describe('yAxisMetaVault', () => {
     let user, dai, usdc, usdt, t3crv, vault, yax;
 
     before(async () => {
-        const config = await setupTest();
+        const config = await setupTestMetavault();
         user = config.user;
         dai = config.dai;
         usdc = config.usdc;

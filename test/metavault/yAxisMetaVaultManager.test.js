@@ -6,7 +6,7 @@ const hardhat = require('hardhat');
 const { ethers } = hardhat;
 const { parseEther } = ethers.utils;
 const ether = parseEther;
-const { setupTest } = require('../helpers/setup');
+const { setupTestMetavault } = require('../helpers/setup');
 
 describe('yAxisMetaVaultManager', () => {
     let deployer,
@@ -21,7 +21,7 @@ describe('yAxisMetaVaultManager', () => {
         vaultManager;
 
     before(async () => {
-        const config = await setupTest();
+        const config = await setupTestMetavault();
         deployer = config.deployer;
         insurancePool = config.deployer;
         user = config.user;
