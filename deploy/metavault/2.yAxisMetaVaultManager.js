@@ -14,3 +14,5 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
         args: [YAX]
     });
 };
+
+module.exports.tags = ['metavault', 'live'];

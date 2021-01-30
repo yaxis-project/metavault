@@ -15,6 +15,7 @@ contract StrategyYearnV2 is BaseStrategy {
     constructor(
         string memory _name,
         address _yvToken,
+        address _underlying,
         address _converter,
         address _controller,
         address _vaultManager,
@@ -26,13 +27,13 @@ contract StrategyYearnV2 is BaseStrategy {
             _name,
             _controller,
             _vaultManager,
-            IYearnV2Vault(_yvToken).token(),
+            _underlying,
             _weth,
-            _router)
+            _router
+        )
     {
         yvToken = _yvToken;
         converter = IConverter(_converter);
-        address _underlying = IYearnV2Vault(_yvToken).token();
         IERC20(_underlying).safeApprove(_converter, type(uint256).max);
         IERC20(_underlying).safeApprove(_yvToken, type(uint256).max);
     }

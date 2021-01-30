@@ -1,84 +1,81 @@
 module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
     const { deploy, execute } = deployments;
-    let { DAI, IDLE, COMP, WETH, idleDAI, deployer, unirouter } = await getNamedAccounts();
+    let {
+        DAI,
+        STBZ,
+        WETH,
+        zpaDAI,
+        STBZOperator,
+        deployer,
+        unirouter
+    } = await getNamedAccounts();
     const chainId = await getChainId();
     const controller = await deployments.get('StrategyControllerV2');
     const vaultManager = await deployments.get('yAxisMetaVaultManager');
     const Converter = await deployments.get('StableSwap3PoolConverter');
-    const name = 'Idle: DAI';
+    const name = 'Stabilize: DAI';
+    let poolId = 0;
 
     if (chainId != '1') {
         const dai = await deployments.get('DAI');
         DAI = dai.address;
-        await deploy('COMP', {
-            from: deployer,
-            log: true,
-            contract: 'MockERC20',
-            args: ['Compound', 'COMP', 18]
-        });
-        const comp = await deployments.get('COMP');
-        COMP = comp.address;
         const weth = await deployments.get('WETH');
         WETH = weth.address;
-        await deploy('IDLE', {
+        await deploy('STBZ', {
             from: deployer,
             contract: 'MockERC20',
             log: true,
-            args: ['IDLE Token', 'IDLE', 18]
+            args: ['Stabilize Token', 'STBZ', 18]
         });
-        IDLE = await deployments.get('IDLE');
-        IDLE = IDLE.address;
-        const deployedIdleDAI = await deploy('idleDAI', {
+        STBZ = await deployments.get('STBZ');
+        STBZ = STBZ.address;
+        await deploy('zpaDAI', {
             from: deployer,
-            contract: 'MockIdleToken',
+            contract: 'MockzpaToken',
             log: true,
-            args: ['Idle Token DAI', 'idleDAIYield', dai.address, IDLE, COMP]
+            args: ['Stabilize Token DAI', 'zpa-DAI', dai.address]
         });
-        const idleDai = await deployments.get('idleDAI');
-        idleDAI = idleDai.address;
+        const zpaDai = await deployments.get('zpaDAI');
+        zpaDAI = zpaDai.address;
+        const deployedSTBZPool = await deploy('MockStabilizePool', {
+            from: deployer,
+            log: true,
+            args: [zpaDai.address, STBZ, 100]
+        });
+        const mockStabilizePool = await deployments.get('MockStabilizePool');
+        STBZOperator = mockStabilizePool.address;
         const router = await deployments.get('MockUniswapRouter');
         unirouter = router.address;
-        if (deployedIdleDAI.newlyDeployed) {
+        if (deployedSTBZPool.newlyDeployed) {
             await execute(
-                'IDLE',
+                'STBZ',
                 { from: deployer },
                 'mint',
                 router.address,
                 ethers.utils.parseEther('1000')
             );
             await execute(
-                'COMP',
+                'STBZ',
                 { from: deployer },
                 'mint',
-                router.address,
-                ethers.utils.parseEther('1000')
-            );
-            await execute(
-                'IDLE',
-                { from: deployer },
-                'mint',
-                idleDai.address,
-                ethers.utils.parseEther('1000')
-            );
-            await execute(
-                'COMP',
-                { from: deployer },
-                'mint',
-                idleDai.address,
+                mockStabilizePool.address,
                 ethers.utils.parseEther('1000')
             );
         }
+    } else {
+        poolId = 8;
     }
 
-    const deployedStrategy = await deploy('StrategyIdle', {
+    const deployedStrategy = await deploy('StrategyStabilize', {
         from: deployer,
         log: true,
         args: [
             name,
             DAI,
-            idleDAI,
-            IDLE,
-            COMP,
+            zpaDAI,
+            STBZOperator,
+            poolId,
+            STBZ,
             Converter.address,
             controller.address,
             vaultManager.address,
@@ -86,9 +83,8 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
             unirouter
         ]
     });
-
+    const Strategy = await deployments.get('StrategyStabilize');
     if (deployedStrategy.newlyDeployed) {
-        const Strategy = await deployments.get('StrategyIdle');
         await execute(
             'StableSwap3PoolConverter',
             { from: deployer },
@@ -98,3 +94,5 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
         );
     }
 };
+
+module.exports.tags = ['metavault'];

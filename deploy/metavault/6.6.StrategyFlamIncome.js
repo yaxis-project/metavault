@@ -1,40 +1,33 @@
 module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
     const { deploy, execute } = deployments;
-    let { DAI, USDC, WETH, deployer, unirouter, dYdXSoloMargin } = await getNamedAccounts();
+    let { USDT, WETH, deployer, unirouter, flamIncomeUSDT } = await getNamedAccounts();
     const chainId = await getChainId();
     const controller = await deployments.get('StrategyControllerV2');
     const vaultManager = await deployments.get('yAxisMetaVaultManager');
     const Converter = await deployments.get('StableSwap3PoolConverter');
 
     if (chainId != '1') {
-        const dai = await deployments.get('DAI');
-        DAI = dai.address;
-        const usdc = await deployments.get('USDC');
-        USDC = usdc.address;
+        const usdt = await deployments.get('USDT');
+        USDT = usdt.address;
         const weth = await deployments.get('WETH');
         WETH = weth.address;
         const router = await deployments.get('MockUniswapRouter');
         unirouter = router.address;
-        await deploy('dYdXSoloMargin', {
+        await deploy('flamIncomeUSDT', {
             from: deployer,
-            contract: 'MockdYdXSoloMargin',
+            contract: 'MockFlamIncomeVault',
             log: true,
-            args: [
-                [2, 3],
-                [USDC, DAI]
-            ]
+            args: [USDT]
         });
-        const deployeddYdXSoloMargin = await deployments.get('dYdXSoloMargin');
-        dYdXSoloMargin = deployeddYdXSoloMargin.address;
+        const flamIncomeUsdt = await deployments.get('flamIncomeUSDT');
+        flamIncomeUSDT = flamIncomeUsdt.address;
     }
 
-    const deployedStrategy = await deploy('StrategydYdXSoloMargin', {
+    const deployedStrategy = await deploy('StrategyFlamIncome', {
         from: deployer,
-        contract: 'StrategydYdXSoloMargin',
         log: true,
         args: [
-            dYdXSoloMargin,
-            3, // Market IDs are documented here: https://docs.dydx.exchange/#solo-markets
+            flamIncomeUSDT,
             Converter.address,
             controller.address,
             vaultManager.address,
@@ -42,8 +35,9 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
             unirouter
         ]
     });
+
     if (deployedStrategy.newlyDeployed) {
-        const Strategy = await deployments.get('StrategydYdXSoloMargin');
+        const Strategy = await deployments.get('StrategyFlamIncome');
         await execute(
             'StableSwap3PoolConverter',
             { from: deployer },
@@ -53,3 +47,5 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
         );
     }
 };
+
+module.exports.tags = ['metavault'];

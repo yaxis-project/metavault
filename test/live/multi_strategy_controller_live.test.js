@@ -23,8 +23,6 @@ describe('StrategyControllerV2: live', () => {
         usdc,
         usdt,
         t3crv,
-        pickleChef,
-        pickleJar,
         vaultManager,
         vaultUser,
         vaultGov,
@@ -32,7 +30,6 @@ describe('StrategyControllerV2: live', () => {
         converter,
         harvester,
         strategyCrv,
-        strategyPickle,
         controllerV1,
         oldStrategyCrvAddr;
 
@@ -48,8 +45,6 @@ describe('StrategyControllerV2: live', () => {
             USDC,
             USDT,
             T3CRV,
-            pchef,
-            pjar,
             vault3crv,
             oldController,
             oldStrategyCrv
@@ -93,8 +88,7 @@ describe('StrategyControllerV2: live', () => {
             to: timelock,
             value: ethers.utils.parseEther('100')
         });
-        await deployments.fixture();
-        pickleChef = pchef;
+        await deployments.fixture('live');
         userAddr = user;
         deployerAddr = deployer;
         multisigAddr = multisig;
@@ -106,7 +100,6 @@ describe('StrategyControllerV2: live', () => {
         usdc = await ethers.getContractAt('MockERC20', USDC, user);
         usdt = await ethers.getContractAt('MockERC20', USDT, user);
         t3crv = await ethers.getContractAt('MockERC20', T3CRV, user);
-        pickleJar = await ethers.getContractAt('MockERC20', pjar, user);
         vaultUser = await ethers.getContractAt('yAxisMetaVault', vault3crv, user);
         vaultGov = await ethers.getContractAt('yAxisMetaVault', vault3crv, timelock);
         const VaultManager = await deployments.get('yAxisMetaVaultManager');
@@ -142,12 +135,6 @@ describe('StrategyControllerV2: live', () => {
         strategyCrv = await ethers.getContractAt(
             'StrategyCurve3Crv',
             StrategyCrv.address,
-            deployer
-        );
-        const StrategyPickle = await deployments.get('StrategyPickle3Crv');
-        strategyPickle = await ethers.getContractAt(
-            'StrategyPickle3Crv',
-            StrategyPickle.address,
             deployer
         );
 
@@ -191,9 +178,6 @@ describe('StrategyControllerV2: live', () => {
         console.log('vault Supply:      ', fromWei(await vaultUser.totalSupply()));
         console.log('--------------------');
         console.log('strategy T3CRV:    ', fromWei(await strategyCrv.balanceOf()));
-        console.log('strategy PICKLE:   ', fromWei(await strategyPickle.balanceOf()));
-        console.log('pjar T3CRV:        ', fromWei(await t3crv.balanceOf(pickleJar.address)));
-        console.log('pchef PJAR:        ', fromWei(await pickleJar.balanceOf(pickleChef)));
         console.log('--------------------');
         console.log(
             'user balances:      %s DAI/ %s USDC/ %s USDT/ %s T3CRV/ %s YAX',
@@ -237,9 +221,8 @@ describe('StrategyControllerV2: live', () => {
         expect(await harvester.controller()).to.equal(controller.address);
         expect(await harvester.isHarvester(deployerAddr)).to.be.true;
         const strategyAddresses = await harvester.strategyAddresses(t3crv.address);
-        expect(strategyAddresses.length).to.equal(2);
+        expect(strategyAddresses.length).to.equal(1);
         expect(strategyAddresses[0]).to.equal(strategyCrv.address);
-        expect(strategyAddresses[1]).to.equal(strategyPickle.address);
         expect(await controller.converters(t3crv.address, dai.address)).to.equal(
             converter.address
         );
@@ -251,9 +234,8 @@ describe('StrategyControllerV2: live', () => {
         );
         expect(await controller.vaults(t3crv.address)).to.equal(vaultUser.address);
         const strategies = await controller.strategies(t3crv.address);
-        expect(strategies.length).to.equal(2);
+        expect(strategies.length).to.equal(1);
         expect(strategies[0]).to.equal(strategyCrv.address);
-        expect(strategies[1]).to.equal(strategyPickle.address);
         expect(await vaultManager.strategist()).to.equal(deployerAddr);
         expect(await vaultManager.governance()).to.equal(deployerAddr);
     });
@@ -268,12 +250,6 @@ describe('StrategyControllerV2: live', () => {
         expect(await strategyCrv.balanceOf()).to.be.equal(0);
         await vaultUser.earn();
         expect(await strategyCrv.balanceOf()).to.be.above(ether('1000000'));
-    });
-
-    it('should send new deposits go to the Pickle strategy', async () => {
-        expect(await strategyPickle.balanceOf()).to.be.equal(0);
-        await vaultUser.deposit(ether('100'), dai.address, 1, true);
-        expect(await strategyPickle.balanceOf()).to.be.above(ether('100'));
     });
 
     it('should harvest', async () => {

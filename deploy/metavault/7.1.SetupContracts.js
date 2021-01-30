@@ -1,8 +1,3 @@
-const hardhat = require('hardhat');
-const { ethers } = hardhat;
-const { parseEther } = ethers.utils;
-const ether = parseEther;
-
 module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
     const { execute } = deployments;
     const { ethers } = require('hardhat');
@@ -37,7 +32,6 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
         deployer
     );
     const StrategyCurve3Crv = await deployments.get('StrategyCurve3Crv');
-    const StrategyPickle3Crv = await deployments.get('StrategyPickle3Crv');
 
     if (chainId != '1') {
         const dai = await deployments.get('DAI');
@@ -162,7 +156,7 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
         );
 
         // mainnet
-        if (chainId == '1' && (await controller.strategies(T3CRV)).length < 2) {
+        if (chainId == '1' && (await controller.strategies(T3CRV)).length < 1) {
             await execute(
                 'yAxisMetaVaultHarvester',
                 { from: deployer },
@@ -172,14 +166,6 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
                 86400
             );
             await execute(
-                'yAxisMetaVaultHarvester',
-                { from: deployer },
-                'addStrategy',
-                T3CRV,
-                StrategyPickle3Crv.address,
-                43200
-            );
-            await execute(
                 'StrategyControllerV2',
                 { from: deployer },
                 'addStrategy',
@@ -187,14 +173,8 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
                 StrategyCurve3Crv.address,
                 0
             );
-            await execute(
-                'StrategyControllerV2',
-                { from: deployer },
-                'addStrategy',
-                T3CRV,
-                StrategyPickle3Crv.address,
-                ether('1000000')
-            );
         }
     }
 };
+
+module.exports.tags = ['metavault', 'live'];

@@ -1,81 +1,69 @@
 module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
     const { deploy, execute } = deployments;
-    let {
-        DAI,
-        STBZ,
-        WETH,
-        zpaDAI,
-        STBZOperator,
-        deployer,
-        unirouter
-    } = await getNamedAccounts();
+    let { DAI, DF, WETH, dDAI, dRewardsDAI, deployer, unirouter } = await getNamedAccounts();
     const chainId = await getChainId();
     const controller = await deployments.get('StrategyControllerV2');
     const vaultManager = await deployments.get('yAxisMetaVaultManager');
     const Converter = await deployments.get('StableSwap3PoolConverter');
-    const name = 'Stabilize: DAI';
-    let poolId = 0;
+    const name = 'DForce: DAI';
 
     if (chainId != '1') {
         const dai = await deployments.get('DAI');
         DAI = dai.address;
         const weth = await deployments.get('WETH');
         WETH = weth.address;
-        await deploy('STBZ', {
+        await deploy('DF', {
             from: deployer,
             contract: 'MockERC20',
             log: true,
-            args: ['Stabilize Token', 'STBZ', 18]
+            args: ['dForce', 'DF', 18]
         });
-        STBZ = await deployments.get('STBZ');
-        STBZ = STBZ.address;
-        await deploy('zpaDAI', {
+        DF = await deployments.get('DF');
+        DF = DF.address;
+        await deploy('dDAI', {
             from: deployer,
-            contract: 'MockzpaToken',
+            contract: 'MockDErc20',
             log: true,
-            args: ['Stabilize Token DAI', 'zpa-DAI', dai.address]
+            args: ['dForce DAI', 'dDAI', dai.address]
         });
-        const zpaDai = await deployments.get('zpaDAI');
-        zpaDAI = zpaDai.address;
-        const deployedSTBZPool = await deploy('MockStabilizePool', {
+        const dDai = await deployments.get('dDAI');
+        dDAI = dDai.address;
+        const deployedDRewards = await deploy('MockDRewards', {
             from: deployer,
             log: true,
-            args: [zpaDai.address, STBZ, 100]
+            args: [dDai.address, DF, 100]
         });
-        const mockStabilizePool = await deployments.get('MockStabilizePool');
-        STBZOperator = mockStabilizePool.address;
+        const mockDRewards = await deployments.get('MockDRewards');
+        dRewardsDAI = mockDRewards.address;
         const router = await deployments.get('MockUniswapRouter');
         unirouter = router.address;
-        if (deployedSTBZPool.newlyDeployed) {
+        if (deployedDRewards.newlyDeployed) {
             await execute(
-                'STBZ',
+                'DF',
                 { from: deployer },
                 'mint',
                 router.address,
                 ethers.utils.parseEther('1000')
             );
             await execute(
-                'STBZ',
+                'DF',
                 { from: deployer },
                 'mint',
-                mockStabilizePool.address,
+                mockDRewards.address,
                 ethers.utils.parseEther('1000')
             );
         }
-    } else {
-        poolId = zpaDAI.poolId;
     }
 
-    const deployedStrategy = await deploy('StrategyStabilize', {
+    const deployedStrategy = await deploy('StrategyDforce', {
         from: deployer,
         log: true,
         args: [
             name,
             DAI,
-            zpaDAI,
-            STBZOperator,
-            poolId,
-            STBZ,
+            dDAI,
+            dRewardsDAI,
+            DF,
             Converter.address,
             controller.address,
             vaultManager.address,
@@ -83,7 +71,7 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
             unirouter
         ]
     });
-    const Strategy = await deployments.get('StrategyStabilize');
+    const Strategy = await deployments.get('StrategyDforce');
     if (deployedStrategy.newlyDeployed) {
         await execute(
             'StableSwap3PoolConverter',
@@ -94,3 +82,5 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
         );
     }
 };
+
+module.exports.tags = ['metavault'];

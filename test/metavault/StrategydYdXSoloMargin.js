@@ -6,7 +6,7 @@ const hardhat = require('hardhat');
 const { deployments, ethers } = hardhat;
 const { parseEther } = ethers.utils;
 const ether = parseEther;
-const { setupTest } = require('../helpers/setup');
+const { setupTestMetavault } = require('../helpers/setup');
 
 describe('StrategydYdXSoloMargin', () => {
     let strategy,
@@ -22,7 +22,7 @@ describe('StrategydYdXSoloMargin', () => {
         router;
 
     before(async () => {
-        const config = await setupTest();
+        const config = await setupTestMetavault();
         deployer = config.deployer;
         user = config.user;
         dai = config.dai;

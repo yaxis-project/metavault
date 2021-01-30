@@ -23,3 +23,5 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
         args: [DAI, USDC, USDT, T3CRV, stableSwap3Pool, manager.address]
     });
 };
+
+module.exports.tags = ['metavault', 'live'];

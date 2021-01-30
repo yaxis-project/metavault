@@ -1,22 +1,22 @@
 {
   "name": "metavault",
   "version": "2.0.0",
-  "main": "index.js",
   "license": "MIT",
   "description": "MetaVault Contracts and ABI",
   "scripts": {
     "compile": "hardhat compile",
     "coverage": "hardhat coverage --testfiles 'test/metavault/*.js'",
-    "test": "hardhat test test/metavault/*",
-    "test:verbose": "VERBOSE=true hardhat test test/metavault/*",
-    "test:live": "VERBOSE=true LIVE=true hardhat test test/live/*",
-    "test:misc": "VERBOSE=true hardhat test test/misc/*",
+    "deploy:metavault:kovan": "hardhat deploy --network kovan --tags metavault --gasprice 1000000000",
     "lint": "eslint . && solhint contracts/**/*.sol",
-    "lint:js": "eslint.",
-    "lint:fix": "eslint . --fix",
     "lint:contracts": "solhint contracts/**/*.sol",
-    "verify:kovan": "hardhat --network kovan etherscan-verify --api-key $ETHERSCAN_API_KEY",
-    "deploy:kovan": "hardhat deploy --network kovan"
+    "lint:fix": "eslint . --fix",
+    "lint:js": "eslint.",
+    "test": "hardhat test test/metavault/*",
+    "test:live": "VERBOSE=true LIVE=true hardhat test test/live/*",
+    "test:metavault": "hardhat test test/metavault/*",
+    "test:misc": "VERBOSE=true hardhat test test/misc/*",
+    "test:verbose": "VERBOSE=true hardhat test test/metavault/*",
+    "verify:kovan": "hardhat --network kovan etherscan-verify --api-key $ETHERSCAN_API_KEY"
   },
   "repository": {
     "type": "git",
