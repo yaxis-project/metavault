@@ -412,6 +412,10 @@ contract CanonicalController is IController {
         return _vaultDetails[vaults[_token]].strategies;
     }
 
+    function strategies() external view override returns (uint256) {
+        return _vaultDetails[msg.sender].strategies.length;
+    }
+
     /**
      * PUBLIC VIEW FUNCTIONS
      */

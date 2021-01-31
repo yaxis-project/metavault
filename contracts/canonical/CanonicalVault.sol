@@ -233,22 +233,18 @@ contract CanonicalVault is ERC20, ICanonicalVault {
         uint256 _rate = (balance().mul(_shares)).div(totalSupply());
         _burn(msg.sender, _shares);
 
-        if (manager != address(0)) {
-            // expected 0.1% of withdrawal go back to vault (for auto-compounding) to protect withdrawals
-            // it is updated by governance (community vote)
-            uint256 _withdrawalProtectionFee = IManager(manager).withdrawalProtectionFee();
-            if (_withdrawalProtectionFee > 0) {
-                uint256 _withdrawalProtection = _rate.mul(_withdrawalProtectionFee).div(MAX);
-                _rate = _rate.sub(_withdrawalProtection);
-            }
+        uint256 _withdrawalProtectionFee = IManager(manager).withdrawalProtectionFee();
+        if (_withdrawalProtectionFee > 0) {
+            uint256 _withdrawalProtection = _rate.mul(_withdrawalProtectionFee).div(MAX);
+            _rate = _rate.sub(_withdrawalProtection);
         }
 
-        // Check balance
         uint256 _balance = IERC20(_output).balanceOf(address(this));
         if (_balance < _rate) {
             uint256 _toWithdraw = _rate.sub(_balance);
-            if (controller != address(0)) {
-                IController(controller).withdraw(_output, _toWithdraw);
+            IController _controller = IController(controller);
+            if (_controller.strategies() > 0) {
+                _controller.withdraw(_output, _toWithdraw);
             }
             uint256 _after = IERC20(_output).balanceOf(address(this));
             uint256 _diff = _after.sub(_balance);
