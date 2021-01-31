@@ -54,6 +54,10 @@ contract CanonicalVault is ERC20, ICanonicalVault {
         totalDepositCap = 10000000 ether;
     }
 
+    /**
+     * CONTROLLER-ONLY FUNCTIONS
+     */
+
     function addToken(
         address _token
     )
@@ -87,6 +91,10 @@ contract CanonicalVault is ERC20, ICanonicalVault {
         emit TokenRemoved(_token);
     }
 
+    /**
+     * GOVERNANCE-ONLY FUNCTIONS
+     */
+
     function setController(
         address _controller
     )
@@ -105,13 +113,18 @@ contract CanonicalVault is ERC20, ICanonicalVault {
         manager = _manager;
     }
 
-    function setMin(
-        uint256 _min
+    /**
+     * (GOVERNANCE|STRATEGIST)-ONLY FUNCTIONS
+     */
+
+    function setAllowedContract(
+        address _contract,
+        bool _allowed
     )
         external
         onlyStrategist
     {
-        min = _min;
+        allowedContracts[_contract] = _allowed;
     }
 
     function setEarnLowerlimit(
@@ -123,6 +136,15 @@ contract CanonicalVault is ERC20, ICanonicalVault {
         earnLowerlimit = _earnLowerlimit;
     }
 
+    function setMin(
+        uint256 _min
+    )
+        external
+        onlyStrategist
+    {
+        min = _min;
+    }
+
     function setTotalDepositCap(
         uint256 _totalDepositCap
     )
@@ -132,15 +154,9 @@ contract CanonicalVault is ERC20, ICanonicalVault {
         totalDepositCap = _totalDepositCap;
     }
 
-    function setAllowedContract(
-        address _contract,
-        bool _allowed
-    )
-        external
-        onlyStrategist
-    {
-        allowedContracts[_contract] = _allowed;
-    }
+    /**
+     * USER-FACING FUNCTIONS
+     */
 
     function earn(address _token)
         public
@@ -203,39 +219,6 @@ contract CanonicalVault is ERC20, ICanonicalVault {
         }
     }
 
-    function _deposit(
-        address _account,
-        address _token,
-        uint256 _balance,
-        uint256 _amount
-    )
-        internal
-        returns (uint256 _shares)
-    {
-        if (totalSupply() == 0) {
-            _shares = _amount;
-        } else {
-            _shares = (_amount.mul(totalSupply())).div(_balance);
-        }
-        if (_shares > 0) {
-            if (IERC20(_token).balanceOf(address(this)) > earnLowerlimit) {
-                earn(_token);
-            }
-            _mint(_account, _shares);
-        }
-
-        emit Deposit(_account, _shares);
-    }
-
-    function withdrawAll(
-        address _output
-    )
-        external
-        checkContract
-    {
-        withdraw(balanceOf(msg.sender), _output);
-    }
-
     function withdraw(
         uint256 _shares,
         address _output
@@ -274,6 +257,43 @@ contract CanonicalVault is ERC20, ICanonicalVault {
 
         IERC20(_output).safeTransfer(msg.sender, _rate);
         emit Withdraw(msg.sender, _rate);
+    }
+
+    function withdrawAll(
+        address _output
+    )
+        external
+        checkContract
+    {
+        withdraw(balanceOf(msg.sender), _output);
+    }
+
+    /**
+     * INTERNAL FUNCTIONS
+     */
+
+    function _deposit(
+        address _account,
+        address _token,
+        uint256 _balance,
+        uint256 _amount
+    )
+        internal
+        returns (uint256 _shares)
+    {
+        if (totalSupply() == 0) {
+            _shares = _amount;
+        } else {
+            _shares = (_amount.mul(totalSupply())).div(_balance);
+        }
+        if (_shares > 0) {
+            if (IERC20(_token).balanceOf(address(this)) > earnLowerlimit) {
+                earn(_token);
+            }
+            _mint(_account, _shares);
+        }
+
+        emit Deposit(_account, _shares);
     }
 
     /**
