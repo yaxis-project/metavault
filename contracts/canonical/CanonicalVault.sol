@@ -176,6 +176,7 @@ contract CanonicalVault is ERC20, ICanonicalVault {
         uint256 _amount
     )
         external
+        override
         checkContract
     {
         require(_amount > 0, "!_amount");
@@ -198,6 +199,7 @@ contract CanonicalVault is ERC20, ICanonicalVault {
         uint256[] calldata _amounts
     )
         external
+        override
         checkContract
     {
         uint256 _balance = balance();
@@ -263,6 +265,7 @@ contract CanonicalVault is ERC20, ICanonicalVault {
         address _output
     )
         external
+        override
         checkContract
     {
         withdraw(balanceOf(msg.sender), _output);

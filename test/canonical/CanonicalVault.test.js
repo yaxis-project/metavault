@@ -3,18 +3,18 @@ const { expect } = chai;
 const { solidity } = require('ethereum-waffle');
 chai.use(solidity);
 const hardhat = require('hardhat');
-const { ethers } = hardhat;
+const { deployments, ethers } = hardhat;
 const { parseEther } = ethers.utils;
 const ether = parseEther;
 const { setupTestCanonical } = require('../helpers/setup');
 
 describe('CanonicalVault', () => {
-    let deployer, treasury;
-    let dai, usdc, usdt, t3crv, vault, manager, controller;
+    let deployer, treasury, user;
+    let dai, usdc, usdt, t3crv, vault, manager, controller, depositor;
 
     beforeEach(async () => {
         const config = await setupTestCanonical();
-        [deployer, treasury] = await ethers.getSigners();
+        [deployer, treasury, , user] = await ethers.getSigners();
         dai = config.dai;
         usdc = config.usdc;
         usdt = config.usdt;
@@ -23,6 +23,12 @@ describe('CanonicalVault', () => {
         controller = config.controller;
         vault = config.stableVault;
         await manager.setGovernance(treasury.address);
+
+        const Depositor = await deployments.deploy('Depositor', {
+            from: user.address,
+            args: [vault.address]
+        });
+        depositor = await ethers.getContractAt('Depositor', Depositor.address, user);
     });
 
     it('should deploy with expected state', async () => {
@@ -173,6 +179,28 @@ describe('CanonicalVault', () => {
             expect(await vault.manager()).to.equal(manager.address);
             await vault.connect(treasury).setManager(dai.address);
             expect(await vault.manager()).to.equal(dai.address);
+        });
+    });
+
+    describe('setAllowedContract', () => {
+        it('should revert when called by an address other than strategist or governance', async () => {
+            expect(await vault.allowedContracts(depositor.address)).to.equal(false);
+            await expect(vault.setAllowedContract(depositor.address, true)).to.be.revertedWith(
+                '!strategist'
+            );
+            expect(await vault.allowedContracts(depositor.address)).to.equal(false);
+        });
+
+        it('should set the allowed contract when called by the strategist', async () => {
+            expect(await vault.allowedContracts(depositor.address)).to.equal(false);
+            await vault.connect(deployer).setAllowedContract(depositor.address, true);
+            expect(await vault.allowedContracts(depositor.address)).to.equal(true);
+        });
+
+        it('should set the allowed contract when called by governance', async () => {
+            expect(await vault.allowedContracts(depositor.address)).to.equal(false);
+            await vault.connect(treasury).setAllowedContract(depositor.address, true);
+            expect(await vault.allowedContracts(depositor.address)).to.equal(true);
         });
     });
 });
