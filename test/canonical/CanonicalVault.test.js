@@ -9,10 +9,12 @@ const ether = parseEther;
 const { setupTestCanonical } = require('../helpers/setup');
 
 describe('CanonicalVault', () => {
+    let deployer, treasury;
     let dai, usdc, usdt, t3crv, vault, manager, controller;
 
     beforeEach(async () => {
         const config = await setupTestCanonical();
+        [deployer, treasury] = await ethers.getSigners();
         dai = config.dai;
         usdc = config.usdc;
         usdt = config.usdt;
@@ -20,6 +22,7 @@ describe('CanonicalVault', () => {
         manager = config.manager;
         controller = config.controller;
         vault = config.stableVault;
+        await manager.setGovernance(treasury.address);
     });
 
     it('should deploy with expected state', async () => {
@@ -134,6 +137,24 @@ describe('CanonicalVault', () => {
                 expect(await vault.tokens(1)).to.equal(usdc.address);
                 expect(await vault.tokens(2)).to.equal(usdt.address);
             });
+        });
+    });
+
+    describe('setController', () => {
+        it('should revert when called by an address other than governance', async () => {
+            expect(await vault.controller()).to.equal(controller.address);
+            await expect(vault.setController(dai.address)).to.be.revertedWith('!governance');
+            expect(await vault.controller()).to.equal(controller.address);
+            await expect(
+                vault.connect(deployer).setController(dai.address)
+            ).to.be.revertedWith('!governance');
+            expect(await vault.controller()).to.equal(controller.address);
+        });
+
+        it('should set the controller', async () => {
+            expect(await vault.controller()).to.equal(controller.address);
+            await vault.connect(treasury).setController(dai.address);
+            expect(await vault.controller()).to.equal(dai.address);
         });
     });
 });
