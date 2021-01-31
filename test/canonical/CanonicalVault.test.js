@@ -225,4 +225,24 @@ describe('CanonicalVault', () => {
             expect(await vault.earnLowerlimit()).to.equal(ether('1'));
         });
     });
+
+    describe('setMin', () => {
+        it('should revert when called by an address other than strategist or governance', async () => {
+            expect(await vault.min()).to.equal(9500);
+            await expect(vault.setMin(9000)).to.be.revertedWith('!strategist');
+            expect(await vault.min()).to.equal(9500);
+        });
+
+        it('should set the min when called by the strategist', async () => {
+            expect(await vault.min()).to.equal(9500);
+            await vault.connect(deployer).setMin(9000);
+            expect(await vault.min()).to.equal(9000);
+        });
+
+        it('should set the min when called by governance', async () => {
+            expect(await vault.min()).to.equal(9500);
+            await vault.connect(treasury).setMin(9000);
+            expect(await vault.min()).to.equal(9000);
+        });
+    });
 });
