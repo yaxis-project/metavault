@@ -322,7 +322,11 @@ contract CanonicalVault is ERC20, ICanonicalVault {
         view
         returns (uint256 _balance)
     {
-        return IController(controller).balanceOf();
+        uint256 k = tokens.length;
+        for (uint8 i = 0; i < k; i++) {
+            _balance = _balance.add(IERC20(tokens[i]).balanceOf(address(this)));
+        }
+        return _balance.add(IController(controller).balanceOf());
     }
 
     function getPricePerFullShare()

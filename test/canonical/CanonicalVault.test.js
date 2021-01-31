@@ -266,4 +266,86 @@ describe('CanonicalVault', () => {
             expect(await vault.totalDepositCap()).to.equal(0);
         });
     });
+
+    describe('deposit', () => {
+        it('should revert when the amount is 0', async () => {
+            await expect(vault.deposit(dai.address, 0)).to.be.revertedWith('!_amount');
+        });
+
+        it('should revert when the token is not added', async () => {
+            await expect(vault.deposit(dai.address, 1)).to.be.revertedWith('!_token');
+        });
+
+        context('when the token is added', () => {
+            beforeEach(async () => {
+                await expect(controller.addVaultToken(dai.address, vault.address))
+                    .to.emit(vault, 'TokenAdded')
+                    .withArgs(dai.address);
+                expect((await vault.getTokens()).length).to.equal(1);
+                expect(await vault.tokens(0)).to.equal(dai.address);
+            });
+
+            it('should revert if the token is not approved for the vault to spend', async () => {
+                await expect(
+                    vault.deposit(dai.address, ether('100000000'))
+                ).to.be.revertedWith('!spender');
+            });
+
+            it('should revert if the deposit amount is greater than the total deposit cap', async () => {
+                await dai.approve(vault.address, ether('100000000'));
+                await expect(
+                    vault.deposit(dai.address, ether('100000000'))
+                ).to.be.revertedWith('>totalDepositCap');
+            });
+
+            it('should deposit', async () => {
+                expect(await vault.balanceOf(user.address)).to.equal(0);
+                await expect(vault.deposit(dai.address, ether('1000')))
+                    .to.emit(vault, 'Deposit')
+                    .withArgs(user.address, ether('1000'));
+                expect(await vault.balanceOf(user.address)).to.equal(ether('1000'));
+                expect(await vault.totalSupply()).to.equal(ether('1000'));
+            });
+
+            context('when depositing multiple times', () => {
+                beforeEach(async () => {
+                    await dai.approve(vault.address, ether('100000000'));
+                    await expect(vault.deposit(dai.address, ether('1000')))
+                        .to.emit(vault, 'Deposit')
+                        .withArgs(user.address, ether('1000'));
+                    expect(await vault.balanceOf(user.address)).to.equal(ether('1000'));
+                    expect(await vault.totalSupply()).to.equal(ether('1000'));
+                });
+
+                it('should grant additional shares', async () => {
+                    await expect(vault.deposit(dai.address, ether('1000')))
+                        .to.emit(vault, 'Deposit')
+                        .withArgs(user.address, ether('1000'));
+                    expect(await vault.balanceOf(user.address)).to.equal(ether('2000'));
+                    expect(await vault.totalSupply()).to.equal(ether('2000'));
+                });
+            });
+
+            context('when depositing from a contract', () => {
+                beforeEach(async () => {
+                    await dai.transfer(depositor.address, ether('1000'));
+                });
+
+                it('should revert if not allowed', async () => {
+                    await expect(
+                        depositor.depositVault(dai.address, ether('1000'))
+                    ).to.be.revertedWith('!allowedContracts');
+                });
+
+                it('should deposit if allowed', async () => {
+                    await vault.connect(deployer).setAllowedContract(depositor.address, true);
+                    await expect(depositor.depositVault(dai.address, ether('1000')))
+                        .to.emit(vault, 'Deposit')
+                        .withArgs(depositor.address, ether('1000'));
+                    expect(await vault.balanceOf(depositor.address)).to.equal(ether('1000'));
+                    expect(await vault.totalSupply()).to.equal(ether('1000'));
+                });
+            });
+        });
+    });
 });
