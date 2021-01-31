@@ -157,4 +157,22 @@ describe('CanonicalVault', () => {
             expect(await vault.controller()).to.equal(dai.address);
         });
     });
+
+    describe('setManager', () => {
+        it('should revert when called by an address other than governance', async () => {
+            expect(await vault.manager()).to.equal(manager.address);
+            await expect(vault.setManager(dai.address)).to.be.revertedWith('!governance');
+            expect(await vault.manager()).to.equal(manager.address);
+            await expect(vault.connect(deployer).setManager(dai.address)).to.be.revertedWith(
+                '!governance'
+            );
+            expect(await vault.manager()).to.equal(manager.address);
+        });
+
+        it('should set the manager', async () => {
+            expect(await vault.manager()).to.equal(manager.address);
+            await vault.connect(treasury).setManager(dai.address);
+            expect(await vault.manager()).to.equal(dai.address);
+        });
+    });
 });
