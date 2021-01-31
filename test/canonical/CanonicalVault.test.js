@@ -203,4 +203,26 @@ describe('CanonicalVault', () => {
             expect(await vault.allowedContracts(depositor.address)).to.equal(true);
         });
     });
+
+    describe('setEarnLowerlimit', () => {
+        it('should revert when called by an address other than strategist or governance', async () => {
+            expect(await vault.earnLowerlimit()).to.equal(ether('500'));
+            await expect(vault.setEarnLowerlimit(ether('1'))).to.be.revertedWith(
+                '!strategist'
+            );
+            expect(await vault.earnLowerlimit()).to.equal(ether('500'));
+        });
+
+        it('should set the earn lower limit when called by the strategist', async () => {
+            expect(await vault.earnLowerlimit()).to.equal(ether('500'));
+            await vault.connect(deployer).setEarnLowerlimit(ether('1'));
+            expect(await vault.earnLowerlimit()).to.equal(ether('1'));
+        });
+
+        it('should set the earn lower limit when called by governance', async () => {
+            expect(await vault.earnLowerlimit()).to.equal(ether('500'));
+            await vault.connect(treasury).setEarnLowerlimit(ether('1'));
+            expect(await vault.earnLowerlimit()).to.equal(ether('1'));
+        });
+    });
 });
