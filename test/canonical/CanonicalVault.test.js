@@ -38,6 +38,7 @@ describe('CanonicalVault', () => {
         expect(await vault.earnLowerlimit()).to.equal(ether('500'));
         expect(await vault.totalDepositCap()).to.equal(ether('10000000'));
         expect((await vault.getTokens()).length).to.equal(0);
+        expect(await vault.withdrawFee(ether('1'))).to.equal(ether('0.001'));
     });
 
     describe('addToken', () => {
@@ -243,6 +244,26 @@ describe('CanonicalVault', () => {
             expect(await vault.min()).to.equal(9500);
             await vault.connect(treasury).setMin(9000);
             expect(await vault.min()).to.equal(9000);
+        });
+    });
+
+    describe('setTotalDepositCap', () => {
+        it('should revert when called by an address other than strategist or governance', async () => {
+            expect(await vault.totalDepositCap()).to.equal(ether('10000000'));
+            await expect(vault.setTotalDepositCap(0)).to.be.revertedWith('!strategist');
+            expect(await vault.totalDepositCap()).to.equal(ether('10000000'));
+        });
+
+        it('should set the total deposit cap when called by the strategist', async () => {
+            expect(await vault.totalDepositCap()).to.equal(ether('10000000'));
+            await vault.connect(deployer).setTotalDepositCap(0);
+            expect(await vault.totalDepositCap()).to.equal(0);
+        });
+
+        it('should set the total deposit cap when called by governance', async () => {
+            expect(await vault.totalDepositCap()).to.equal(ether('10000000'));
+            await vault.connect(treasury).setTotalDepositCap(0);
+            expect(await vault.totalDepositCap()).to.equal(0);
         });
     });
 });
