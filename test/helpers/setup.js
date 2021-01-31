@@ -95,9 +95,9 @@ exports.setupTestCanonical = deployments.createFixture(
         );
 
         await dai.faucet(ethers.utils.parseEther('100000000'));
-        await usdc.faucet('1000000000');
-        await usdt.faucet('1000000000');
-        await t3crv.faucet(ethers.utils.parseEther('1000'));
+        await usdc.faucet('100000000000000');
+        await usdt.faucet('100000000000000');
+        await t3crv.faucet(ethers.utils.parseEther('100000000'));
         await dai.approve(StableVault.address, ethers.utils.parseEther('1000'), {
             from: user
         });

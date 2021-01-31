@@ -13,6 +13,7 @@ import "./interfaces/IManager.sol";
 import "./interfaces/IController.sol";
 import "./interfaces/IConverter.sol";
 import "./interfaces/ICanonicalVault.sol";
+import "./interfaces/ExtendedIERC20.sol";
 
 contract CanonicalVault is ERC20, ICanonicalVault {
     using Address for address;
@@ -202,11 +203,10 @@ contract CanonicalVault is ERC20, ICanonicalVault {
         override
         checkContract
     {
-        uint256 _balance = balance();
-
         for (uint8 i = 0; i < _amounts.length; i++) {
             if (_amounts[i] > 0) {
                 require(IController(controller).vaults(_tokens[i]) == address(this), "!_tokens");
+                uint256 _balance = balance();
                 uint256 _before = IERC20(_tokens[i]).balanceOf(address(this));
 
                 IERC20(_tokens[i]).safeTransferFrom(msg.sender, address(this), _amounts[i]);
@@ -284,11 +284,14 @@ contract CanonicalVault is ERC20, ICanonicalVault {
         internal
         returns (uint256 _shares)
     {
+        _amount = _normalizeDecimals(_token, _amount);
+
         if (totalSupply() == 0) {
             _shares = _amount;
         } else {
             _shares = (_amount.mul(totalSupply())).div(_balance);
         }
+
         if (_shares > 0) {
             if (IERC20(_token).balanceOf(address(this)) > earnLowerlimit) {
                 earn(_token);
@@ -324,7 +327,8 @@ contract CanonicalVault is ERC20, ICanonicalVault {
     {
         uint256 k = tokens.length;
         for (uint8 i = 0; i < k; i++) {
-            _balance = _balance.add(IERC20(tokens[i]).balanceOf(address(this)));
+            address _token = tokens[i];
+            _balance = _balance.add(_normalizeDecimals(_token, IERC20(_token).balanceOf(address(this))));
         }
         return _balance.add(IController(controller).balanceOf());
     }
@@ -356,6 +360,21 @@ contract CanonicalVault is ERC20, ICanonicalVault {
         returns (uint256)
     {
         return IManager(manager).withdrawalProtectionFee().mul(_amount).div(MAX);
+    }
+
+    function _normalizeDecimals(
+        address _token,
+        uint256 _amount
+    )
+        internal
+        view
+        returns (uint256)
+    {
+        uint256 _decimals = uint256(ExtendedIERC20(_token).decimals());
+        if (_decimals < 18) {
+            _amount = _amount.mul(10**(18-_decimals));
+        }
+        return _amount;
     }
 
     /**

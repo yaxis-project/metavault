@@ -348,4 +348,122 @@ describe('CanonicalVault', () => {
             });
         });
     });
+
+    describe('depositAll', () => {
+        it('should revert when a token is not added', async () => {
+            await expect(vault.depositAll([dai.address], [1])).to.be.revertedWith('!_tokens');
+        });
+
+        context('when tokens are added', () => {
+            beforeEach(async () => {
+                await expect(controller.addVaultToken(dai.address, vault.address))
+                    .to.emit(vault, 'TokenAdded')
+                    .withArgs(dai.address);
+                await expect(controller.addVaultToken(usdc.address, vault.address))
+                    .to.emit(vault, 'TokenAdded')
+                    .withArgs(usdc.address);
+                expect((await vault.getTokens()).length).to.equal(2);
+                expect(await vault.tokens(0)).to.equal(dai.address);
+                expect(await vault.tokens(1)).to.equal(usdc.address);
+            });
+
+            it('should revert when a token is not added', async () => {
+                await expect(
+                    vault.depositAll([dai.address, usdt.address], [1, 1])
+                ).to.be.revertedWith('!_tokens');
+            });
+
+            it('should revert if the deposit amount is greater than the total deposit cap', async () => {
+                await dai.approve(vault.address, ether('100000000'));
+                await expect(
+                    vault.depositAll([dai.address, usdt.address], [ether('100000000'), 1])
+                ).to.be.revertedWith('>totalDepositCap');
+            });
+
+            it('should deposit single token', async () => {
+                expect(await vault.balanceOf(user.address)).to.equal(0);
+                await expect(vault.depositAll([dai.address], [ether('1000')]))
+                    .to.emit(vault, 'Deposit')
+                    .withArgs(user.address, ether('1000'));
+                expect(await vault.balanceOf(user.address)).to.equal(ether('1000'));
+                expect(await vault.totalSupply()).to.equal(ether('1000'));
+            });
+
+            it('should deposit multiple tokens', async () => {
+                expect(await vault.balanceOf(user.address)).to.equal(0);
+                await expect(
+                    vault.depositAll(
+                        [dai.address, usdc.address],
+                        [ether('1000'), '1000000000']
+                    )
+                )
+                    // Deposit is actually emitted multiple times
+                    .to.emit(vault, 'Deposit')
+                    .withArgs(user.address, ether('1000'));
+                expect(await vault.balanceOf(user.address)).to.equal(ether('2000'));
+                expect(await vault.totalSupply()).to.equal(ether('2000'));
+            });
+
+            context('when depositing multiple tokens multiple times', () => {
+                beforeEach(async () => {
+                    expect(await vault.balanceOf(user.address)).to.equal(0);
+                    await expect(
+                        vault.depositAll(
+                            [dai.address, usdc.address],
+                            [ether('1000'), '1000000000']
+                        )
+                    )
+                        .to.emit(vault, 'Deposit')
+                        .withArgs(user.address, ether('1000'));
+                    expect(await vault.balanceOf(user.address)).to.equal(ether('2000'));
+                    expect(await vault.totalSupply()).to.equal(ether('2000'));
+                });
+
+                it('should grant additional shares', async () => {
+                    await dai.approve(vault.address, ether('1000'));
+                    await usdc.approve(vault.address, '1000000000');
+                    await expect(
+                        vault.depositAll(
+                            [dai.address, usdc.address],
+                            [ether('1000'), '1000000000']
+                        )
+                    )
+                        .to.emit(vault, 'Deposit')
+                        .withArgs(user.address, ether('1000'));
+                    expect(await vault.balanceOf(user.address)).to.equal(ether('4000'));
+                    expect(await vault.totalSupply()).to.equal(ether('4000'));
+                });
+            });
+
+            context('when depositing from a contract', () => {
+                beforeEach(async () => {
+                    await dai.transfer(depositor.address, ether('1000'));
+                    await usdc.transfer(depositor.address, '1000000000');
+                });
+
+                it('should revert if not allowed', async () => {
+                    await expect(
+                        depositor.depositAllVault(
+                            [dai.address, usdc.address],
+                            [ether('1000'), '1000000000']
+                        )
+                    ).to.be.revertedWith('!allowedContracts');
+                });
+
+                it('should deposit if allowed', async () => {
+                    await vault.connect(deployer).setAllowedContract(depositor.address, true);
+                    await expect(
+                        depositor.depositAllVault(
+                            [dai.address, usdc.address],
+                            [ether('1000'), '1000000000']
+                        )
+                    )
+                        .to.emit(vault, 'Deposit')
+                        .withArgs(depositor.address, ether('1000'));
+                    expect(await vault.balanceOf(depositor.address)).to.equal(ether('2000'));
+                    expect(await vault.totalSupply()).to.equal(ether('2000'));
+                });
+            });
+        });
+    });
 });
