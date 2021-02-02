@@ -166,18 +166,28 @@ contract yAxisMetaVault is ERC20, IMetaVault {
 
     // Return reward multiplier over the given _from to _to block.
     function getMultiplier(uint256 _from, uint256 _to) public view returns (uint256) {
+        // start at the end of the epochs
         for (uint8 epochId = 5; epochId >= 1; --epochId) {
+            // if the current block number is after the previous epoch ends
             if (_to >= epochEndBlocks[epochId - 1]) {
+                // if the last reward block is after the last epoch: return the number of blocks multiplied by this epochs multiplier
                 if (_from >= epochEndBlocks[epochId - 1]) return _to.sub(_from).mul(epochRewardMultiplers[epochId]);
+                // get the multiplier amount for the remaining reward of the current epoch
                 uint256 multiplier = _to.sub(epochEndBlocks[epochId - 1]).mul(epochRewardMultiplers[epochId]);
+                // if epoch is 1: return the remaining current epoch reward with the first epoch reward
                 if (epochId == 1) return multiplier.add(epochEndBlocks[0].sub(_from).mul(epochRewardMultiplers[0]));
+                // for all epochs in between the first and last epoch
                 for (epochId = epochId - 1; epochId >= 1; --epochId) {
+                    // if the last reward block is after the previous epoch: return the current remaining reward with the previous epoch
                     if (_from >= epochEndBlocks[epochId - 1]) return multiplier.add(epochEndBlocks[epochId].sub(_from).mul(epochRewardMultiplers[epochId]));
+                    // accumulate the multipler with the reward from the epoch
                     multiplier = multiplier.add(epochEndBlocks[epochId].sub(epochEndBlocks[epochId - 1]).mul(epochRewardMultiplers[epochId]));
                 }
+                // return the accumulated multiplier with the reward from the first epoch
                 return multiplier.add(epochEndBlocks[0].sub(_from).mul(epochRewardMultiplers[0]));
             }
         }
+        // return the reward amount for epoch 0
         return _to.sub(_from).mul(epochRewardMultiplers[0]);
     }
 
