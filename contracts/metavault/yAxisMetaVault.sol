@@ -168,7 +168,7 @@ contract yAxisMetaVault is ERC20, IMetaVault {
     function getMultiplier(uint256 _from, uint256 _to) public view returns (uint256) {
         // start at the end of the epochs
         for (uint8 epochId = 5; epochId >= 1; --epochId) {
-            // if the current block number is after the previous epoch ends
+            // if _to (the current block number if called within this contract) is after the previous epoch ends
             if (_to >= epochEndBlocks[epochId - 1]) {
                 // if the last reward block is after the previous epoch: return the number of blocks multiplied by this epochs multiplier
                 if (_from >= epochEndBlocks[epochId - 1]) return _to.sub(_from).mul(epochRewardMultiplers[epochId]);
