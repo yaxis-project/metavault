@@ -170,13 +170,13 @@ contract yAxisMetaVault is ERC20, IMetaVault {
         for (uint8 epochId = 5; epochId >= 1; --epochId) {
             // if the current block number is after the previous epoch ends
             if (_to >= epochEndBlocks[epochId - 1]) {
-                // if the last reward block is after the last epoch: return the number of blocks multiplied by this epochs multiplier
+                // if the last reward block is after the previous epoch: return the number of blocks multiplied by this epochs multiplier
                 if (_from >= epochEndBlocks[epochId - 1]) return _to.sub(_from).mul(epochRewardMultiplers[epochId]);
                 // get the multiplier amount for the remaining reward of the current epoch
                 uint256 multiplier = _to.sub(epochEndBlocks[epochId - 1]).mul(epochRewardMultiplers[epochId]);
                 // if epoch is 1: return the remaining current epoch reward with the first epoch reward
                 if (epochId == 1) return multiplier.add(epochEndBlocks[0].sub(_from).mul(epochRewardMultiplers[0]));
-                // for all epochs in between the first and last epoch
+                // for all epochs in between the first and current epoch
                 for (epochId = epochId - 1; epochId >= 1; --epochId) {
                     // if the last reward block is after the previous epoch: return the current remaining reward with the previous epoch
                     if (_from >= epochEndBlocks[epochId - 1]) return multiplier.add(epochEndBlocks[epochId].sub(_from).mul(epochRewardMultiplers[epochId]));
@@ -187,7 +187,7 @@ contract yAxisMetaVault is ERC20, IMetaVault {
                 return multiplier.add(epochEndBlocks[0].sub(_from).mul(epochRewardMultiplers[0]));
             }
         }
-        // return the reward amount for epoch 0
+        // return the reward amount between _from and _to in the first epoch
         return _to.sub(_from).mul(epochRewardMultiplers[0]);
     }
 
