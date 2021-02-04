@@ -35,7 +35,7 @@ The following behavior is forbidden and will cause the reporter to be ineligible
 
 Please send reports to: https://immunefi.com/bounty/yaxis/
 
-Or email: security@yaxis.finance
+Or email: security@yaxis.io
 
 Or reach out to the Team role on Discord: https://discord.gg/FxakjWT
 
