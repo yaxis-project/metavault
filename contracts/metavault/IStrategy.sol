@@ -13,5 +13,5 @@ interface IStrategy {
     function want() external view returns (address);
     function withdraw(address) external;
     function withdraw(uint256) external;
-    function withdrawAll() external returns (uint256);
+    function withdrawAll() external;
 }

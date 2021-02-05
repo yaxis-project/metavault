@@ -5,6 +5,7 @@ pragma solidity 0.6.12;
 import "@openzeppelin/contracts/math/SafeMath.sol";
 
 import "./IController.sol";
+import "./IHarvester.sol";
 import "./IVaultManager.sol";
 
 /**
@@ -13,7 +14,7 @@ import "./IVaultManager.sol";
  * harvest on all strategies for any given token. It has its own
  * permissions for harvesters (set by the strategist or governance).
  */
-contract yAxisMetaVaultHarvester { // solhint-disable-line contract-name-camelcase
+contract yAxisMetaVaultHarvester is IHarvester { // solhint-disable-line contract-name-camelcase
     using SafeMath for uint256;
 
     IVaultManager public vaultManager;
@@ -84,7 +85,7 @@ contract yAxisMetaVaultHarvester { // solhint-disable-line contract-name-camelca
         address _token,
         address _strategy,
         uint256 _timeout
-    ) external onlyStrategist {
+    ) external override onlyStrategist {
         strategies[_token].addresses.push(_strategy);
         strategies[_token].timeout = _timeout;
         emit StrategyAdded(_token, _strategy, _timeout);
@@ -100,7 +101,7 @@ contract yAxisMetaVaultHarvester { // solhint-disable-line contract-name-camelca
         address _token,
         address _strategy,
         uint256 _timeout
-    ) external onlyStrategist {
+    ) external override onlyStrategist {
         uint256 tail = strategies[_token].addresses.length;
         uint256 index;
         bool found;
@@ -111,11 +112,13 @@ contract yAxisMetaVaultHarvester { // solhint-disable-line contract-name-camelca
                 break;
             }
         }
-        require(found, "!found");
-        strategies[_token].addresses[index] = strategies[_token].addresses[tail.sub(1)];
-        strategies[_token].addresses.pop();
-        strategies[_token].timeout = _timeout;
-        emit StrategyRemoved(_token, _strategy, _timeout);
+
+        if (found) {
+            strategies[_token].addresses[index] = strategies[_token].addresses[tail.sub(1)];
+            strategies[_token].addresses.pop();
+            strategies[_token].timeout = _timeout;
+            emit StrategyRemoved(_token, _strategy, _timeout);
+        }
     }
 
     /**
@@ -226,7 +229,8 @@ contract yAxisMetaVaultHarvester { // solhint-disable-line contract-name-camelca
     }
 
     modifier onlyStrategist() {
-        require(msg.sender == vaultManager.strategist()
+        require(vaultManager.controllers(msg.sender)
+             || msg.sender == vaultManager.strategist()
              || msg.sender == vaultManager.governance(),
              "!strategist"
         );

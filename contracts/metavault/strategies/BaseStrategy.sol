@@ -43,6 +43,12 @@ abstract contract BaseStrategy is IStrategy {
     IVaultManager public vaultManager;
     ISwap public router;
 
+    event ApproveForSpender(address token, address spender, uint256 amount);
+    event SetController(address controller);
+    event SetRouter(address router);
+    event Skim();
+    event Withdraw(address vault, uint256 amount);
+
     /**
      * @param _controller The address of the controller
      * @param _vaultManager The address of the vaultManager
@@ -58,6 +64,11 @@ abstract contract BaseStrategy is IStrategy {
         address _weth,
         address _router
     ) public {
+        require(_controller != address(0), "!_controller");
+        require(_vaultManager != address(0), "!_vaultManager");
+        require(_want != address(0), "!_want");
+        require(_weth != address(0), "!_weth");
+        require(_router != address(0), "!_router");
         name = _name;
         want = _want;
         controller = _controller;
@@ -80,6 +91,7 @@ abstract contract BaseStrategy is IStrategy {
     function approveForSpender(IERC20 _token, address _spender, uint256 _amount) external {
         require(msg.sender == vaultManager.governance(), "!governance");
         _token.safeApprove(_spender, _amount);
+        emit ApproveForSpender(address(_token), _spender, _amount);
     }
 
     /**
@@ -89,6 +101,7 @@ abstract contract BaseStrategy is IStrategy {
     function setController(address _controller) external {
         require(msg.sender == vaultManager.governance(), "!governance");
         controller = _controller;
+        emit SetController(_controller);
     }
 
     /**
@@ -100,6 +113,7 @@ abstract contract BaseStrategy is IStrategy {
         router = ISwap(_router);
         IERC20(weth).safeApprove(address(_router), 0);
         IERC20(weth).safeApprove(address(_router), type(uint256).max);
+        emit SetRouter(_router);
     }
 
     /**
@@ -125,6 +139,7 @@ abstract contract BaseStrategy is IStrategy {
      */
     function skim() external override onlyAuthorized {
         IERC20(want).safeTransfer(controller, balanceOfWant());
+        emit Skim();
     }
 
     /**
@@ -154,20 +169,22 @@ abstract contract BaseStrategy is IStrategy {
         address _vault = IController(controller).vaults(_token);
         require(_vault != address(0), "!vault"); // additional protection so we don't burn the funds
         IERC20(_token).safeTransfer(_vault, _amount);
+        emit Withdraw(_vault, _amount);
     }
 
     /**
      * @notice Withdraws all funds from the strategy
      */
-    function withdrawAll() external override onlyAuthorized returns (uint256 _balance) {
+    function withdrawAll() external override onlyAuthorized {
         _withdrawAll();
 
         address _token = _vaultWant();
-        _balance = IERC20(_token).balanceOf(address(this));
+        uint256 _balance = IERC20(_token).balanceOf(address(this));
 
         address _vault = IController(controller).vaults(_token);
         require(_vault != address(0), "!vault"); // additional protection so we don't burn the funds
         IERC20(_token).safeTransfer(_vault, _balance);
+        emit Withdraw(_vault, _balance);
     }
 
     /**

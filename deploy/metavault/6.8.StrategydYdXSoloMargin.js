@@ -1,5 +1,5 @@
 module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
-    const { deploy, execute } = deployments;
+    const { deploy } = deployments;
     let { DAI, USDC, WETH, deployer, unirouter, dYdXSoloMargin } = await getNamedAccounts();
     const chainId = await getChainId();
     const controller = await deployments.get('StrategyControllerV2');
@@ -28,7 +28,7 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
         dYdXSoloMargin = deployeddYdXSoloMargin.address;
     }
 
-    const deployedStrategy = await deploy('StrategydYdXSoloMargin', {
+    await deploy('StrategydYdXSoloMargin', {
         from: deployer,
         contract: 'StrategydYdXSoloMargin',
         log: true,
@@ -42,16 +42,6 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
             unirouter
         ]
     });
-    if (deployedStrategy.newlyDeployed) {
-        const Strategy = await deployments.get('StrategydYdXSoloMargin');
-        await execute(
-            'StableSwap3PoolConverter',
-            { from: deployer },
-            'setStrategy',
-            Strategy.address,
-            true
-        );
-    }
 };
 
 module.exports.tags = ['metavault'];

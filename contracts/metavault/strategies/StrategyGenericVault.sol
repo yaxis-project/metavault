@@ -48,6 +48,8 @@ contract StrategyGenericVault is BaseStrategy {
             _router
         )
     {
+        require(_vault != address(0), "!_vault");
+        require(_converter != address(0), "!_converter");
         vault = _vault;
         converter = IConverter(_converter);
         IERC20(IGenericVault(_vault).token()).safeApprove(_vault, type(uint256).max);

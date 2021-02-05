@@ -18,6 +18,7 @@ describe('StrategydYdXSoloMargin', () => {
         weth,
         vault,
         vaultManager,
+        converter,
         controller,
         router;
 
@@ -31,6 +32,7 @@ describe('StrategydYdXSoloMargin', () => {
         weth = config.weth;
         vault = config.vault;
         vaultManager = config.vaultManager;
+        converter = config.converter;
         controller = config.controller;
         router = config.router;
 
@@ -41,7 +43,17 @@ describe('StrategydYdXSoloMargin', () => {
             deployer
         );
 
-        await controller.addStrategy(t3crv.address, Strategy.address, 0, { from: deployer });
+        await controller.addStrategy(
+            t3crv.address,
+            Strategy.address,
+            0,
+            converter.address,
+            false,
+            0,
+            {
+                from: deployer
+            }
+        );
     });
 
     beforeEach(async () => {

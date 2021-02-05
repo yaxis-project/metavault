@@ -8,7 +8,7 @@ const { parseEther } = ethers.utils;
 const ether = parseEther;
 const { setupTestMetavault } = require('../helpers/setup');
 
-describe('StrategyCurve3Crv', () => {
+describe('BaseStrategy', () => {
     let strategy,
         deployer,
         user,
@@ -39,8 +39,15 @@ describe('StrategyCurve3Crv', () => {
         const Strategy = await deployments.get('StrategyCurve3Crv');
         strategy = await ethers.getContractAt('StrategyCurve3Crv', Strategy.address, deployer);
 
-        await harvester.addStrategy(t3crv.address, Strategy.address, 0, { from: deployer });
-        await controller.addStrategy(t3crv.address, Strategy.address, 0, { from: deployer });
+        await controller.addStrategy(
+            t3crv.address,
+            Strategy.address,
+            0,
+            ethers.constants.AddressZero,
+            true,
+            0,
+            { from: deployer }
+        );
         await vaultManager.setInsurancePool(insurancePool, { from: deployer });
         await vaultManager.setInsurancePoolFee(100, { from: deployer });
     });

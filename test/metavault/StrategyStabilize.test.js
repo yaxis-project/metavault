@@ -22,6 +22,7 @@ describe('StrategyStabilize', () => {
         vault,
         vaultManager,
         harvester,
+        converter,
         controller,
         router;
 
@@ -39,14 +40,22 @@ describe('StrategyStabilize', () => {
         vault = config.vault;
         vaultManager = config.vaultManager;
         harvester = config.harvester;
+        converter = config.converter;
         controller = config.controller;
         router = config.router;
 
         const Strategy = await deployments.get('StrategyStabilize');
         strategy = await ethers.getContractAt('StrategyStabilize', Strategy.address, deployer);
 
-        await harvester.addStrategy(t3crv.address, Strategy.address, 0, { from: deployer });
-        await controller.addStrategy(t3crv.address, Strategy.address, 0, { from: deployer });
+        await controller.addStrategy(
+            t3crv.address,
+            Strategy.address,
+            0,
+            converter.address,
+            true,
+            0,
+            { from: deployer }
+        );
     });
 
     beforeEach(async () => {
