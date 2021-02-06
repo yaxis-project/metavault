@@ -50,6 +50,8 @@ contract StrategydYdXSoloMargin is BaseStrategy {
         _router
     )
     {
+        require(_dYdX != address(0), "!_dYdX");
+        require(_converter != address(0), "!_converter");
         dYdX = _dYdX;
         marketId = _marketId;
         converter = IConverter(_converter);

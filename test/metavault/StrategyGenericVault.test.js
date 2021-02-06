@@ -61,8 +61,17 @@ describe('StrategyGenericVault', () => {
             deployer
         );
 
-        await controller.addStrategy(t3crv.address, Strategy.address, 0, { from: deployer });
-        await converter.setStrategy(Strategy.address, { from: deployer });
+        await controller.addStrategy(
+            t3crv.address,
+            Strategy.address,
+            0,
+            converter.address,
+            false,
+            0,
+            {
+                from: deployer
+            }
+        );
     });
 
     beforeEach(async () => {

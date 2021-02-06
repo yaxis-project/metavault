@@ -38,6 +38,13 @@ contract StrategyCurve3Crv is BaseStrategy {
         public
         BaseStrategy(_name, _controller, _vaultManager, _want, _weth, _router)
     {
+        require(_crv != address(0), "!_crv");
+        require(_dai != address(0), "!_dai");
+        require(_usdc != address(0), "!_usdc");
+        require(_usdt != address(0), "!_usdt");
+        require(address(_gauge) != address(0), "!_gauge");
+        require(address(_crvMintr) != address(0), "!_crvMintr");
+        require(address(_stableSwap3Pool) != address(0), "!_stableSwap3Pool");
         crv = _crv;
         dai = _dai;
         usdc = _usdc;

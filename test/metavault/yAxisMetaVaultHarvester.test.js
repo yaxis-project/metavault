@@ -162,9 +162,6 @@ describe('yAxisMetaVaultHarvester', () => {
     });
 
     it('should remove strategies', async () => {
-        await expect(harvester.removeStrategy(t3crv.address, user, 300)).to.be.revertedWith(
-            '!found'
-        );
         await expect(harvester.removeStrategy(t3crv.address, strategyDforce.address, 300))
             .to.emit(harvester, 'StrategyRemoved')
             .withArgs(t3crv.address, strategyDforce.address, 300);

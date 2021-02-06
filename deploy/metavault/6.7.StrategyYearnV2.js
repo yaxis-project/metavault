@@ -1,5 +1,5 @@
 module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
-    const { deploy, execute } = deployments;
+    const { deploy } = deployments;
     let { DAI, WETH, yvDAI, deployer, unirouter } = await getNamedAccounts();
     const chainId = await getChainId();
     const controller = await deployments.get('StrategyControllerV2');
@@ -24,7 +24,7 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
         unirouter = router.address;
     }
 
-    const deployedStrategy = await deploy('StrategyYearnV2', {
+    await deploy('StrategyYearnV2', {
         from: deployer,
         log: true,
         args: [
@@ -38,17 +38,6 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
             unirouter
         ]
     });
-
-    if (deployedStrategy.newlyDeployed) {
-        const Strategy = await deployments.get('StrategyYearnV2');
-        await execute(
-            'StableSwap3PoolConverter',
-            { from: deployer },
-            'setStrategy',
-            Strategy.address,
-            true
-        );
-    }
 };
 
 module.exports.tags = ['metavault'];

@@ -45,8 +45,15 @@ describe('StrategyCurve3Crv', () => {
         const Strategy = await deployments.get('StrategyCurve3Crv');
         strategy = await ethers.getContractAt('StrategyCurve3Crv', Strategy.address, deployer);
 
-        await harvester.addStrategy(t3crv.address, Strategy.address, 0, { from: deployer });
-        await controller.addStrategy(t3crv.address, Strategy.address, 0, { from: deployer });
+        await controller.addStrategy(
+            t3crv.address,
+            Strategy.address,
+            0,
+            ethers.constants.AddressZero,
+            true,
+            0,
+            { from: deployer }
+        );
     });
 
     beforeEach(async () => {

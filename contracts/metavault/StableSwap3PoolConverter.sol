@@ -17,8 +17,12 @@ contract StableSwap3PoolConverter is IConverter {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
 
+    uint256 public constant ONE_HUNDRED_PERCENT = 10000;
+
+    uint256[3] public PRECISION_MUL = [1, 1e12, 1e12];
     IERC20[3] public tokens; // DAI, USDC, USDT
     IERC20 public token3CRV; // 3Crv
+    uint256 public slippage = 100;
 
     IStableSwap3Pool public stableSwap3Pool;
     IVaultManager public vaultManager;
@@ -57,8 +61,13 @@ contract StableSwap3PoolConverter is IConverter {
         vaultManager = _vaultManager;
     }
 
-    function setStrategy(address _strategy, bool _status) external onlyGovernance {
+    function setStrategy(address _strategy, bool _status) external override onlyGovernance {
         strategies[_strategy] = _status;
+    }
+
+    function setSlippage(uint256 _slippage) external onlyGovernance {
+        require(_slippage < ONE_HUNDRED_PERCENT, "!_slippage");
+        slippage = _slippage;
     }
 
     function approveForSpender(
@@ -78,13 +87,14 @@ contract StableSwap3PoolConverter is IConverter {
         address _output,
         uint256 _inputAmount
     ) external override onlyAuthorized returns (uint256 _outputAmount) {
+        uint256 _expected = _inputAmount.sub(_inputAmount.mul(slippage).div(ONE_HUNDRED_PERCENT));
         if (_output == address(token3CRV)) { // convert to 3CRV
             uint256[3] memory amounts;
             for (uint8 i = 0; i < 3; i++) {
                 if (_input == address(tokens[i])) {
                     amounts[i] = _inputAmount;
                     uint256 _before = token3CRV.balanceOf(address(this));
-                    stableSwap3Pool.add_liquidity(amounts, 1);
+                    stableSwap3Pool.add_liquidity(amounts, _expected);
                     uint256 _after = token3CRV.balanceOf(address(this));
                     _outputAmount = _after.sub(_before);
                     token3CRV.safeTransfer(msg.sender, _outputAmount);
@@ -95,7 +105,7 @@ contract StableSwap3PoolConverter is IConverter {
             for (uint8 i = 0; i < 3; i++) {
                 if (_output == address(tokens[i])) {
                     uint256 _before = tokens[i].balanceOf(address(this));
-                    stableSwap3Pool.remove_liquidity_one_coin(_inputAmount, i, 1);
+                    stableSwap3Pool.remove_liquidity_one_coin(_inputAmount, i, _expected.div(PRECISION_MUL[i]));
                     uint256 _after = tokens[i].balanceOf(address(this));
                     _outputAmount = _after.sub(_before);
                     tokens[i].safeTransfer(msg.sender, _outputAmount);
@@ -180,7 +190,8 @@ contract StableSwap3PoolConverter is IConverter {
     }
 
     modifier onlyGovernance() {
-        require(msg.sender == vaultManager.governance(), "!governance");
+        require(vaultManager.controllers(msg.sender)
+            || msg.sender == vaultManager.governance(), "!governance");
         _;
     }
 }

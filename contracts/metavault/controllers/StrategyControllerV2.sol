@@ -6,6 +6,7 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import "../IController.sol";
 import "../IConverter.sol";
+import "../IHarvester.sol";
 import "../IMetaVault.sol";
 import "../IStrategy.sol";
 import "../IVaultManager.sol";
@@ -57,6 +58,16 @@ contract StrategyControllerV2 is IController {
     event InsuranceClaimed(address indexed vault);
 
     /**
+     * @notice Logged when a converter is set
+     */
+    event SetConverter(address input, address output, address converter);
+
+    /**
+     * @notice Logged when a vault manager is set
+     */
+    event SetVaultManager(address vaultManager);
+
+    /**
      * @notice Logged when a strategy is added for a token
      */
     event StrategyAdded(address indexed token, address indexed strategy, uint256 cap);
@@ -98,7 +109,10 @@ contract StrategyControllerV2 is IController {
     function addStrategy(
         address _token,
         address _strategy,
-        uint256 _cap
+        uint256 _cap,
+        address _converter,
+        bool _canHarvest,
+        uint256 _timeout
     ) external onlyGovernance {
         // ensure the strategy hasn't been added
         require(!tokenStrategies[_token].active[_strategy], "active");
@@ -106,7 +120,10 @@ contract StrategyControllerV2 is IController {
         // ensure a converter is added if the strategy's want token is
         // different than the want token of the vault
         if (_want != IMetaVault(vaults[_token]).want()) {
-            require(converters[_token][_want] != address(0), "!converter");
+            require(_converter != address(0), "!_converter");
+            converters[_token][_want] = _converter;
+            // enable the strategy on the converter
+            IConverter(_converter).setStrategy(_strategy, true);
         }
         // get the index of the newly added strategy
         uint256 index = tokenStrategies[_token].strategies.length;
@@ -122,6 +139,11 @@ contract StrategyControllerV2 is IController {
         tokenStrategies[_token].active[_strategy] = true;
         // store the reverse mapping
         strategyTokens[_strategy] = _token;
+        // if the strategy should be harvested
+        if (_canHarvest) {
+            // add it to the harvester
+            IHarvester(vaultManager.harvester()).addStrategy(_token, _strategy, _timeout);
+        }
         emit StrategyAdded(_token, _strategy, _cap);
     }
 
@@ -145,6 +167,7 @@ contract StrategyControllerV2 is IController {
      */
     function setVaultManager(address _vaultManager) external onlyGovernance {
         vaultManager = IVaultManager(_vaultManager);
+        emit SetVaultManager(_vaultManager);
     }
 
     /**
@@ -189,7 +212,8 @@ contract StrategyControllerV2 is IController {
      */
     function removeStrategy(
         address _token,
-        address _strategy
+        address _strategy,
+        uint256 _timeout
     ) external onlyStrategist {
         TokenStrategy storage tokenStrategy = tokenStrategies[_token];
         // ensure the strategy is already added
@@ -214,6 +238,15 @@ contract StrategyControllerV2 is IController {
         delete tokenStrategy.active[_strategy];
         // pull funds from the removed strategy to the vault
         IStrategy(_strategy).withdrawAll();
+        // remove the strategy from the harvester
+        IHarvester(vaultManager.harvester()).removeStrategy(_token, _strategy, _timeout);
+        // get the strategy want token
+        address _want = IStrategy(_strategy).want();
+        // if a converter is used
+        if (_want != IMetaVault(vaults[_token]).want()) {
+            // disable the strategy on the converter
+            IConverter(converters[_token][_want]).setStrategy(_strategy, false);
+        }
         emit StrategyRemoved(_token, _strategy);
     }
 
@@ -283,6 +316,7 @@ contract StrategyControllerV2 is IController {
         address _converter
     ) external onlyStrategist {
         converters[_input][_output] = _converter;
+        emit SetConverter(_input, _output, _converter);
     }
 
     /**
@@ -300,7 +334,8 @@ contract StrategyControllerV2 is IController {
      * @param _maxStrategies The new value of the maximum strategies
      */
     function setMaxStrategies(uint256 _maxStrategies) external onlyStrategist {
-      maxStrategies = _maxStrategies;
+        require(_maxStrategies > 0, "!_maxStrategies");
+        maxStrategies = _maxStrategies;
     }
 
     /**
@@ -488,10 +523,10 @@ contract StrategyControllerV2 is IController {
         uint256 _amount
     ) public view returns (address _strategy) {
         // get the index of the last strategy
-        uint256 k = tokenStrategies[_token].strategies.length.sub(1);
+        uint256 k = tokenStrategies[_token].strategies.length;
         // scan backwards from the index to the beginning of strategies
-        for (uint i = k; i >= 0; i--) {
-            _strategy = tokenStrategies[_token].strategies[i];
+        for (uint i = k; i > 0; i--) {
+            _strategy = tokenStrategies[_token].strategies[i - 1];
             // get the new balance if the _amount were added to the strategy
             uint256 balance = IStrategy(_strategy).balanceOf().add(_amount);
             uint256 cap = tokenStrategies[_token].caps[_strategy];

@@ -9,7 +9,15 @@ const ether = parseEther;
 const { setupTestMetavault } = require('../helpers/setup');
 
 describe('StrategyControllerV2', () => {
-    let deployer, user, dai, t3crv, vault, controller, strategyCurve3Crv, strategyPickle3Crv;
+    let deployer,
+        user,
+        dai,
+        t3crv,
+        vault,
+        controller,
+        converter,
+        strategyCurve3Crv,
+        strategyPickle3Crv;
 
     before(async () => {
         const config = await setupTestMetavault();
@@ -18,6 +26,7 @@ describe('StrategyControllerV2', () => {
         dai = config.dai;
         t3crv = config.t3crv;
         controller = config.controller;
+        converter = config.converter;
         const Vault = await deployments.get('yAxisMetaVault');
         vault = await ethers.getContractAt('yAxisMetaVault', Vault.address, user);
         const StrategyCurve3Crv = await deployments.get('StrategyCurve3Crv');
@@ -47,12 +56,12 @@ describe('StrategyControllerV2', () => {
             user
         );
         await expect(controllerFail.setVault(user, user)).to.be.revertedWith('!strategist');
-        await expect(controllerFail.removeStrategy(user, user)).to.be.revertedWith(
+        await expect(controllerFail.removeStrategy(user, user, 0)).to.be.revertedWith(
             '!strategist'
         );
-        await expect(controllerFail.addStrategy(user, user, 0)).to.be.revertedWith(
-            '!governance'
-        );
+        await expect(
+            controllerFail.addStrategy(user, user, 0, converter.address, false, 0)
+        ).to.be.revertedWith('!governance');
         await expect(controllerFail.setVaultManager(user)).to.be.revertedWith('!governance');
         await expect(controllerFail.setCap(user, user, 0)).to.be.revertedWith('!strategist');
         await expect(controllerFail.setInvestEnabled(false)).to.be.revertedWith('!strategist');
@@ -69,7 +78,16 @@ describe('StrategyControllerV2', () => {
     });
 
     it('should add a strategy', async () => {
-        await expect(controller.addStrategy(t3crv.address, strategyCurve3Crv.address, 0))
+        await expect(
+            controller.addStrategy(
+                t3crv.address,
+                strategyCurve3Crv.address,
+                0,
+                converter.address,
+                true,
+                0
+            )
+        )
             .to.emit(controller, 'StrategyAdded')
             .withArgs(t3crv.address, strategyCurve3Crv.address, 0);
         const strategies = await controller.strategies(t3crv.address);
@@ -95,13 +113,27 @@ describe('StrategyControllerV2', () => {
     it('should obey maximum strategies amount', async () => {
         await controller.setMaxStrategies(1);
         await expect(
-            controller.addStrategy(t3crv.address, strategyPickle3Crv.address, ether('10'))
+            controller.addStrategy(
+                t3crv.address,
+                strategyPickle3Crv.address,
+                ether('10'),
+                converter.address,
+                true,
+                0
+            )
         ).to.be.revertedWith('!maxStrategies');
         await controller.setMaxStrategies(10);
     });
 
     it('should add an additional strategy', async () => {
-        await controller.addStrategy(t3crv.address, strategyPickle3Crv.address, ether('10'));
+        await controller.addStrategy(
+            t3crv.address,
+            strategyPickle3Crv.address,
+            ether('10'),
+            converter.address,
+            true,
+            0
+        );
         const strategies = await controller.strategies(t3crv.address);
         expect(strategies.length).to.equal(2);
         expect(strategyCurve3Crv.address).to.equal(strategies[0]);
@@ -194,7 +226,7 @@ describe('StrategyControllerV2', () => {
     });
 
     it('should remove strategies', async () => {
-        await expect(controller.removeStrategy(t3crv.address, strategyPickle3Crv.address))
+        await expect(controller.removeStrategy(t3crv.address, strategyPickle3Crv.address, 0))
             .to.emit(controller, 'StrategyRemoved')
             .withArgs(t3crv.address, strategyPickle3Crv.address);
         const strategies = await controller.strategies(t3crv.address);
@@ -215,7 +247,7 @@ describe('StrategyControllerV2', () => {
     });
 
     it('should allow all strategies to be removed', async () => {
-        await controller.removeStrategy(t3crv.address, strategyCurve3Crv.address);
+        await controller.removeStrategy(t3crv.address, strategyCurve3Crv.address, 0);
         const strategies = await controller.strategies(t3crv.address);
         expect(strategies.length).to.equal(0);
     });
@@ -228,7 +260,14 @@ describe('StrategyControllerV2', () => {
     });
 
     it('should earn to a newly added strategy', async () => {
-        await controller.addStrategy(t3crv.address, strategyCurve3Crv.address, 0);
+        await controller.addStrategy(
+            t3crv.address,
+            strategyCurve3Crv.address,
+            0,
+            converter.address,
+            true,
+            0
+        );
         const strategies = await controller.strategies(t3crv.address);
         expect(strategies.length).to.equal(1);
         expect(strategyCurve3Crv.address).to.equal(strategies[0]);

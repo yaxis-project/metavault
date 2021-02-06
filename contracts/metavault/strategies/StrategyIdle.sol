@@ -27,6 +27,10 @@ contract StrategyIdle is BaseStrategy {
         public
         BaseStrategy(_name, _controller, _vaultManager, _underlying, _weth, _router)
     {
+        require(_idleYieldToken != address(0), "!_idleYieldToken");
+        require(_IDLE != address(0), "!_IDLE");
+        require(_COMP != address(0), "!_COMP");
+        require(_converter != address(0), "!_converter");
         idleYieldToken = _idleYieldToken;
         IDLE = _IDLE;
         COMP = _COMP;

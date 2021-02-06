@@ -55,7 +55,7 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
         }
     }
 
-    const deployedStrategy = await deploy('StrategyDforce', {
+    await deploy('StrategyDforce', {
         from: deployer,
         log: true,
         args: [
@@ -71,16 +71,6 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
             unirouter
         ]
     });
-    const Strategy = await deployments.get('StrategyDforce');
-    if (deployedStrategy.newlyDeployed) {
-        await execute(
-            'StableSwap3PoolConverter',
-            { from: deployer },
-            'setStrategy',
-            Strategy.address,
-            true
-        );
-    }
 };
 
 module.exports.tags = ['metavault'];

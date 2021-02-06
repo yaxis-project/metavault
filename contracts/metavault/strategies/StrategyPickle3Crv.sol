@@ -28,6 +28,10 @@ contract StrategyPickle3Crv is BaseStrategy {
     IStableSwap3Pool public stableSwap3Pool;
     address public stableForAddLiquidity;
 
+    event SetStableForAddLiquidity(address stableForAddLiquidity);
+    event SetPickleMasterChef(address pickleMasterChef);
+    event SetPoolId(uint256 poolId);
+
     constructor(
         string memory _name,
         address _want,
@@ -47,6 +51,14 @@ contract StrategyPickle3Crv is BaseStrategy {
         public
         BaseStrategy(_name, _controller, _vaultManager, _want, _weth, _router)
     {
+        require(_p3crv != address(0), "!_p3crv");
+        require(_pickle != address(0), "!_pickle");
+        require(_dai != address(0), "!_dai");
+        require(_usdc != address(0), "!_usdc");
+        require(_usdt != address(0), "!_usdt");
+        require(address(_pickleMasterChef) != address(0), "!_pickleMasterChef");
+        require(_stableForAddLiquidity != address(0), "!_stableForAddLiquidity");
+        require(address(_stableSwap3Pool) != address(0), "!_stableSwap3Pool");
         p3crv = _p3crv;
         pickle = _pickle;
         dai = _dai;
@@ -62,17 +74,24 @@ contract StrategyPickle3Crv is BaseStrategy {
     }
 
     function setStableForLiquidity(address _stableForAddLiquidity) external onlyAuthorized {
+        require(_stableForAddLiquidity == dai
+            || _stableForAddLiquidity == usdc
+            || _stableForAddLiquidity == usdt,
+            "!_stableForAddLiquidity");
         stableForAddLiquidity = _stableForAddLiquidity;
+        emit SetStableForAddLiquidity(_stableForAddLiquidity);
     }
 
     function setPickleMasterChef(PickleMasterChef _pickleMasterChef) external onlyAuthorized {
         pickleMasterChef = _pickleMasterChef;
         IERC20(p3crv).safeApprove(address(_pickleMasterChef), 0);
         IERC20(p3crv).safeApprove(address(_pickleMasterChef), type(uint256).max);
+        emit SetPickleMasterChef(address(_pickleMasterChef));
     }
 
     function setPoolId(uint _poolId) external onlyAuthorized {
         poolId = _poolId;
+        emit SetPoolId(_poolId);
     }
 
     function _deposit() internal override {

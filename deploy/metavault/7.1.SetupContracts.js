@@ -158,20 +158,14 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
         // mainnet
         if (chainId == '1' && (await controller.strategies(T3CRV)).length < 1) {
             await execute(
-                'yAxisMetaVaultHarvester',
-                { from: deployer },
-                'addStrategy',
-                T3CRV,
-                StrategyCurve3Crv.address,
-                86400
-            );
-            await execute(
                 'StrategyControllerV2',
                 { from: deployer },
                 'addStrategy',
                 T3CRV,
                 StrategyCurve3Crv.address,
-                0
+                0,
+                true,
+                86400
             );
         }
     }

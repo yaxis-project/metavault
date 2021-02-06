@@ -32,6 +32,8 @@ contract StrategyYearnV2 is BaseStrategy {
             _router
         )
     {
+        require(_yvToken != address(0), "!_yvToken");
+        require(_converter != address(0), "!_converter");
         yvToken = _yvToken;
         converter = IConverter(_converter);
         IERC20(_underlying).safeApprove(_converter, type(uint256).max);

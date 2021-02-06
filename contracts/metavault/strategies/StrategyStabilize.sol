@@ -35,6 +35,10 @@ contract StrategyStabilize is BaseStrategy {
         public
         BaseStrategy(_name, _controller, _vaultManager, _underlying, _weth, _router)
     {
+        require(_zpaToken != address(0), "!_zpaToken");
+        require(_pool != address(0), "!_pool");
+        require(_STBZ != address(0), "!_STBZ");
+        require(_converter != address(0), "!_converter");
         zpaToken = _zpaToken;
         pool = _pool;
         poolId = _poolId;

@@ -26,7 +26,14 @@ describe('stuck_funds.test', () => {
             StrategyCurve3Crv.address,
             deployer
         );
-        await controller.addStrategy(t3crv.address, strategyCurve3Crv.address, 0);
+        await controller.addStrategy(
+            t3crv.address,
+            strategyCurve3Crv.address,
+            0,
+            ethers.constants.AddressZero,
+            true,
+            0
+        );
     });
 
     it('deposit', async () => {

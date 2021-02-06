@@ -27,6 +27,10 @@ contract StrategyDforce is BaseStrategy {
         public
         BaseStrategy(_name, _controller, _vaultManager, _underlying, _weth, _router)
     {
+        require(_dToken != address(0), "!_dToken");
+        require(_pool != address(0), "!_pool");
+        require(_DF != address(0), "!_DF");
+        require(_converter != address(0), "!_converter");
         dToken = _dToken;
         pool = _pool;
         DF = _DF;
