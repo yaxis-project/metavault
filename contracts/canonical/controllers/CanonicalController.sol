@@ -197,7 +197,7 @@ contract CanonicalController is IController {
         // pull funds from the removed strategy to the vault
         IStrategy(_strategy).withdrawAll();
         // remove the strategy from the harvester
-        IHarvester(manager.harvester()).removeStrategy(_token, _strategy, _timeout);
+        IHarvester(manager.harvester()).removeStrategy(_vault, _strategy, _timeout);
         emit StrategyRemoved(_vault, _strategy);
     }
 
