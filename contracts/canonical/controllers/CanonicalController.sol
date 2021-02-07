@@ -8,6 +8,7 @@ import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import "../interfaces/IController.sol";
 import "../interfaces/IConverter.sol";
 import "../interfaces/ICanonicalVault.sol";
+import "../interfaces/IHarvester.sol";
 import "../interfaces/IStrategy.sol";
 import "../interfaces/IManager.sol";
 
@@ -90,12 +91,16 @@ contract CanonicalController is IController {
      * @param _token The address of the token
      * @param _strategy The address of the strategy
      * @param _cap The cap of the strategy
+     * @param _canHarvest Flag to determine if the added strategy can be harvested
+     * @param _timeout The timeout between harvests
      */
     function addStrategy(
         address _vault,
         address _token,
         address _strategy,
-        uint256 _cap
+        uint256 _cap,
+        bool _canHarvest,
+        uint256 _timeout
     ) external onlyGovernance {
         require(vaults[_token] != address(0), "!vaults");
         require(_vaultDetails[_vault].converter != address(0), "!converter");
@@ -109,6 +114,11 @@ contract CanonicalController is IController {
         _vaultDetails[_vault].caps[_strategy] = _cap;
         // set the index
         _vaultDetails[_vault].index[_strategy] = index;
+        // if the strategy should be harvested
+        if (_canHarvest) {
+            // add it to the harvester
+            IHarvester(manager.harvester()).addStrategy(_token, _strategy, _timeout);
+        }
         emit StrategyAdded(_token, _strategy, _cap);
     }
 
@@ -160,10 +170,12 @@ contract CanonicalController is IController {
      * @dev Only callable by governance or strategist
      * @param _vault The address of the vault
      * @param _strategy The address of the strategy
+     * @param _timeout The timeout between harvests
      */
     function removeStrategy(
         address _vault,
-        address _strategy
+        address _strategy,
+        uint256 _timeout
     ) external onlyStrategist {
         VaultDetail storage vaultDetail = _vaultDetails[_vault];
         // get the index of the strategy to remove
@@ -184,6 +196,8 @@ contract CanonicalController is IController {
         delete vaultDetail.caps[_strategy];
         // pull funds from the removed strategy to the vault
         IStrategy(_strategy).withdrawAll();
+        // remove the strategy from the harvester
+        IHarvester(manager.harvester()).removeStrategy(_token, _strategy, _timeout);
         emit StrategyRemoved(_vault, _strategy);
     }
 
