@@ -156,10 +156,10 @@ abstract contract BaseStrategy is IStrategy {
     /**
      * @notice Withdraws all funds from the strategy
      */
-    function withdrawAll() external override onlyAuthorized returns (uint256 _balance) {
+    function withdrawAll() external override onlyAuthorized {
         _withdrawAll();
 
-        _balance = IERC20(want).balanceOf(address(this));
+        uint256 _balance = IERC20(want).balanceOf(address(this));
 
         IERC20(want).safeTransfer(controller, _balance);
     }
