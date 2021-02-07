@@ -445,11 +445,9 @@ contract CanonicalController is IController {
     ) public view returns (address _strategy) {
         uint256 k = _vaultDetails[_vault].strategies.length;
         if (k > 0) {
-            // get the index of the last strategy
-            k = k - 1;
             // scan backwards from the index to the beginning of strategies
-            for (uint i = k; i >= 0; i--) {
-                _strategy = _vaultDetails[_vault].strategies[i];
+            for (uint i = k; i > 0; i--) {
+                _strategy = _vaultDetails[_vault].strategies[i - 1];
                 // get the new balance if the _amount were added to the strategy
                 uint256 balance = IStrategy(_strategy).balanceOf().add(_amount);
                 uint256 cap = _vaultDetails[_vault].caps[_strategy];
