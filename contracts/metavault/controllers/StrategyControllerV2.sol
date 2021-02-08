@@ -266,6 +266,7 @@ contract StrategyControllerV2 is IController {
         address _strategy1,
         address _strategy2
     ) external onlyStrategist {
+        require(_strategy1 != _strategy2, "_strategy1 == _strategy2");
         TokenStrategy storage tokenStrategy = tokenStrategies[_token];
         // ensure the strategies are already added
         require(tokenStrategy.active[_strategy1]
