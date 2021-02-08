@@ -105,6 +105,9 @@ contract StrategyControllerV2 is IController {
      * @param _token The address of the token
      * @param _strategy The address of the strategy
      * @param _cap The cap of the strategy
+     * @param _converter The converter of the strategy (can be zero address)
+     * @param _canHarvest Flag for whether the strategy can be harvested
+     * @param _timeout The timeout between harvests
      */
     function addStrategy(
         address _token,
@@ -209,6 +212,7 @@ contract StrategyControllerV2 is IController {
      * @dev Only callable by governance or strategist
      * @param _token The address of the token
      * @param _strategy The address of the strategy
+     * @param _timeout The timeout between harvests
      */
     function removeStrategy(
         address _token,
@@ -262,6 +266,7 @@ contract StrategyControllerV2 is IController {
         address _strategy1,
         address _strategy2
     ) external onlyStrategist {
+        require(_strategy1 != _strategy2, "_strategy1 == _strategy2");
         TokenStrategy storage tokenStrategy = tokenStrategies[_token];
         // ensure the strategies are already added
         require(tokenStrategy.active[_strategy1]
