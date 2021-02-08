@@ -27,4 +27,5 @@ interface IConverter {
         uint _shares,
         address _output
     ) external view returns (uint _outputAmount);
+    function setStrategy(address _strategy, bool _status) external;
 }
