@@ -144,10 +144,10 @@ describe('StrategyControllerV2', () => {
     });
 
     it('should deposit into second strategy', async () => {
-        await expect(vault.deposit(ether('10'), dai.address, 1, true))
+        await expect(vault.deposit(ether('1'), dai.address, 1, true))
             .to.emit(controller, 'Earn')
             .withArgs(strategyPickle3Crv.address);
-        expect(await dai.balanceOf(user)).to.equal(ether('980'));
+        expect(await dai.balanceOf(user)).to.equal(ether('989'));
     });
 
     it('should reorder strategies', async () => {
@@ -173,7 +173,7 @@ describe('StrategyControllerV2', () => {
 
     it('should withdraw excess funds when reducing a strategy cap', async () => {
         const before = await strategyPickle3Crv.balanceOf();
-        await controller.setCap(t3crv.address, strategyPickle3Crv.address, ether('5'));
+        await controller.setCap(t3crv.address, strategyPickle3Crv.address, ether('1'));
         const after = await strategyPickle3Crv.balanceOf();
         expect(before).to.be.above(after);
     });
@@ -187,7 +187,7 @@ describe('StrategyControllerV2', () => {
         await expect(vault.deposit(_amount, dai.address, 1, true))
             .to.emit(controller, 'Earn')
             .withArgs(strategyCurve3Crv.address);
-        expect(await dai.balanceOf(user)).to.equal(ether('970'));
+        expect(await dai.balanceOf(user)).to.equal(ether('979'));
     });
 
     it('should withdraw small amounts', async () => {
@@ -215,7 +215,7 @@ describe('StrategyControllerV2', () => {
     });
 
     it('should withdraw large amounts from multiple strategies', async () => {
-        const _amount = ether('70');
+        const _amount = ether('86');
         const strategies = await controller.getBestStrategyWithdraw(t3crv.address, _amount);
         expect(strategyCurve3Crv.address).to.equal(strategies._strategies[0]);
         expect(strategyPickle3Crv.address).to.equal(strategies._strategies[1]);

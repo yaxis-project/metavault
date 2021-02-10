@@ -40,7 +40,7 @@ describe('stuck_funds.test', () => {
         const _amount = ether('10');
         await vault.deposit(_amount, dai.address, 1, true, { from: user });
         expect(await dai.balanceOf(user)).to.equal(ether('990'));
-        expect(await controller.balanceOf(t3crv.address)).to.be.equal(ether('9.519'));
+        expect(await controller.balanceOf(t3crv.address)).to.be.least(ether('10'));
         expect(await vault.getPricePerFullShare()).to.be.least(ether('1'));
     });
 
@@ -66,7 +66,8 @@ describe('stuck_funds.test', () => {
 
     it('stuck t3crv.address (core) in strategy', async () => {
         expect(await t3crv.balanceOf(strategyCurve3Crv.address)).to.equal(0);
-        await t3crv.mint(strategyCurve3Crv.address, ether('1'));
+        await t3crv.faucet(ether('1'));
+        await t3crv.transfer(strategyCurve3Crv.address, ether('1'));
         expect(await t3crv.balanceOf(strategyCurve3Crv.address)).to.equal(ether('1'));
         expect(await t3crv.balanceOf(controller.address)).to.equal(0); // controller has no t3crv.address
         await expect(
@@ -77,6 +78,6 @@ describe('stuck_funds.test', () => {
         expect(await t3crv.balanceOf(controller.address)).to.equal(ether('1')); // controller has t3crv.address now
         await controller.inCaseTokensGetStuck(t3crv.address, ether('1'));
         expect(await t3crv.balanceOf(controller.address)).to.equal(0); // controller has no t3crv.address now
-        expect(await t3crv.balanceOf(deployer)).to.equal(ether('1')); // governance has t3crv.address now
+        expect(await t3crv.balanceOf(deployer)).to.be.least(ether('1')); // governance has t3crv.address now
     });
 });

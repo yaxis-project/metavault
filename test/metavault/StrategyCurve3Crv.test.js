@@ -92,9 +92,9 @@ describe('StrategyCurve3Crv', () => {
     });
 
     it('should withdraw to DAI', async () => {
-        expect((await vault.userInfo(user)).amount).to.equal(ether('10.02'));
+        expect((await vault.userInfo(user)).amount).to.be.least(ether('10'));
         await vault.withdraw(ether('5'), dai.address, { from: user });
-        expect((await vault.userInfo(user)).amount).to.equal(ether('5.02'));
+        expect((await vault.userInfo(user)).amount).to.be.least(ether('5'));
         expect(await dai.balanceOf(user)).to.be.least(ether('994.99'));
     });
 

@@ -115,6 +115,12 @@ contract MockERC20 {
         return true;
     }
 
+    function burnFrom(address src, uint amt) public _onlyOwner_ returns (bool) {
+        require(_balance[src] >= amt, "!bal");
+        _burn(src, amt);
+        return true;
+    }
+
     function transfer(address dst, uint amt) external returns (bool) {
         _move(msg.sender, dst, amt);
         return true;
@@ -128,5 +134,9 @@ contract MockERC20 {
             emit Approval(msg.sender, dst, _allowance[src][msg.sender]);
         }
         return true;
+    }
+
+    function transferOwnership(address newOwner) external _onlyOwner_ {
+        _owner = newOwner;
     }
 }

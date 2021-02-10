@@ -60,6 +60,8 @@ exports.setupTestMetavault = deployments.createFixture(
             Controller.address,
             deployer
         );
+        const Pool = await deployments.get('MockStableSwap3Pool');
+        const pool = await ethers.getContractAt('MockStableSwap3Pool', Pool.address, user);
         const Converter = await deployments.get('StableSwap3PoolConverter');
         const converter = await ethers.getContractAt(
             'StableSwap3PoolConverter',
@@ -100,6 +102,7 @@ exports.setupTestMetavault = deployments.createFixture(
             harvester,
             controller,
             converter,
+            pool,
             router
         };
     }
