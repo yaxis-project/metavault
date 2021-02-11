@@ -33,22 +33,21 @@ describe('yAxisMetaVault', () => {
     });
 
     it('should depositAll', async () => {
-        const _amounts = ['0', '10000000', '10000000', ether('10')];
+        const _amounts = ['0', '10000000', '10000000', 0];
         await vault.depositAll(_amounts, 1, true);
         expect(await dai.balanceOf(user)).to.equal(ether('990'));
         expect(await usdc.balanceOf(user)).to.equal('990000000');
         expect(await usdt.balanceOf(user)).to.equal('990000000');
-        expect(await t3crv.balanceOf(user)).to.equal(ether('990'));
     });
 
     it('should stakeShares', async () => {
         const _amount = '10000000';
         await vault.deposit(_amount, usdc.address, 1, false);
         const _shares = await vault.balanceOf(user);
-        expect(_shares).to.be.least(ether('10'));
+        expect(_shares).to.be.least(ether('9.99'));
         await vault.stakeShares(_shares, { from: user });
         const userInfo = await vault.userInfo(user);
-        expect(userInfo.amount).to.be.least(ether('50'));
+        expect(userInfo.amount).to.be.least(ether('3.99'));
     });
 
     it('should pendingYax', async () => {
@@ -67,7 +66,7 @@ describe('yAxisMetaVault', () => {
     it('should unstake', async () => {
         await vault.unstake(ether('20'));
         const userInfo = await vault.userInfo(user);
-        expect(userInfo.amount).to.be.least(ether('30'));
+        expect(userInfo.amount).to.be.least(ether('9.9'));
     });
 
     it('should withdraw T3CRV', async () => {
@@ -99,7 +98,7 @@ describe('yAxisMetaVault', () => {
         await vault.withdraw(ether('10'), usdc.address);
         const after = await usdc.balanceOf(user);
         expect(await vault.balanceOf(user)).to.equal(ether('0'));
-        expect((await vault.userInfo(user)).amount).to.be.least(ether('25'));
+        expect((await vault.userInfo(user)).amount).to.be.least(ether('14.99'));
         expect(after).to.be.above(before);
     });
 

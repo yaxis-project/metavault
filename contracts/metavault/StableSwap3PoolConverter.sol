@@ -82,7 +82,7 @@ contract StableSwap3PoolConverter is IConverter {
 
     function getExpected(uint256 _inputAmount) public view returns (uint256) {
         return _inputAmount.mul(
-                    stableSwap3Pool.get_virtual_price().mul(
+                    oracle.getEthereumPrice().mul(
                         oracle.getMinimumPrice()
                     ).div(1e18)
                 ).div(1e18);

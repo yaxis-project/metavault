@@ -45,23 +45,29 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
         });
         const t3crv = await deployments.get('T3CRV');
 
+        await deploy('ETHUSD', {
+            from: deployer,
+            log: true,
+            contract: 'MockV3Aggregator',
+            args: [8, '179166558581']
+        });
         await deploy('DAIETH', {
             from: deployer,
             log: true,
             contract: 'MockV3Aggregator',
-            args: [18, '572861574198426']
+            args: [18, '555695000000000']
         });
         await deploy('USDCETH', {
             from: deployer,
             log: true,
             contract: 'MockV3Aggregator',
-            args: [18, '573053842544943']
+            args: [18, '558246603865858']
         });
         await deploy('USDTETH', {
             from: deployer,
             log: true,
             contract: 'MockV3Aggregator',
-            args: [18, '574080000000000']
+            args: [18, '559000000000000']
         });
 
         await deploy('MockUniswapRouter', {

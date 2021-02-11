@@ -10,6 +10,7 @@ const { setupTestMetavault } = require('../helpers/setup');
 
 describe('BaseStrategy', () => {
     let strategy,
+        sigDeployer,
         deployer,
         user,
         insurancePool,
@@ -26,6 +27,7 @@ describe('BaseStrategy', () => {
         const config = await setupTestMetavault();
         deployer = config.deployer;
         user = await ethers.provider.getSigner(config.user);
+        sigDeployer = await ethers.provider.getSigner(deployer);
         insurancePool = config.insurancePool;
         yax = config.yax;
         dai = config.dai;
@@ -81,7 +83,7 @@ describe('BaseStrategy', () => {
     });
 
     it('should skim stuck tokens out of the strategy', async () => {
-        await t3crv.transfer(strategy.address, 1);
+        await t3crv.connect(sigDeployer).transfer(strategy.address, 1);
         expect(await t3crv.balanceOf(strategy.address)).to.equal(1);
         await strategy.skim();
         expect(await t3crv.balanceOf(strategy.address)).to.equal(0);

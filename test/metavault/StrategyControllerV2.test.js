@@ -215,7 +215,7 @@ describe('StrategyControllerV2', () => {
     });
 
     it('should withdraw large amounts from multiple strategies', async () => {
-        const _amount = ether('86');
+        const _amount = ether('65');
         const strategies = await controller.getBestStrategyWithdraw(t3crv.address, _amount);
         expect(strategyCurve3Crv.address).to.equal(strategies._strategies[0]);
         expect(strategyPickle3Crv.address).to.equal(strategies._strategies[1]);

@@ -66,6 +66,9 @@ module.exports = {
             default: 0,
             42: '0x36D68d13dD18Fe8076833Ef99245Ef33B00A7259'
         },
+        ETHUSD: {
+            1: '0x5f4eC3Df9cbd43714FE2740f5E3616155c5b8419'
+        },
         gauge: {
             1: '0xbFcF63294aD7105dEa65aA58F8AE5BE2D9d0952A'
         },

@@ -40,7 +40,7 @@ describe('stuck_funds.test', () => {
         const _amount = ether('10');
         await vault.deposit(_amount, dai.address, 1, true, { from: user });
         expect(await dai.balanceOf(user)).to.equal(ether('990'));
-        expect(await controller.balanceOf(t3crv.address)).to.be.least(ether('10'));
+        expect(await controller.balanceOf(t3crv.address)).to.be.least(ether('9.49'));
         expect(await vault.getPricePerFullShare()).to.be.least(ether('1'));
     });
 

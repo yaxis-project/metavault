@@ -12,19 +12,34 @@ contract StableSwap3PoolOracle is IStableSwap3PoolOracle {
 
     uint256 public constant MAX_ROUND_TIME = 1 hours;
     uint256 public constant MAX_STALE_ANSWER = 24 hours;
+    uint256 public constant ETH_USD_MUL = 1e10; // ETH-USD feed is to 8 decimals
 
+    address public ethUsd;
     address[3] public feeds;
 
     constructor(
+        address _feedETHUSD,
         address _feedDAIETH,
         address _feedUSDCETH,
         address _feedUSDTETH
     )
         public
     {
+        ethUsd = _feedETHUSD;
         feeds[0] = _feedDAIETH;
         feeds[1] = _feedUSDCETH;
         feeds[2] = _feedUSDTETH;
+    }
+
+    /**
+     * @notice Retrieves the current price of ETH/USD as provided by Chainlink
+     * @dev Reverts if the answer from Chainlink is not safe
+     */
+    function getEthereumPrice() external view override returns (uint256 _price) {
+        _price = getSafeAnswer(ethUsd);
+        require(_price > 0, "!getEthereumPrice");
+        _price = _price.mul(ETH_USD_MUL);
+
     }
 
     /**
@@ -46,9 +61,7 @@ contract StableSwap3PoolOracle is IStableSwap3PoolOracle {
 
         // if we couldn't get a valid price from any of the Chainlink feeds,
         // revert because nothing is safe
-        if (_minPrice == 0) {
-            revert("!getMinimumPrice");
-        }
+        require(_minPrice > 0, "!getMinimumPrice");
     }
 
     /**

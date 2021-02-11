@@ -56,36 +56,36 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
             { from: deployer },
             'mint',
             deployer,
-            ethers.utils.parseEther('1000')
+            ethers.utils.parseEther('10000000000000')
         );
-        await execute('USDC', { from: deployer }, 'mint', deployer, '1000000000');
-        await execute('USDT', { from: deployer }, 'mint', deployer, '1000000000');
+        await execute('USDC', { from: deployer }, 'mint', deployer, '10000000000000000000');
+        await execute('USDT', { from: deployer }, 'mint', deployer, '10000000000000000000');
         await execute(
             'DAI',
             { from: deployer },
             'approve',
             StableSwap3Pool.address,
-            ethers.utils.parseEther('1000')
+            ethers.constants.MaxUint256
         );
         await execute(
             'USDC',
             { from: deployer },
             'approve',
             StableSwap3Pool.address,
-            '1000000000'
+            ethers.constants.MaxUint256
         );
         await execute(
             'USDT',
             { from: deployer },
             'approve',
             StableSwap3Pool.address,
-            '1000000000'
+            ethers.constants.MaxUint256
         );
         await execute(
             'MockStableSwap3Pool',
             { from: deployer },
             'add_liquidity',
-            [ethers.utils.parseEther('1000'), '1000000000', '1000000000'],
+            [ethers.utils.parseEther('200000000'), '200000000000000', '200000000000000'],
             0
         );
     }

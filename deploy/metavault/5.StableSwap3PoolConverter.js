@@ -5,6 +5,7 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
         USDC,
         USDT,
         T3CRV,
+        ETHUSD,
         DAIETH,
         USDCETH,
         USDTETH,
@@ -23,6 +24,8 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
         USDT = usdt.address;
         const t3crv = await deployments.get('T3CRV');
         T3CRV = t3crv.address;
+        const ethUsd = await deployments.get('ETHUSD');
+        ETHUSD = ethUsd.address;
         const daiEth = await deployments.get('DAIETH');
         DAIETH = daiEth.address;
         const usdcEth = await deployments.get('USDCETH');
@@ -36,7 +39,7 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
     await deploy('StableSwap3PoolOracle', {
         from: deployer,
         log: true,
-        args: [DAIETH, USDCETH, USDTETH]
+        args: [ETHUSD, DAIETH, USDCETH, USDTETH]
     });
     const oracle = await deployments.get('StableSwap3PoolOracle');
 

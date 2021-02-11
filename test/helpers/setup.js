@@ -28,6 +28,7 @@ exports.setupTestMetavault = deployments.createFixture(
             treasury,
             insurancePool
         } = await getNamedAccounts();
+        const sigDeployer = await ethers.provider.getSigner(deployer);
         const YAX = await deployments.get('YAX');
         const yax = await ethers.getContractAt('MockERC20', YAX.address, user);
         const DAI = await deployments.get('DAI');
@@ -78,11 +79,10 @@ exports.setupTestMetavault = deployments.createFixture(
         await dai.faucet(ethers.utils.parseEther('1000'));
         await usdc.faucet('1000000000');
         await usdt.faucet('1000000000');
-        await t3crv.faucet(ethers.utils.parseEther('1000'));
-        await dai.approve(Vault.address, ethers.utils.parseEther('1000'), { from: user });
-        await usdc.approve(Vault.address, ethers.utils.parseEther('1000'), { from: user });
-        await usdt.approve(Vault.address, ethers.utils.parseEther('1000'), { from: user });
-        await t3crv.approve(Vault.address, ethers.utils.parseEther('1000'), { from: user });
+        await dai.approve(Vault.address, ethers.constants.MaxUint256, { from: user });
+        await usdc.approve(Vault.address, ethers.constants.MaxUint256, { from: user });
+        await usdt.approve(Vault.address, ethers.constants.MaxUint256, { from: user });
+        await t3crv.approve(Vault.address, ethers.constants.MaxUint256, { from: user });
         await vault.approve(Vault.address, ethers.utils.parseEther('1000'), { from: user });
 
         return {
