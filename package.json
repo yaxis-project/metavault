@@ -7,6 +7,7 @@
     "compile": "hardhat compile && ./uncomment.sh",
     "coverage": "hardhat coverage --testfiles 'test/metavault/*.js'",
     "deploy:metavault:kovan": "hardhat deploy --network kovan --tags metavault --gasprice 1000000000",
+    "deploy:metavault:mainnet": "hardhat deploy --network mainnet --tags live",
     "lint": "eslint . && solhint contracts/**/*.sol",
     "lint:contracts": "solhint contracts/**/*.sol",
     "lint:fix": "eslint . --fix",

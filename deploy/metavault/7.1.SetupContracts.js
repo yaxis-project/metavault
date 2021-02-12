@@ -164,6 +164,7 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
                 T3CRV,
                 StrategyCurve3Crv.address,
                 0,
+                ethers.constants.AddressZero,
                 true,
                 86400
             );
