@@ -64,6 +64,7 @@ module.exports = {
         },
         deployer: {
             default: 0,
+            1: '0x65F84A48e640a908d0DF7B6f00B871352F77022D',
             42: '0x36D68d13dD18Fe8076833Ef99245Ef33B00A7259'
         },
         ETHUSD: {
