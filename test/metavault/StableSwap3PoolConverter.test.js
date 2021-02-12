@@ -66,7 +66,14 @@ describe('StableSwap3PoolConverter', () => {
             contract: 'MockStableSwap3Pool',
             from: deployer,
             log: true,
-            args: [dai.address, usdc.address, usdt.address, t3crv.address]
+            args: [
+                deployer,
+                [dai.address, usdc.address, usdt.address],
+                t3crv.address,
+                200,
+                4000000,
+                5000000000
+            ]
         });
         const newStableSwap3Pool = await deployments.get('MockStableSwap3Pool2');
         expect(await converter.stableSwap3Pool()).to.equal(stableSwap3Pool);

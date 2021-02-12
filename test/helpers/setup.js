@@ -60,6 +60,8 @@ exports.setupTestMetavault = deployments.createFixture(
             Controller.address,
             deployer
         );
+        const Pool = await deployments.get('MockStableSwap3Pool');
+        const pool = await ethers.getContractAt('MockStableSwap3Pool', Pool.address, user);
         const Converter = await deployments.get('StableSwap3PoolConverter');
         const converter = await ethers.getContractAt(
             'StableSwap3PoolConverter',
@@ -76,11 +78,10 @@ exports.setupTestMetavault = deployments.createFixture(
         await dai.faucet(ethers.utils.parseEther('1000'));
         await usdc.faucet('1000000000');
         await usdt.faucet('1000000000');
-        await t3crv.faucet(ethers.utils.parseEther('1000'));
-        await dai.approve(Vault.address, ethers.utils.parseEther('1000'), { from: user });
-        await usdc.approve(Vault.address, ethers.utils.parseEther('1000'), { from: user });
-        await usdt.approve(Vault.address, ethers.utils.parseEther('1000'), { from: user });
-        await t3crv.approve(Vault.address, ethers.utils.parseEther('1000'), { from: user });
+        await dai.approve(Vault.address, ethers.constants.MaxUint256, { from: user });
+        await usdc.approve(Vault.address, ethers.constants.MaxUint256, { from: user });
+        await usdt.approve(Vault.address, ethers.constants.MaxUint256, { from: user });
+        await t3crv.approve(Vault.address, ethers.constants.MaxUint256, { from: user });
         await vault.approve(Vault.address, ethers.utils.parseEther('1000'), { from: user });
 
         return {
@@ -100,6 +101,7 @@ exports.setupTestMetavault = deployments.createFixture(
             harvester,
             controller,
             converter,
+            pool,
             router
         };
     }

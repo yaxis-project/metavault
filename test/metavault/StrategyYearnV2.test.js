@@ -73,21 +73,21 @@ describe('StrategyYearnV2', () => {
         await vault.deposit(ether('10'), dai.address, 1, true, { from: user });
         expect(await dai.balanceOf(user)).to.equal(ether('990'));
         expect(await controller.balanceOf(t3crv.address)).to.be.above(ether('9'));
-        expect(await vault.getPricePerFullShare()).to.be.least(ether('0.99999'));
+        expect(await vault.getPricePerFullShare()).to.be.least(ether('0.9998'));
     });
 
     it('should withdraw to DAI', async () => {
-        expect((await vault.userInfo(user)).amount).to.equal(ether('10.02'));
+        expect((await vault.userInfo(user)).amount).to.be.least(ether('9.99'));
         await vault.withdraw(ether('5'), dai.address, { from: user });
-        expect((await vault.userInfo(user)).amount).to.equal(ether('5.02'));
-        expect(await dai.balanceOf(user)).to.be.least(ether('994.98'));
+        expect((await vault.userInfo(user)).amount).to.be.least(ether('4.99'));
+        expect(await dai.balanceOf(user)).to.be.least(ether('994'));
     });
 
     it('should withdrawAll to 3CRV', async () => {
         await vault.withdrawAll(t3crv.address, { from: user });
         expect(await vault.balanceOf(user)).to.equal(0);
         expect(await vault.totalSupply()).to.equal(0);
-        expect(await t3crv.balanceOf(user)).to.be.least(ether('1005'));
+        expect(await t3crv.balanceOf(user)).to.be.least(ether('4.99'));
     });
 
     it('should deposit USDT', async () => {

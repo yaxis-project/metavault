@@ -12,6 +12,7 @@ import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import "./IConverter.sol";
 import "./IVaultManager.sol";
 import "./IStableSwap3Pool.sol";
+import "./IStableSwap3PoolOracle.sol";
 
 contract StableSwap3PoolConverter is IConverter {
     using SafeMath for uint256;
@@ -22,10 +23,10 @@ contract StableSwap3PoolConverter is IConverter {
     uint256[3] public PRECISION_MUL = [1, 1e12, 1e12];
     IERC20[3] public tokens; // DAI, USDC, USDT
     IERC20 public token3CRV; // 3Crv
-    uint256 public slippage = 100;
 
     IStableSwap3Pool public stableSwap3Pool;
     IVaultManager public vaultManager;
+    IStableSwap3PoolOracle public oracle;
 
     mapping(address => bool) public strategies;
 
@@ -35,7 +36,8 @@ contract StableSwap3PoolConverter is IConverter {
         IERC20 _tokenUSDT,
         IERC20 _token3CRV,
         IStableSwap3Pool _stableSwap3Pool,
-        IVaultManager _vaultManager
+        IVaultManager _vaultManager,
+        IStableSwap3PoolOracle _oracle
     ) public {
         tokens[0] = _tokenDAI;
         tokens[1] = _tokenUSDC;
@@ -47,6 +49,7 @@ contract StableSwap3PoolConverter is IConverter {
         tokens[2].safeApprove(address(stableSwap3Pool), type(uint256).max);
         token3CRV.safeApprove(address(stableSwap3Pool), type(uint256).max);
         vaultManager = _vaultManager;
+        oracle = _oracle;
     }
 
     function setStableSwap3Pool(IStableSwap3Pool _stableSwap3Pool) external onlyGovernance {
@@ -65,11 +68,6 @@ contract StableSwap3PoolConverter is IConverter {
         strategies[_strategy] = _status;
     }
 
-    function setSlippage(uint256 _slippage) external onlyGovernance {
-        require(_slippage < ONE_HUNDRED_PERCENT, "!_slippage");
-        slippage = _slippage;
-    }
-
     function approveForSpender(
         IERC20 _token,
         address _spender,
@@ -82,12 +80,20 @@ contract StableSwap3PoolConverter is IConverter {
         return address(token3CRV);
     }
 
+    function getExpected(uint256 _inputAmount) public view returns (uint256) {
+        return _inputAmount.mul(
+                    oracle.getEthereumPrice().mul(
+                        oracle.getMinimumPrice()
+                    ).div(1e18)
+                ).div(1e18);
+    }
+
     function convert(
         address _input,
         address _output,
         uint256 _inputAmount
     ) external override onlyAuthorized returns (uint256 _outputAmount) {
-        uint256 _expected = _inputAmount.sub(_inputAmount.mul(slippage).div(ONE_HUNDRED_PERCENT));
+        uint256 _expected = getExpected(_inputAmount);
         if (_output == address(token3CRV)) { // convert to 3CRV
             uint256[3] memory amounts;
             for (uint8 i = 0; i < 3; i++) {

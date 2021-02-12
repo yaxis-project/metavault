@@ -2,6 +2,7 @@ require('@nomiclabs/hardhat-waffle');
 require('hardhat-deploy');
 require('hardhat-deploy-ethers');
 require('solidity-coverage');
+require('@nomiclabs/hardhat-vyper');
 
 // If not set, we only need to default these with something to get hardhat to run
 const kovanRpcUrl = process.env.KOVAN_RPC_URL || 'http://localhost:8545';
@@ -43,6 +44,9 @@ module.exports = {
         DAI: {
             1: '0x6B175474E89094C44Da98b954EedeAC495271d0F'
         },
+        DAIETH: {
+            1: '0x773616E4d11A78F511299002da57A0a94577F1f4'
+        },
         DF: {
             1: '0x431ad2ff6a9C365805eBaD47Ee021148d6f7DBe0'
         },
@@ -61,6 +65,9 @@ module.exports = {
         deployer: {
             default: 0,
             42: '0x36D68d13dD18Fe8076833Ef99245Ef33B00A7259'
+        },
+        ETHUSD: {
+            1: '0x5f4eC3Df9cbd43714FE2740f5E3616155c5b8419'
         },
         gauge: {
             1: '0xbFcF63294aD7105dEa65aA58F8AE5BE2D9d0952A'
@@ -141,8 +148,14 @@ module.exports = {
         USDC: {
             1: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48'
         },
+        USDCETH: {
+            1: '0xEe9F2375b4bdF6387aa8265dD4FB8F16512A1d46'
+        },
         USDT: {
             1: '0xdAC17F958D2ee523a2206206994597C13D831ec7'
+        },
+        USDTETH: {
+            1: ''
         },
         vault3crv: {
             1: '0xBFbEC72F2450eF9Ab742e4A27441Fa06Ca79eA6a'
@@ -190,6 +203,9 @@ module.exports = {
                 runs: 200
             }
         }
+    },
+    vyper: {
+        version: '0.2.4'
     },
     paths: {
         sources: './contracts',
