@@ -28,7 +28,6 @@ exports.setupTestMetavault = deployments.createFixture(
             treasury,
             insurancePool
         } = await getNamedAccounts();
-        const sigDeployer = await ethers.provider.getSigner(deployer);
         const YAX = await deployments.get('YAX');
         const yax = await ethers.getContractAt('MockERC20', YAX.address, user);
         const DAI = await deployments.get('DAI');
