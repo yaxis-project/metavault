@@ -27,6 +27,7 @@ contract CanonicalController is IController {
 
     struct VaultDetail {
         address converter;
+        uint256 balance;
         address[] strategies;
         mapping(address => uint256) index;
         mapping(address => uint256) caps;
@@ -34,6 +35,8 @@ contract CanonicalController is IController {
 
     // vault => Vault
     mapping(address => VaultDetail) internal _vaultDetails;
+    // strategy => vault
+    mapping(address => address) internal _vaultStrategies;
     // token => vault
     mapping(address => address) public override vaults;
 
@@ -114,6 +117,8 @@ contract CanonicalController is IController {
         _vaultDetails[_vault].caps[_strategy] = _cap;
         // set the index
         _vaultDetails[_vault].index[_strategy] = index;
+        // store the mapping of strategy to the vault
+        _vaultStrategies[_strategy] = _vault;
         // if the strategy should be harvested
         if (_canHarvest) {
             // add it to the harvester
@@ -194,6 +199,8 @@ contract CanonicalController is IController {
         delete vaultDetail.index[_strategy];
         // remove the strategy's cap
         delete vaultDetail.caps[_strategy];
+        // remove the mapping of strategy to the vault
+        delete _vaultStrategies[_strategy];
         // pull funds from the removed strategy to the vault
         IStrategy(_strategy).withdrawAll();
         // remove the strategy from the harvester
@@ -318,7 +325,11 @@ contract CanonicalController is IController {
      * @param _strategy The address of the strategy
      */
     function harvestStrategy(address _strategy) external override onlyHarvester {
+        uint256 _before = IStrategy(_strategy).balanceOf();
         IStrategy(_strategy).harvest();
+        uint256 _after = IStrategy(_strategy).balanceOf();
+        address _vault = _vaultStrategies[_strategy];
+        _vaultDetails[_vault].balance = _vaultDetails[_vault].balance.add(_after.sub(_before));
         emit Harvest(_strategy);
     }
 
@@ -336,16 +347,18 @@ contract CanonicalController is IController {
         // get the first strategy that will accept the deposit
         address _strategy = getBestStrategyEarn(msg.sender, _amount);
         if (_strategy != address(0)) {
+            address _vault = vaults[_token];
             // get the want token of the strategy
             address _want = IStrategy(_strategy).want();
             if (_want != _token) {
-                IConverter _converter = IConverter(_vaultDetails[vaults[_token]].converter);
+                IConverter _converter = IConverter(_vaultDetails[_vault].converter);
                 IERC20(_token).safeTransfer(address(_converter), _amount);
                 _amount = _converter.convert(_token, _want, _amount);
                 IERC20(_want).safeTransfer(_strategy, _amount);
             } else {
                 IERC20(_token).safeTransfer(_strategy, _amount);
             }
+            _vaultDetails[_vault].balance = _vaultDetails[_vault].balance.add(_amount);
             // call the strategy deposit function
             IStrategy(_strategy).deposit();
             emit Earn(_token, _strategy);
@@ -378,7 +391,10 @@ contract CanonicalController is IController {
                 IConverter(_vaultDetails[vaults[_token]].converter).convert(_want, _token, _amounts[i]);
             }
         }
-        IERC20(_token).safeTransfer(vaults[_token], IERC20(_token).balanceOf(address(this)));
+        address _vault = vaults[_token];
+        _amount = IERC20(_token).balanceOf(address(this));
+        _vaultDetails[_vault].balance = _vaultDetails[_vault].balance.sub(_amount);
+        IERC20(_token).safeTransfer(_vault, _amount);
     }
 
     /**
@@ -386,16 +402,12 @@ contract CanonicalController is IController {
      */
 
     /**
-     * @notice Returns the balance of the sum of all strategies for a given token
-     * @dev This function would make deposits more expensive for the more strategies
-     * that are added for a given token
+     * @notice Returns the rough balance of the sum of all strategies for a given token
+     * @dev This function is optimized to prevent looping over all strategy balances,
+     * and instead the controller tracks the earn, withdraw, and harvest amounts.
      */
     function balanceOf() external view override returns (uint256 _balance) {
-        uint256 k = _vaultDetails[msg.sender].strategies.length;
-        for (uint i = 0; i < k; i++) {
-            IStrategy _strategy = IStrategy(_vaultDetails[msg.sender].strategies[i]);
-            _balance = _balance.add(_strategy.balanceOf());
-        }
+        return _vaultDetails[msg.sender].balance;
     }
 
     /**
