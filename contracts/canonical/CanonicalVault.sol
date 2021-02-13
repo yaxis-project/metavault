@@ -33,6 +33,7 @@ contract CanonicalVault is ERC20, ICanonicalVault {
 
     // Only allowed contracts may interact with the vault
     mapping(address => bool) public allowedContracts;
+    mapping(bytes32 => bool) public allowedCodeHash;
 
     address[] public tokens;
 
@@ -117,6 +118,16 @@ contract CanonicalVault is ERC20, ICanonicalVault {
     /**
      * (GOVERNANCE|STRATEGIST)-ONLY FUNCTIONS
      */
+
+    function setAllowedCodeHash(
+        bytes32 _hash,
+        bool _allowed
+    )
+        external
+        onlyStrategist
+    {
+        allowedCodeHash[_hash] = _allowed;
+    }
 
     function setAllowedContract(
         address _contract,
@@ -381,8 +392,13 @@ contract CanonicalVault is ERC20, ICanonicalVault {
      * @dev Throws if called by a contract and we are not allowing.
      */
     modifier checkContract() {
-        if (address(msg.sender).isContract()) {
-            require(allowedContracts[msg.sender], "!allowedContracts");
+        address _sender = msg.sender;
+        if (address(_sender).isContract()) {
+            bytes32 _hash;
+            assembly { _hash := extcodehash(_sender) }
+            require(allowedContracts[_sender]
+                || allowedCodeHash[_hash],
+                "!allowedContracts");
         }
         _;
     }

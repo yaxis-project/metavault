@@ -183,6 +183,30 @@ describe('CanonicalVault', () => {
         });
     });
 
+    describe('setAllowedCodeHash', () => {
+        const codeHash = '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
+
+        it('should revert when called by an address other than strategist or governance', async () => {
+            expect(await vault.allowedCodeHash(codeHash)).to.equal(false);
+            await expect(vault.setAllowedCodeHash(codeHash, true)).to.be.revertedWith(
+                '!strategist'
+            );
+            expect(await vault.allowedCodeHash(codeHash)).to.equal(false);
+        });
+
+        it('should set the allowed code hash when called by the strategist', async () => {
+            expect(await vault.allowedCodeHash(codeHash)).to.equal(false);
+            await vault.connect(deployer).setAllowedCodeHash(codeHash, true);
+            expect(await vault.allowedCodeHash(codeHash)).to.equal(true);
+        });
+
+        it('should set the allowed code hash when called by governance', async () => {
+            expect(await vault.allowedCodeHash(codeHash)).to.equal(false);
+            await vault.connect(treasury).setAllowedCodeHash(codeHash, true);
+            expect(await vault.allowedCodeHash(codeHash)).to.equal(true);
+        });
+    });
+
     describe('setAllowedContract', () => {
         it('should revert when called by an address other than strategist or governance', async () => {
             expect(await vault.allowedContracts(depositor.address)).to.equal(false);
