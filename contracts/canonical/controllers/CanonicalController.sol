@@ -33,6 +33,8 @@ contract CanonicalController is IController {
         mapping(address => uint256) caps;
     }
 
+    mapping(address => bool) public approvedStrategies;
+    mapping(address => bool) public approvedTokens;
     // vault => Vault
     mapping(address => VaultDetail) internal _vaultDetails;
     // strategy => vault
@@ -87,9 +89,34 @@ contract CanonicalController is IController {
      * GOVERNANCE-ONLY FUNCTIONS
      */
 
+    function approveStrategy(
+        address _strategy
+    ) external onlyGovernance {
+        approvedStrategies[_strategy] = true;
+    }
+
+    function approveToken(
+        address _token
+    ) external onlyGovernance {
+        approvedTokens[_token] = true;
+    }
+
+    /**
+     * @notice Sets the address of the vault manager contract
+     * @dev Only callable by governance
+     * @param _manager The address of the vault manager
+     */
+    function setVaultManager(address _manager) external onlyGovernance {
+        manager = IManager(_manager);
+    }
+
+    /**
+     * (GOVERNANCE|STRATEGIST)-ONLY FUNCTIONS
+     */
+
     /**
      * @notice Adds a strategy for a given token
-     * @dev Only callable by governance
+     * @dev Only callable by the strategist
      * @param _vault The address of the vault
      * @param _token The address of the token
      * @param _strategy The address of the strategy
@@ -104,7 +131,8 @@ contract CanonicalController is IController {
         uint256 _cap,
         bool _canHarvest,
         uint256 _timeout
-    ) external onlyGovernance {
+    ) external onlyStrategist {
+        require(approvedStrategies[_strategy], "!approved");
         require(vaults[_token] != address(0), "!vaults");
         require(_vaultDetails[_vault].converter != address(0), "!converter");
         // get the index of the newly added strategy
@@ -126,19 +154,6 @@ contract CanonicalController is IController {
         }
         emit StrategyAdded(_token, _strategy, _cap);
     }
-
-    /**
-     * @notice Sets the address of the vault manager contract
-     * @dev Only callable by governance
-     * @param _manager The address of the vault manager
-     */
-    function setVaultManager(address _manager) external onlyGovernance {
-        manager = IManager(_manager);
-    }
-
-    /**
-     * (GOVERNANCE|STRATEGIST)-ONLY FUNCTIONS
-     */
 
     /**
      * @notice Withdraws token from a strategy to governance
@@ -294,6 +309,7 @@ contract CanonicalController is IController {
      * @param _vault The address of the vault
      */
     function addVaultToken(address _token, address _vault) external onlyStrategist {
+        require(approvedTokens[_token], "!approved");
         require(vaults[_token] == address(0), "vault");
         vaults[_token] = _vault;
         ICanonicalVault(_vault).addToken(_token);
@@ -527,20 +543,12 @@ contract CanonicalController is IController {
     }
 
     modifier onlyStrategist() {
-        require(msg.sender == manager.strategist()
-             || msg.sender == manager.governance(),
-             "!strategist"
-        );
+        require(msg.sender == manager.strategist(), "!strategist");
         _;
     }
 
     modifier onlyHarvester() {
-        require(
-            msg.sender == manager.harvester() ||
-            msg.sender == manager.strategist() ||
-            msg.sender == manager.governance(),
-            "!harvester"
-        );
+        require(msg.sender == manager.harvester(), "!harvester");
         _;
     }
 

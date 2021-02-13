@@ -47,6 +47,7 @@ describe('CanonicalVault', () => {
         });
 
         it('should add a token when called through the controller', async () => {
+            await controller.connect(treasury).approveToken(dai.address);
             await expect(controller.addVaultToken(dai.address, vault.address))
                 .to.emit(vault, 'TokenAdded')
                 .withArgs(dai.address);
@@ -56,6 +57,8 @@ describe('CanonicalVault', () => {
 
         context('when adding multiple tokens', () => {
             beforeEach(async () => {
+                await controller.connect(treasury).approveToken(dai.address);
+                await controller.connect(treasury).approveToken(usdc.address);
                 await expect(controller.addVaultToken(dai.address, vault.address))
                     .to.emit(vault, 'TokenAdded')
                     .withArgs(dai.address);
@@ -79,6 +82,7 @@ describe('CanonicalVault', () => {
 
     describe('removeToken', () => {
         beforeEach(async () => {
+            await controller.connect(treasury).approveToken(dai.address);
             await expect(controller.addVaultToken(dai.address, vault.address))
                 .to.emit(vault, 'TokenAdded')
                 .withArgs(dai.address);
@@ -103,6 +107,9 @@ describe('CanonicalVault', () => {
 
         context('when removing multiple tokens', () => {
             beforeEach(async () => {
+                await controller.connect(treasury).approveToken(usdc.address);
+                await controller.connect(treasury).approveToken(usdt.address);
+                await controller.connect(treasury).approveToken(t3crv.address);
                 await expect(controller.addVaultToken(usdc.address, vault.address))
                     .to.emit(vault, 'TokenAdded')
                     .withArgs(usdc.address);
@@ -302,6 +309,7 @@ describe('CanonicalVault', () => {
 
         context('when the token is added', () => {
             beforeEach(async () => {
+                await controller.connect(treasury).approveToken(dai.address);
                 await expect(controller.addVaultToken(dai.address, vault.address))
                     .to.emit(vault, 'TokenAdded')
                     .withArgs(dai.address);
@@ -380,6 +388,8 @@ describe('CanonicalVault', () => {
 
         context('when tokens are added', () => {
             beforeEach(async () => {
+                await controller.connect(treasury).approveToken(dai.address);
+                await controller.connect(treasury).approveToken(usdc.address);
                 await expect(controller.addVaultToken(dai.address, vault.address))
                     .to.emit(vault, 'TokenAdded')
                     .withArgs(dai.address);
@@ -493,6 +503,7 @@ describe('CanonicalVault', () => {
 
     describe('withdraw', () => {
         beforeEach(async () => {
+            await controller.connect(treasury).approveToken(dai.address);
             await expect(controller.addVaultToken(dai.address, vault.address))
                 .to.emit(vault, 'TokenAdded')
                 .withArgs(dai.address);
@@ -537,6 +548,7 @@ describe('CanonicalVault', () => {
 
     describe('withdrawAll', () => {
         beforeEach(async () => {
+            await controller.connect(treasury).approveToken(dai.address);
             await expect(controller.addVaultToken(dai.address, vault.address))
                 .to.emit(vault, 'TokenAdded')
                 .withArgs(dai.address);
