@@ -466,4 +466,48 @@ describe('CanonicalVault', () => {
             });
         });
     });
+
+    describe('withdraw', () => {
+        beforeEach(async () => {
+            await expect(controller.addVaultToken(dai.address, vault.address))
+                .to.emit(vault, 'TokenAdded')
+                .withArgs(dai.address);
+        });
+
+        it('should revert if the output token is not added', async () => {
+            await expect(vault.withdraw(0, usdc.address)).to.be.revertedWith('!_output');
+        });
+
+        it('should revert if there are no deposits', async () => {
+            await expect(vault.withdraw(1, dai.address)).to.be.revertedWith(
+                'SafeMath: division by zero'
+            );
+        });
+
+        context('when users have deposited', () => {
+            beforeEach(async () => {
+                await expect(vault.deposit(dai.address, ether('1000')))
+                    .to.emit(vault, 'Deposit')
+                    .withArgs(user.address, ether('1000'));
+            });
+
+            it('should revert if withdrawing more than the balance', async () => {
+                await expect(vault.withdraw(ether('1001'), dai.address)).to.be.revertedWith(
+                    'ERC20: burn amount exceeds balance'
+                );
+            });
+
+            it('should withdraw partial amounts', async () => {
+                await expect(vault.withdraw(ether('100'), dai.address))
+                    .to.emit(vault, 'Withdraw')
+                    .withArgs(user.address, ether('99.9'));
+            });
+
+            it('should withdraw the full amount', async () => {
+                await expect(vault.withdraw(ether('1000'), dai.address))
+                    .to.emit(vault, 'Withdraw')
+                    .withArgs(user.address, ether('999'));
+            });
+        });
+    });
 });
