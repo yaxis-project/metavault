@@ -4,7 +4,7 @@
   "license": "MIT",
   "description": "MetaVault Contracts and ABI",
   "scripts": {
-    "compile": "hardhat compile && ./uncomment.sh",
+    "compile": "hardhat compile",
     "coverage": "hardhat coverage --testfiles 'test/metavault/*.js'",
     "deploy:metavault:kovan": "hardhat deploy --network kovan --tags metavault --gasprice 1000000000",
     "deploy:metavault:mainnet": "hardhat deploy --network mainnet --tags live",
@@ -12,8 +12,7 @@
     "lint:contracts": "solhint contracts/**/*.sol",
     "lint:fix": "eslint . --fix",
     "lint:js": "eslint.",
-    "precompile": "./comment.sh",
-    "test": "yarn compile && hardhat test test/metavault/*",
+    "test": "hardhat test test/metavault/*",
     "test:live": "VERBOSE=true LIVE=true hardhat test test/live/*",
     "test:metavault": "hardhat test test/metavault/*",
     "test:misc": "VERBOSE=true hardhat test test/misc/*",
@@ -33,7 +32,7 @@
   },
   "devDependencies": {
     "@nomiclabs/hardhat-ethers": "^2.0.1",
-    "@nomiclabs/hardhat-vyper": "^2.0.0",
+    "@yaxis/hardhat-vyper": "^2.0.1",
     "@nomiclabs/hardhat-waffle": "^2.0.1",
     "chai": "^4.2.0",
     "eslint": "^7.16.0",
