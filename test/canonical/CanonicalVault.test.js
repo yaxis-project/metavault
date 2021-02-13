@@ -510,4 +510,36 @@ describe('CanonicalVault', () => {
             });
         });
     });
+
+    describe('withdrawAll', () => {
+        beforeEach(async () => {
+            await expect(controller.addVaultToken(dai.address, vault.address))
+                .to.emit(vault, 'TokenAdded')
+                .withArgs(dai.address);
+        });
+
+        it('should revert if the output token is not added', async () => {
+            await expect(vault.withdrawAll(usdc.address)).to.be.revertedWith('!_output');
+        });
+
+        it('should revert if there are no deposits', async () => {
+            await expect(vault.withdrawAll(dai.address)).to.be.revertedWith(
+                'SafeMath: division by zero'
+            );
+        });
+
+        context('when users have deposited', () => {
+            beforeEach(async () => {
+                await expect(vault.deposit(dai.address, ether('1000')))
+                    .to.emit(vault, 'Deposit')
+                    .withArgs(user.address, ether('1000'));
+            });
+
+            it('should withdraw the full amount', async () => {
+                await expect(vault.withdrawAll(dai.address))
+                    .to.emit(vault, 'Withdraw')
+                    .withArgs(user.address, ether('999'));
+            });
+        });
+    });
 });
