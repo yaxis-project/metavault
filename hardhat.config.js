@@ -2,7 +2,8 @@ require('@nomiclabs/hardhat-waffle');
 require('hardhat-deploy');
 require('hardhat-deploy-ethers');
 require('solidity-coverage');
-require('@nomiclabs/hardhat-vyper');
+// TODO: switch back to @nomiclabs/hardhat-vyper on their next release
+require('@yaxis/hardhat-vyper');
 
 // If not set, we only need to default these with something to get hardhat to run
 const kovanRpcUrl = process.env.KOVAN_RPC_URL || 'http://localhost:8545';
