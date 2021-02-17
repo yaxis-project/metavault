@@ -2,18 +2,17 @@
 
 pragma solidity 0.6.12;
 
+import "./IManager.sol";
+
 interface ICanonicalVault {
-    function addToken(address _token) external;
     function available(address _token) external view returns (uint256);
     function balance() external view returns (uint256);
-    function controller() external view returns (address);
     function deposit(address _token, uint256 _amount) external;
     function depositAll(address[] calldata _tokens, uint256[] calldata _amount) external;
     function earn(address _token) external;
     function getPricePerFullShare() external view returns (uint256);
     function getTokens() external view returns (address[] memory);
-    function removeToken(address _token) external;
-    function manager() external view returns (address);
+    function manager() external view returns (IManager);
     function withdraw(uint256 _amount, address _output) external;
     function withdrawAll(address _output) external;
     function withdrawFee(uint256 _amount) external view returns (uint256);

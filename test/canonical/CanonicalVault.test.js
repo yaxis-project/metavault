@@ -10,7 +10,7 @@ const { setupTestCanonical } = require('../helpers/setup');
 
 describe('CanonicalVault', () => {
     let deployer, treasury, user;
-    let dai, usdc, usdt, t3crv, vault, manager, controller, depositor;
+    let dai, usdc, usdt, vault, manager, controller, depositor;
 
     beforeEach(async () => {
         const config = await setupTestCanonical();
@@ -18,7 +18,6 @@ describe('CanonicalVault', () => {
         dai = config.dai;
         usdc = config.usdc;
         usdt = config.usdt;
-        t3crv = config.t3crv;
         manager = config.manager;
         controller = config.controller;
         vault = config.stableVault;
@@ -33,211 +32,14 @@ describe('CanonicalVault', () => {
 
     it('should deploy with expected state', async () => {
         expect(await vault.manager()).to.equal(manager.address);
-        expect(await vault.controller()).to.equal(controller.address);
         expect(await vault.min()).to.equal(9500);
         expect(await vault.earnLowerlimit()).to.equal(ether('500'));
         expect(await vault.totalDepositCap()).to.equal(ether('10000000'));
-        expect((await vault.getTokens()).length).to.equal(0);
         expect(await vault.withdrawFee(ether('1'))).to.equal(ether('0.001'));
     });
 
-    describe('addToken', () => {
-        it('should revert when called by an address other than the controller', async () => {
-            await expect(vault.addToken(dai.address)).to.be.revertedWith('!controller');
-        });
-
-        it('should add a token when called through the controller', async () => {
-            await controller.connect(treasury).approveToken(dai.address);
-            await expect(controller.addVaultToken(dai.address, vault.address))
-                .to.emit(vault, 'TokenAdded')
-                .withArgs(dai.address);
-            expect((await vault.getTokens()).length).to.equal(1);
-            expect(await vault.tokens(0)).to.equal(dai.address);
-        });
-
-        context('when adding multiple tokens', () => {
-            beforeEach(async () => {
-                await controller.connect(treasury).approveToken(dai.address);
-                await controller.connect(treasury).approveToken(usdc.address);
-                await expect(controller.addVaultToken(dai.address, vault.address))
-                    .to.emit(vault, 'TokenAdded')
-                    .withArgs(dai.address);
-            });
-
-            it('should revert when adding the same token twice', async () => {
-                await expect(
-                    controller.addVaultToken(dai.address, vault.address)
-                ).to.be.revertedWith('vault');
-            });
-
-            it('should append to the tokens', async () => {
-                await expect(controller.addVaultToken(usdc.address, vault.address))
-                    .to.emit(vault, 'TokenAdded')
-                    .withArgs(usdc.address);
-                expect((await vault.getTokens()).length).to.equal(2);
-                expect(await vault.tokens(1)).to.equal(usdc.address);
-            });
-        });
-    });
-
-    describe('removeToken', () => {
-        beforeEach(async () => {
-            await controller.connect(treasury).approveToken(dai.address);
-            await expect(controller.addVaultToken(dai.address, vault.address))
-                .to.emit(vault, 'TokenAdded')
-                .withArgs(dai.address);
-        });
-
-        it('should revert when called by an address other than the controller', async () => {
-            await expect(vault.removeToken(dai.address)).to.be.revertedWith('!controller');
-        });
-
-        it('should revert when the token does not exist', async () => {
-            await expect(
-                controller.removeVaultToken(usdc.address, vault.address)
-            ).to.be.revertedWith('!vault');
-        });
-
-        it('should remove a token when called through the controller', async () => {
-            await expect(controller.removeVaultToken(dai.address, vault.address))
-                .to.emit(vault, 'TokenRemoved')
-                .withArgs(dai.address);
-            expect((await vault.getTokens()).length).to.equal(0);
-        });
-
-        context('when removing multiple tokens', () => {
-            beforeEach(async () => {
-                await controller.connect(treasury).approveToken(usdc.address);
-                await controller.connect(treasury).approveToken(usdt.address);
-                await controller.connect(treasury).approveToken(t3crv.address);
-                await expect(controller.addVaultToken(usdc.address, vault.address))
-                    .to.emit(vault, 'TokenAdded')
-                    .withArgs(usdc.address);
-                await expect(controller.addVaultToken(usdt.address, vault.address))
-                    .to.emit(vault, 'TokenAdded')
-                    .withArgs(usdt.address);
-                await expect(controller.addVaultToken(t3crv.address, vault.address))
-                    .to.emit(vault, 'TokenAdded')
-                    .withArgs(t3crv.address);
-                expect((await vault.getTokens()).length).to.equal(4);
-            });
-
-            it('should remove tokens from the beginning', async () => {
-                await expect(controller.removeVaultToken(dai.address, vault.address))
-                    .to.emit(vault, 'TokenRemoved')
-                    .withArgs(dai.address);
-                expect((await vault.getTokens()).length).to.equal(3);
-                expect(await vault.tokens(0)).to.equal(t3crv.address);
-                expect(await vault.tokens(1)).to.equal(usdc.address);
-                expect(await vault.tokens(2)).to.equal(usdt.address);
-            });
-
-            it('should remove tokens from the middle', async () => {
-                await expect(controller.removeVaultToken(usdc.address, vault.address))
-                    .to.emit(vault, 'TokenRemoved')
-                    .withArgs(usdc.address);
-                expect((await vault.getTokens()).length).to.equal(3);
-                expect(await vault.tokens(0)).to.equal(dai.address);
-                expect(await vault.tokens(1)).to.equal(t3crv.address);
-                expect(await vault.tokens(2)).to.equal(usdt.address);
-            });
-
-            it('should remove tokens from the end', async () => {
-                await expect(controller.removeVaultToken(t3crv.address, vault.address))
-                    .to.emit(vault, 'TokenRemoved')
-                    .withArgs(t3crv.address);
-                expect((await vault.getTokens()).length).to.equal(3);
-                expect(await vault.tokens(0)).to.equal(dai.address);
-                expect(await vault.tokens(1)).to.equal(usdc.address);
-                expect(await vault.tokens(2)).to.equal(usdt.address);
-            });
-        });
-    });
-
-    describe('setController', () => {
-        it('should revert when called by an address other than governance', async () => {
-            expect(await vault.controller()).to.equal(controller.address);
-            await expect(vault.setController(dai.address)).to.be.revertedWith('!governance');
-            expect(await vault.controller()).to.equal(controller.address);
-            await expect(
-                vault.connect(deployer).setController(dai.address)
-            ).to.be.revertedWith('!governance');
-            expect(await vault.controller()).to.equal(controller.address);
-        });
-
-        it('should set the controller', async () => {
-            expect(await vault.controller()).to.equal(controller.address);
-            await vault.connect(treasury).setController(dai.address);
-            expect(await vault.controller()).to.equal(dai.address);
-        });
-    });
-
-    describe('setManager', () => {
-        it('should revert when called by an address other than governance', async () => {
-            expect(await vault.manager()).to.equal(manager.address);
-            await expect(vault.setManager(dai.address)).to.be.revertedWith('!governance');
-            expect(await vault.manager()).to.equal(manager.address);
-            await expect(vault.connect(deployer).setManager(dai.address)).to.be.revertedWith(
-                '!governance'
-            );
-            expect(await vault.manager()).to.equal(manager.address);
-        });
-
-        it('should set the manager', async () => {
-            expect(await vault.manager()).to.equal(manager.address);
-            await vault.connect(treasury).setManager(dai.address);
-            expect(await vault.manager()).to.equal(dai.address);
-        });
-    });
-
-    describe('setAllowedCodeHash', () => {
-        const codeHash = '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
-
-        it('should revert when called by an address other than strategist or governance', async () => {
-            expect(await vault.allowedCodeHash(codeHash)).to.equal(false);
-            await expect(vault.setAllowedCodeHash(codeHash, true)).to.be.revertedWith(
-                '!strategist'
-            );
-            expect(await vault.allowedCodeHash(codeHash)).to.equal(false);
-        });
-
-        it('should set the allowed code hash when called by the strategist', async () => {
-            expect(await vault.allowedCodeHash(codeHash)).to.equal(false);
-            await vault.connect(deployer).setAllowedCodeHash(codeHash, true);
-            expect(await vault.allowedCodeHash(codeHash)).to.equal(true);
-        });
-
-        it('should set the allowed code hash when called by governance', async () => {
-            expect(await vault.allowedCodeHash(codeHash)).to.equal(false);
-            await vault.connect(treasury).setAllowedCodeHash(codeHash, true);
-            expect(await vault.allowedCodeHash(codeHash)).to.equal(true);
-        });
-    });
-
-    describe('setAllowedContract', () => {
-        it('should revert when called by an address other than strategist or governance', async () => {
-            expect(await vault.allowedContracts(depositor.address)).to.equal(false);
-            await expect(vault.setAllowedContract(depositor.address, true)).to.be.revertedWith(
-                '!strategist'
-            );
-            expect(await vault.allowedContracts(depositor.address)).to.equal(false);
-        });
-
-        it('should set the allowed contract when called by the strategist', async () => {
-            expect(await vault.allowedContracts(depositor.address)).to.equal(false);
-            await vault.connect(deployer).setAllowedContract(depositor.address, true);
-            expect(await vault.allowedContracts(depositor.address)).to.equal(true);
-        });
-
-        it('should set the allowed contract when called by governance', async () => {
-            expect(await vault.allowedContracts(depositor.address)).to.equal(false);
-            await vault.connect(treasury).setAllowedContract(depositor.address, true);
-            expect(await vault.allowedContracts(depositor.address)).to.equal(true);
-        });
-    });
-
     describe('setEarnLowerlimit', () => {
-        it('should revert when called by an address other than strategist or governance', async () => {
+        it('should revert when called by an address other than strategist', async () => {
             expect(await vault.earnLowerlimit()).to.equal(ether('500'));
             await expect(vault.setEarnLowerlimit(ether('1'))).to.be.revertedWith(
                 '!strategist'
@@ -250,16 +52,10 @@ describe('CanonicalVault', () => {
             await vault.connect(deployer).setEarnLowerlimit(ether('1'));
             expect(await vault.earnLowerlimit()).to.equal(ether('1'));
         });
-
-        it('should set the earn lower limit when called by governance', async () => {
-            expect(await vault.earnLowerlimit()).to.equal(ether('500'));
-            await vault.connect(treasury).setEarnLowerlimit(ether('1'));
-            expect(await vault.earnLowerlimit()).to.equal(ether('1'));
-        });
     });
 
     describe('setMin', () => {
-        it('should revert when called by an address other than strategist or governance', async () => {
+        it('should revert when called by an address other than strategist', async () => {
             expect(await vault.min()).to.equal(9500);
             await expect(vault.setMin(9000)).to.be.revertedWith('!strategist');
             expect(await vault.min()).to.equal(9500);
@@ -270,16 +66,10 @@ describe('CanonicalVault', () => {
             await vault.connect(deployer).setMin(9000);
             expect(await vault.min()).to.equal(9000);
         });
-
-        it('should set the min when called by governance', async () => {
-            expect(await vault.min()).to.equal(9500);
-            await vault.connect(treasury).setMin(9000);
-            expect(await vault.min()).to.equal(9000);
-        });
     });
 
     describe('setTotalDepositCap', () => {
-        it('should revert when called by an address other than strategist or governance', async () => {
+        it('should revert when called by an address other than strategist', async () => {
             expect(await vault.totalDepositCap()).to.equal(ether('10000000'));
             await expect(vault.setTotalDepositCap(0)).to.be.revertedWith('!strategist');
             expect(await vault.totalDepositCap()).to.equal(ether('10000000'));
@@ -290,31 +80,23 @@ describe('CanonicalVault', () => {
             await vault.connect(deployer).setTotalDepositCap(0);
             expect(await vault.totalDepositCap()).to.equal(0);
         });
-
-        it('should set the total deposit cap when called by governance', async () => {
-            expect(await vault.totalDepositCap()).to.equal(ether('10000000'));
-            await vault.connect(treasury).setTotalDepositCap(0);
-            expect(await vault.totalDepositCap()).to.equal(0);
-        });
     });
 
     describe('deposit', () => {
-        it('should revert when the amount is 0', async () => {
-            await expect(vault.deposit(dai.address, 0)).to.be.revertedWith('!_amount');
-        });
-
-        it('should revert when the token is not added', async () => {
+        it('should revert when the vault is not set up', async () => {
             await expect(vault.deposit(dai.address, 1)).to.be.revertedWith('!_token');
         });
 
-        context('when the token is added', () => {
+        context('when the vault is set up', () => {
             beforeEach(async () => {
-                await controller.connect(treasury).approveToken(dai.address);
-                await expect(controller.addVaultToken(dai.address, vault.address))
-                    .to.emit(vault, 'TokenAdded')
-                    .withArgs(dai.address);
+                await manager.connect(treasury).setAllowedToken(dai.address, true);
+                await manager.connect(treasury).setAllowedVault(vault.address, true);
+                await manager.connect(treasury).setAllowedController(controller.address, true);
+                await manager.setController(vault.address, controller.address);
+                await expect(manager.addToken(vault.address, dai.address))
+                    .to.emit(manager, 'TokenAdded')
+                    .withArgs(vault.address, dai.address);
                 expect((await vault.getTokens()).length).to.equal(1);
-                expect(await vault.tokens(0)).to.equal(dai.address);
             });
 
             it('should revert if the token is not approved for the vault to spend', async () => {
@@ -328,6 +110,10 @@ describe('CanonicalVault', () => {
                 await expect(
                     vault.deposit(dai.address, ether('100000000'))
                 ).to.be.revertedWith('>totalDepositCap');
+            });
+
+            it('should revert when the amount is 0', async () => {
+                await expect(vault.deposit(dai.address, 0)).to.be.revertedWith('!_amount');
             });
 
             it('should deposit', async () => {
@@ -370,7 +156,9 @@ describe('CanonicalVault', () => {
                 });
 
                 it('should deposit if allowed', async () => {
-                    await vault.connect(deployer).setAllowedContract(depositor.address, true);
+                    await manager
+                        .connect(treasury)
+                        .setAllowedContract(depositor.address, true);
                     await expect(depositor.depositVault(dai.address, ether('1000')))
                         .to.emit(vault, 'Deposit')
                         .withArgs(depositor.address, ether('1000'));
@@ -382,23 +170,26 @@ describe('CanonicalVault', () => {
     });
 
     describe('depositAll', () => {
-        it('should revert when a token is not added', async () => {
-            await expect(vault.depositAll([dai.address], [1])).to.be.revertedWith('!_tokens');
+        it('should revert when the vault is not set up', async () => {
+            await expect(vault.depositAll([dai.address], [1])).to.be.revertedWith('!vault');
         });
 
-        context('when tokens are added', () => {
+        context('when the vault is set up', () => {
             beforeEach(async () => {
-                await controller.connect(treasury).approveToken(dai.address);
-                await controller.connect(treasury).approveToken(usdc.address);
-                await expect(controller.addVaultToken(dai.address, vault.address))
-                    .to.emit(vault, 'TokenAdded')
-                    .withArgs(dai.address);
-                await expect(controller.addVaultToken(usdc.address, vault.address))
-                    .to.emit(vault, 'TokenAdded')
-                    .withArgs(usdc.address);
+                await manager.connect(treasury).setAllowedToken(dai.address, true);
+                await manager.connect(treasury).setAllowedToken(usdc.address, true);
+                await manager.connect(treasury).setAllowedVault(vault.address, true);
+                await manager.connect(treasury).setAllowedController(controller.address, true);
+                await manager.setController(vault.address, controller.address);
+                await expect(manager.addToken(vault.address, dai.address))
+                    .to.emit(manager, 'TokenAdded')
+                    .withArgs(vault.address, dai.address);
+                await expect(manager.addToken(vault.address, usdc.address))
+                    .to.emit(manager, 'TokenAdded')
+                    .withArgs(vault.address, usdc.address);
                 expect((await vault.getTokens()).length).to.equal(2);
-                expect(await vault.tokens(0)).to.equal(dai.address);
-                expect(await vault.tokens(1)).to.equal(usdc.address);
+                expect(await manager.tokens(vault.address, 0)).to.equal(dai.address);
+                expect(await manager.tokens(vault.address, 1)).to.equal(usdc.address);
             });
 
             it('should revert when a token is not added', async () => {
@@ -485,7 +276,9 @@ describe('CanonicalVault', () => {
                 });
 
                 it('should deposit if allowed', async () => {
-                    await vault.connect(deployer).setAllowedContract(depositor.address, true);
+                    await manager
+                        .connect(treasury)
+                        .setAllowedContract(depositor.address, true);
                     await expect(
                         depositor.depositAllVault(
                             [dai.address, usdc.address],
@@ -503,14 +296,18 @@ describe('CanonicalVault', () => {
 
     describe('withdraw', () => {
         beforeEach(async () => {
-            await controller.connect(treasury).approveToken(dai.address);
-            await expect(controller.addVaultToken(dai.address, vault.address))
-                .to.emit(vault, 'TokenAdded')
-                .withArgs(dai.address);
+            await manager.connect(treasury).setAllowedToken(dai.address, true);
+            await manager.connect(treasury).setAllowedVault(vault.address, true);
+            await manager.connect(treasury).setAllowedController(controller.address, true);
+            await manager.setController(vault.address, controller.address);
+            await expect(manager.addToken(vault.address, dai.address))
+                .to.emit(manager, 'TokenAdded')
+                .withArgs(vault.address, dai.address);
+            expect((await vault.getTokens()).length).to.equal(1);
         });
 
         it('should revert if the output token is not added', async () => {
-            await expect(vault.withdraw(0, usdc.address)).to.be.revertedWith('!_output');
+            await expect(vault.withdraw(0, usdc.address)).to.be.revertedWith('!_token');
         });
 
         it('should revert if there are no deposits', async () => {
@@ -548,14 +345,18 @@ describe('CanonicalVault', () => {
 
     describe('withdrawAll', () => {
         beforeEach(async () => {
-            await controller.connect(treasury).approveToken(dai.address);
-            await expect(controller.addVaultToken(dai.address, vault.address))
-                .to.emit(vault, 'TokenAdded')
-                .withArgs(dai.address);
+            await manager.connect(treasury).setAllowedToken(dai.address, true);
+            await manager.connect(treasury).setAllowedVault(vault.address, true);
+            await manager.connect(treasury).setAllowedController(controller.address, true);
+            await manager.setController(vault.address, controller.address);
+            await expect(manager.addToken(vault.address, dai.address))
+                .to.emit(manager, 'TokenAdded')
+                .withArgs(vault.address, dai.address);
+            expect((await vault.getTokens()).length).to.equal(1);
         });
 
         it('should revert if the output token is not added', async () => {
-            await expect(vault.withdrawAll(usdc.address)).to.be.revertedWith('!_output');
+            await expect(vault.withdrawAll(usdc.address)).to.be.revertedWith('!_token');
         });
 
         it('should revert if there are no deposits', async () => {

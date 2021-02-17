@@ -21,9 +21,10 @@ contract CanonicalController is IController {
     using SafeERC20 for IERC20;
     using SafeMath for uint256;
 
+    IManager public immutable manager;
+
     bool public globalInvestEnabled;
     uint256 public maxStrategies;
-    IManager public manager;
 
     struct VaultDetail {
         address converter;
@@ -33,14 +34,10 @@ contract CanonicalController is IController {
         mapping(address => uint256) caps;
     }
 
-    mapping(address => bool) public approvedStrategies;
-    mapping(address => bool) public approvedTokens;
     // vault => Vault
     mapping(address => VaultDetail) internal _vaultDetails;
     // strategy => vault
     mapping(address => address) internal _vaultStrategies;
-    // token => vault
-    mapping(address => address) public override vaults;
 
     /**
      * @notice Logged when earn is called for a strategy
@@ -86,32 +83,7 @@ contract CanonicalController is IController {
     }
 
     /**
-     * GOVERNANCE-ONLY FUNCTIONS
-     */
-
-    function approveStrategy(
-        address _strategy
-    ) external onlyGovernance {
-        approvedStrategies[_strategy] = true;
-    }
-
-    function approveToken(
-        address _token
-    ) external onlyGovernance {
-        approvedTokens[_token] = true;
-    }
-
-    /**
-     * @notice Sets the address of the vault manager contract
-     * @dev Only callable by governance
-     * @param _manager The address of the vault manager
-     */
-    function setVaultManager(address _manager) external onlyGovernance {
-        manager = IManager(_manager);
-    }
-
-    /**
-     * (GOVERNANCE|STRATEGIST)-ONLY FUNCTIONS
+     * STRATEGIST-ONLY FUNCTIONS
      */
 
     /**
@@ -132,8 +104,8 @@ contract CanonicalController is IController {
         bool _canHarvest,
         uint256 _timeout
     ) external onlyStrategist {
-        require(approvedStrategies[_strategy], "!approved");
-        require(vaults[_token] != address(0), "!vaults");
+        require(manager.allowedStrategies(_strategy), "!allowedStrategy");
+        require(manager.vaults(_token) != address(0), "!vaults");
         require(_vaultDetails[_vault].converter != address(0), "!converter");
         // get the index of the newly added strategy
         uint256 index = _vaultDetails[_vault].strategies.length;
@@ -281,6 +253,7 @@ contract CanonicalController is IController {
         address _vault,
         address _converter
     ) external onlyStrategist {
+        require(manager.allowedConverters(_converter), "!allowedConverters");
         _vaultDetails[_vault].converter = _converter;
     }
 
@@ -300,25 +273,6 @@ contract CanonicalController is IController {
      */
     function setMaxStrategies(uint256 _maxStrategies) external onlyStrategist {
       maxStrategies = _maxStrategies;
-    }
-
-    /**
-     * @notice Sets the address of a vault for a given token
-     * @dev Only callable by governance or strategist
-     * @param _token The address of the token
-     * @param _vault The address of the vault
-     */
-    function addVaultToken(address _token, address _vault) external onlyStrategist {
-        require(approvedTokens[_token], "!approved");
-        require(vaults[_token] == address(0), "vault");
-        vaults[_token] = _vault;
-        ICanonicalVault(_vault).addToken(_token);
-    }
-
-    function removeVaultToken(address _token, address _vault) external onlyStrategist {
-        require(vaults[_token] != address(0), "!vault");
-        delete vaults[_token];
-        ICanonicalVault(_vault).removeToken(_token);
     }
 
     /**
@@ -363,7 +317,7 @@ contract CanonicalController is IController {
         // get the first strategy that will accept the deposit
         address _strategy = getBestStrategyEarn(msg.sender, _amount);
         if (_strategy != address(0)) {
-            address _vault = vaults[_token];
+            address _vault = manager.vaults(_token);
             // get the want token of the strategy
             address _want = IStrategy(_strategy).want();
             if (_want != _token) {
@@ -395,6 +349,7 @@ contract CanonicalController is IController {
             address[] memory _strategies,
             uint256[] memory _amounts
         ) = getBestStrategyWithdraw(_token, _amount);
+        address _vault = manager.vaults(_token);
         for (uint i = 0; i < _strategies.length; i++) {
             // getBestStrategyWithdraw will return arrays larger than needed
             // if this happens, simply exit the loop
@@ -404,10 +359,9 @@ contract CanonicalController is IController {
             IStrategy(_strategies[i]).withdraw(_amounts[i]);
             address _want = IStrategy(_strategies[i]).want();
             if (_want != _token) {
-                IConverter(_vaultDetails[vaults[_token]].converter).convert(_want, _token, _amounts[i]);
+                IConverter(_vaultDetails[_vault].converter).convert(_want, _token, _amounts[i]);
             }
         }
-        address _vault = vaults[_token];
         _amount = IERC20(_token).balanceOf(address(this));
         _vaultDetails[_vault].balance = _vaultDetails[_vault].balance.sub(_amount);
         IERC20(_token).safeTransfer(_vault, _amount);
@@ -451,7 +405,7 @@ contract CanonicalController is IController {
      * @param _token The address of the token
      */
     function strategies(address _token) external view returns (address[] memory) {
-        return _vaultDetails[vaults[_token]].strategies;
+        return _vaultDetails[manager.vaults(_token)].strategies;
     }
 
     function strategies() external view override returns (uint256) {
@@ -507,7 +461,7 @@ contract CanonicalController is IController {
         uint256[] memory _amounts
     ) {
         // get the length of strategies for a single token
-        address _vault = vaults[_token];
+        address _vault = manager.vaults(_token);
         uint256 k = _vaultDetails[_vault].strategies.length;
         // initialize fixed-length memory arrays
         _strategies = new address[](k);
@@ -553,7 +507,7 @@ contract CanonicalController is IController {
     }
 
     modifier onlyVault(address _token) {
-        require(msg.sender == vaults[_token], "!vault");
+        require(msg.sender == manager.vaults(_token), "!vault");
         _;
     }
 }

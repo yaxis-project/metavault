@@ -8,7 +8,6 @@ interface IController {
     function investEnabled() external view returns (bool);
     function harvestStrategy(address _strategy) external;
     function strategies() external view returns (uint256);
-    function vaults(address _token) external view returns (address);
     function withdraw(address _token, uint256 _amount) external;
     function withdrawAll(address _strategy) external;
 }
