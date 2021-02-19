@@ -59,13 +59,44 @@ contract Manager is IManager {
     // token => vault
     mapping(address => address) public override vaults;
 
+    event AllowedCodeHash(
+        bytes32 indexed _codeHash,
+        bool _allowed
+    );
+    event AllowedContract(
+        address indexed _contract,
+        bool _allowed
+    );
+    event AllowedController(
+        address indexed _controller,
+        bool _allowed
+    );
+    event AllowedConverter(
+        address indexed _converter,
+        bool _allowed
+    );
+    event AllowedStrategy(
+        address indexed _strategy,
+        bool _allowed
+    );
+    event AllowedToken(
+        address indexed _token,
+        bool _allowed
+    );
+    event AllowedVault(
+        address indexed _vault,
+        bool _allowed
+    );
+    event SetGovernance(
+        address indexed _governance
+    );
     event TokenAdded(
-        address indexed vault,
-        address indexed token
+        address indexed _vault,
+        address indexed _token
     );
     event TokenRemoved(
-        address indexed vault,
-        address indexed token
+        address indexed _vault,
+        address indexed _token
     );
 
     /**
@@ -98,6 +129,7 @@ contract Manager is IManager {
         onlyGovernance
     {
         allowedControllers[_controller] = _allowed;
+        emit AllowedController(_controller, _allowed);
     }
 
     function setAllowedConverter(
@@ -108,6 +140,7 @@ contract Manager is IManager {
         onlyGovernance
     {
         allowedConverters[_converter] = _allowed;
+        emit AllowedConverter(_converter, _allowed);
     }
 
     function setAllowedStrategy(
@@ -118,6 +151,7 @@ contract Manager is IManager {
         onlyGovernance
     {
         allowedStrategies[_strategy] = _allowed;
+        emit AllowedStrategy(_strategy, _allowed);
     }
 
     function setAllowedToken(
@@ -128,6 +162,7 @@ contract Manager is IManager {
         onlyGovernance
     {
         allowedTokens[_token] = _allowed;
+        emit AllowedToken(_token, _allowed);
     }
 
     function setAllowedCodeHash(
@@ -138,6 +173,7 @@ contract Manager is IManager {
         onlyGovernance
     {
         allowedCodeHash[_hash] = _allowed;
+        emit AllowedCodeHash(_hash, _allowed);
     }
 
     function setAllowedContract(
@@ -148,6 +184,7 @@ contract Manager is IManager {
         onlyGovernance
     {
         allowedContracts[_contract] = _allowed;
+        emit AllowedContract(_contract, _allowed);
     }
 
     function setAllowedVault(
@@ -158,6 +195,7 @@ contract Manager is IManager {
         onlyGovernance
     {
         allowedVaults[_vault] = _allowed;
+        emit AllowedVault(_vault, _allowed);
     }
 
     /**
@@ -171,6 +209,7 @@ contract Manager is IManager {
         onlyGovernance
     {
         governance = _governance;
+        emit SetGovernance(_governance);
     }
 
     /**
