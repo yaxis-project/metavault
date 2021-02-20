@@ -157,7 +157,7 @@ module.exports = {
             1: '0xdAC17F958D2ee523a2206206994597C13D831ec7'
         },
         USDTETH: {
-            1: ''
+            1: '0xEe9F2375b4bdF6387aa8265dD4FB8F16512A1d46'
         },
         vault3crv: {
             1: '0xBFbEC72F2450eF9Ab742e4A27441Fa06Ca79eA6a'
