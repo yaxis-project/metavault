@@ -24,7 +24,6 @@ describe('oracle_safety', () => {
         converter = config.converter;
         pool = config.pool;
 
-        //const Strategy = await deployments.get('StrategyCurve3Crv');
         const Strategy = await deployments.get('StrategyYearnV2');
 
         await controller
@@ -67,7 +66,7 @@ describe('oracle_safety', () => {
         // unbalance the pool
         await pool.add_liquidity([daiValue, usdcValue, 0], 0);
 
-        expect(await t3crv.balanceOf(user)).to.be.least(ether('22000000'));
+        expect(await t3crv.balanceOf(user)).to.be.least(ether('170000000'));
 
         // try the exploit
         await dai.faucet(earnValue); // step 1: be a whale
