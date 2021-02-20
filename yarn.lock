@@ -512,6 +512,16 @@
   resolved "https://registry.yarnpkg.com/@nomiclabs/hardhat-ethers/-/hardhat-ethers-2.0.1.tgz#f86a6fa210dbe6270adffccc75e93ed60a856904"
   integrity sha512-uTFHDhhvJ+UjfvvMeQxD3ZALuzuI3FXzTYT1Z5N3ebyZL5z4Ogwt55GB0R9tdKY0p5HhDhBjU/gsCjUEwIVoaw==
 
+"@nomiclabs/hardhat-vyper@^2.0.1":
+  version "2.0.1"
+  resolved "https://registry.yarnpkg.com/@nomiclabs/hardhat-vyper/-/hardhat-vyper-2.0.1.tgz#ee0204369c301dd792bfc30b9730ebc2ef7af63d"
+  integrity sha512-coc2MTWbazHqSGOA8bQdb0veh6FMSd4U5+AS8Yo0uQmwSCVbCQ4EnsjkUU9iJg7ihodvq5rs+9Dw5wspipZTLg==
+  dependencies:
+    "@nomiclabs/hardhat-docker" "^2.0.0"
+    fs-extra "^7.0.1"
+    glob "^7.1.3"
+    solpp "^0.10.1"
+
 "@nomiclabs/hardhat-waffle@^2.0.1":
   version "2.0.1"
   resolved "https://registry.yarnpkg.com/@nomiclabs/hardhat-waffle/-/hardhat-waffle-2.0.1.tgz#5d43654fba780720c5033dea240fe14f70ef4bd2"
@@ -797,16 +807,6 @@
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/@yarnpkg/lockfile/-/lockfile-1.1.0.tgz#e77a97fbd345b76d83245edcd17d393b1b41fb31"
   integrity sha512-GpSwvyXOcOOlV70vbnzjj4fW5xW/FdUF6nQEt1ENy7m4ZCczi1+/buVUPAqmGfqznsORNFzUMjctTIp8a9tuCQ==
-
-"@yaxis/hardhat-vyper@^2.0.1":
-  version "2.0.1"
-  resolved "https://registry.yarnpkg.com/@yaxis/hardhat-vyper/-/hardhat-vyper-2.0.1.tgz#02bfa91c3bc985ffa6a875a652dc1b280a6bda05"
-  integrity sha512-WSERPiHOAHi0AU0/Gy7bRi785lFOM1YvmdeEpT+LVtL9w9TqW+htRHkv/CqWXaAdvTdvW5J28PBYWn2PsJDwZg==
-  dependencies:
-    "@nomiclabs/hardhat-docker" "^2.0.0"
-    fs-extra "^7.0.1"
-    glob "^7.1.3"
-    solpp "^0.10.1"
 
 JSONStream@1.3.2:
   version "1.3.2"
