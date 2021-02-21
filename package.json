@@ -18,7 +18,8 @@
     "test:metavault": "hardhat test test/metavault/*",
     "test:misc": "VERBOSE=true hardhat test test/misc/*",
     "test:verbose": "VERBOSE=true hardhat test test/metavault/*",
-    "verify:kovan": "hardhat --network kovan etherscan-verify --api-key $ETHERSCAN_API_KEY"
+    "verify:kovan": "hardhat --network kovan etherscan-verify --api-key $ETHERSCAN_API_KEY",
+    "verify:mainnet": "hardhat --network mainnet etherscan-verify --api-key $ETHERSCAN_API_KEY"
   },
   "repository": {
     "type": "git",

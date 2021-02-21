@@ -1,0 +1,238 @@
+{
+  "address": "0x8DFDdc191C6Fd7596deEEf52BC783546993962ee",
+  "abi": [
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_feedETHUSD",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "_feedDAIETH",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "_feedUSDCETH",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "_feedUSDTETH",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "constructor"
+    },
+    {
+      "inputs": [],
+      "name": "ETH_USD_MUL",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "MAX_ROUND_TIME",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "MAX_STALE_ANSWER",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "ethUsd",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "name": "feeds",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "getEthereumPrice",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "_price",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "getMinimumPrice",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "_minPrice",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_feed",
+          "type": "address"
+        }
+      ],
+      "name": "getSafeAnswer",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    }
+  ],
+  "transactionHash": "0xd1bcb0406819afd3b64430a99f6bafe61f5ec54690c56842c097649549dba606",
+  "receipt": {
+    "to": null,
+    "from": "0x65F84A48e640a908d0DF7B6f00B871352F77022D",
+    "contractAddress": "0x8DFDdc191C6Fd7596deEEf52BC783546993962ee",
+    "transactionIndex": 270,
+    "gasUsed": "426221",
+    "logsBloom": "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+    "blockHash": "0xc5abff1854e8539fe0272489e9b46f04e7e24ce0066a76e0e9f0e80c8f6f45f2",
+    "transactionHash": "0xd1bcb0406819afd3b64430a99f6bafe61f5ec54690c56842c097649549dba606",
+    "logs": [],
+    "blockNumber": 11901665,
+    "cumulativeGasUsed": "9760191",
+    "status": 1,
+    "byzantium": true
+  },
+  "args": [
+    "0x5f4eC3Df9cbd43714FE2740f5E3616155c5b8419",
+    "0x773616E4d11A78F511299002da57A0a94577F1f4",
+    "0xEe9F2375b4bdF6387aa8265dD4FB8F16512A1d46",
+    "0xEe9F2375b4bdF6387aa8265dD4FB8F16512A1d46"
+  ],
+  "solcInputHash": "3de2fa958fb77ce58b6c702d42713fa5",
+  "metadata": "{\"compiler\":{\"version\":\"0.6.12+commit.27d51765\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_feedETHUSD\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_feedDAIETH\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_feedUSDCETH\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_feedUSDTETH\",\"type\":\"address\"}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"inputs\":[],\"name\":\"ETH_USD_MUL\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"MAX_ROUND_TIME\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"MAX_STALE_ANSWER\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"ethUsd\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"feeds\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getEthereumPrice\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"_price\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getMinimumPrice\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"_minPrice\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_feed\",\"type\":\"address\"}],\"name\":\"getSafeAnswer\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"}],\"devdoc\":{\"kind\":\"dev\",\"methods\":{\"getEthereumPrice()\":{\"details\":\"Reverts if the answer from Chainlink is not safe\"},\"getMinimumPrice()\":{\"details\":\"Reverts if none of the Chainlink nodes are safe\"},\"getSafeAnswer(address)\":{\"params\":{\"_feed\":\"The address of the Chainlink price feed\"}}},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{\"getEthereumPrice()\":{\"notice\":\"Retrieves the current price of ETH/USD as provided by Chainlink\"},\"getMinimumPrice()\":{\"notice\":\"Retrieves the minimum price of the 3pool tokens as provided by Chainlink\"},\"getSafeAnswer(address)\":{\"notice\":\"Get and check the answer provided by Chainlink\"}},\"version\":1}},\"settings\":{\"compilationTarget\":{\"contracts/metavault/StableSwap3PoolOracle.sol\":\"StableSwap3PoolOracle\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\",\"useLiteralContent\":true},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[]},\"sources\":{\"@openzeppelin/contracts/math/SafeMath.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\n\\npragma solidity >=0.6.0 <0.8.0;\\n\\n/**\\n * @dev Wrappers over Solidity's arithmetic operations with added overflow\\n * checks.\\n *\\n * Arithmetic operations in Solidity wrap on overflow. This can easily result\\n * in bugs, because programmers usually assume that an overflow raises an\\n * error, which is the standard behavior in high level programming languages.\\n * `SafeMath` restores this intuition by reverting the transaction when an\\n * operation overflows.\\n *\\n * Using this library instead of the unchecked operations eliminates an entire\\n * class of bugs, so it's recommended to use it always.\\n */\\nlibrary SafeMath {\\n    /**\\n     * @dev Returns the addition of two unsigned integers, reverting on\\n     * overflow.\\n     *\\n     * Counterpart to Solidity's `+` operator.\\n     *\\n     * Requirements:\\n     *\\n     * - Addition cannot overflow.\\n     */\\n    function add(uint256 a, uint256 b) internal pure returns (uint256) {\\n        uint256 c = a + b;\\n        require(c >= a, \\\"SafeMath: addition overflow\\\");\\n\\n        return c;\\n    }\\n\\n    /**\\n     * @dev Returns the subtraction of two unsigned integers, reverting on\\n     * overflow (when the result is negative).\\n     *\\n     * Counterpart to Solidity's `-` operator.\\n     *\\n     * Requirements:\\n     *\\n     * - Subtraction cannot overflow.\\n     */\\n    function sub(uint256 a, uint256 b) internal pure returns (uint256) {\\n        return sub(a, b, \\\"SafeMath: subtraction overflow\\\");\\n    }\\n\\n    /**\\n     * @dev Returns the subtraction of two unsigned integers, reverting with custom message on\\n     * overflow (when the result is negative).\\n     *\\n     * Counterpart to Solidity's `-` operator.\\n     *\\n     * Requirements:\\n     *\\n     * - Subtraction cannot overflow.\\n     */\\n    function sub(uint256 a, uint256 b, string memory errorMessage) internal pure returns (uint256) {\\n        require(b <= a, errorMessage);\\n        uint256 c = a - b;\\n\\n        return c;\\n    }\\n\\n    /**\\n     * @dev Returns the multiplication of two unsigned integers, reverting on\\n     * overflow.\\n     *\\n     * Counterpart to Solidity's `*` operator.\\n     *\\n     * Requirements:\\n     *\\n     * - Multiplication cannot overflow.\\n     */\\n    function mul(uint256 a, uint256 b) internal pure returns (uint256) {\\n        // Gas optimization: this is cheaper than requiring 'a' not being zero, but the\\n        // benefit is lost if 'b' is also tested.\\n        // See: https://github.com/OpenZeppelin/openzeppelin-contracts/pull/522\\n        if (a == 0) {\\n            return 0;\\n        }\\n\\n        uint256 c = a * b;\\n        require(c / a == b, \\\"SafeMath: multiplication overflow\\\");\\n\\n        return c;\\n    }\\n\\n    /**\\n     * @dev Returns the integer division of two unsigned integers. Reverts on\\n     * division by zero. The result is rounded towards zero.\\n     *\\n     * Counterpart to Solidity's `/` operator. Note: this function uses a\\n     * `revert` opcode (which leaves remaining gas untouched) while Solidity\\n     * uses an invalid opcode to revert (consuming all remaining gas).\\n     *\\n     * Requirements:\\n     *\\n     * - The divisor cannot be zero.\\n     */\\n    function div(uint256 a, uint256 b) internal pure returns (uint256) {\\n        return div(a, b, \\\"SafeMath: division by zero\\\");\\n    }\\n\\n    /**\\n     * @dev Returns the integer division of two unsigned integers. Reverts with custom message on\\n     * division by zero. The result is rounded towards zero.\\n     *\\n     * Counterpart to Solidity's `/` operator. Note: this function uses a\\n     * `revert` opcode (which leaves remaining gas untouched) while Solidity\\n     * uses an invalid opcode to revert (consuming all remaining gas).\\n     *\\n     * Requirements:\\n     *\\n     * - The divisor cannot be zero.\\n     */\\n    function div(uint256 a, uint256 b, string memory errorMessage) internal pure returns (uint256) {\\n        require(b > 0, errorMessage);\\n        uint256 c = a / b;\\n        // assert(a == b * c + a % b); // There is no case in which this doesn't hold\\n\\n        return c;\\n    }\\n\\n    /**\\n     * @dev Returns the remainder of dividing two unsigned integers. (unsigned integer modulo),\\n     * Reverts when dividing by zero.\\n     *\\n     * Counterpart to Solidity's `%` operator. This function uses a `revert`\\n     * opcode (which leaves remaining gas untouched) while Solidity uses an\\n     * invalid opcode to revert (consuming all remaining gas).\\n     *\\n     * Requirements:\\n     *\\n     * - The divisor cannot be zero.\\n     */\\n    function mod(uint256 a, uint256 b) internal pure returns (uint256) {\\n        return mod(a, b, \\\"SafeMath: modulo by zero\\\");\\n    }\\n\\n    /**\\n     * @dev Returns the remainder of dividing two unsigned integers. (unsigned integer modulo),\\n     * Reverts with custom message when dividing by zero.\\n     *\\n     * Counterpart to Solidity's `%` operator. This function uses a `revert`\\n     * opcode (which leaves remaining gas untouched) while Solidity uses an\\n     * invalid opcode to revert (consuming all remaining gas).\\n     *\\n     * Requirements:\\n     *\\n     * - The divisor cannot be zero.\\n     */\\n    function mod(uint256 a, uint256 b, string memory errorMessage) internal pure returns (uint256) {\\n        require(b != 0, errorMessage);\\n        return a % b;\\n    }\\n}\\n\",\"keccak256\":\"0x3b21f2c8d626de3b9925ae33e972d8bf5c8b1bffb3f4ee94daeed7d0679036e6\",\"license\":\"MIT\"},\"contracts/interfaces/Chainlink.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\n\\npragma solidity ^0.6.2;\\n\\ninterface AggregatorInterface {\\n      function latestAnswer() external view returns (int256);\\n      function latestTimestamp() external view returns (uint256);\\n      function latestRound() external view returns (uint256);\\n      function getAnswer(uint256 roundId) external view returns (int256);\\n      function getTimestamp(uint256 roundId) external view returns (uint256);\\n}\\n\\ninterface AggregatorV3Interface {\\n\\n      function decimals() external view returns (uint8);\\n      function description() external view returns (string memory);\\n      function version() external view returns (uint256);\\n\\n      // getRoundData and latestRoundData should both raise \\\"No data present\\\"\\n      // if they do not have data to report, instead of returning unset values\\n      // which could be misinterpreted as actual reported values.\\n      function getRoundData(uint80 _roundId)\\n            external\\n            view\\n            returns (\\n                  uint80 roundId,\\n                  int256 answer,\\n                  uint256 startedAt,\\n                  uint256 updatedAt,\\n                  uint80 answeredInRound\\n            );\\n      function latestRoundData()\\n            external\\n            view\\n            returns (\\n                  uint80 roundId,\\n                  int256 answer,\\n                  uint256 startedAt,\\n                  uint256 updatedAt,\\n                  uint80 answeredInRound\\n            );\\n}\\n\\ninterface AggregatorV2V3Interface is AggregatorInterface, AggregatorV3Interface\\n{\\n}\\n\",\"keccak256\":\"0xf94a4390f1d7cb9baee0a35108a0418761395178377be3d3c339604217e66bd3\",\"license\":\"MIT\"},\"contracts/metavault/IStableSwap3PoolOracle.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\n\\npragma solidity ^0.6.2;\\n\\ninterface IStableSwap3PoolOracle {\\n    function getEthereumPrice() external view returns (uint256);\\n    function getMinimumPrice() external view returns (uint256);\\n    function getSafeAnswer(address) external view returns (uint256);\\n}\\n\",\"keccak256\":\"0xc1ca444357f64c381d8ad70615508fe005adefccc553fb1b39797182b3849b2d\",\"license\":\"MIT\"},\"contracts/metavault/StableSwap3PoolOracle.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\n\\npragma solidity 0.6.12;\\n\\nimport \\\"@openzeppelin/contracts/math/SafeMath.sol\\\";\\n\\nimport \\\"./IStableSwap3PoolOracle.sol\\\";\\nimport \\\"../interfaces/Chainlink.sol\\\";\\n\\ncontract StableSwap3PoolOracle is IStableSwap3PoolOracle {\\n    using SafeMath for uint256;\\n\\n    uint256 public constant MAX_ROUND_TIME = 1 hours;\\n    uint256 public constant MAX_STALE_ANSWER = 24 hours;\\n    uint256 public constant ETH_USD_MUL = 1e10; // ETH-USD feed is to 8 decimals\\n\\n    address public ethUsd;\\n    address[3] public feeds;\\n\\n    constructor(\\n        address _feedETHUSD,\\n        address _feedDAIETH,\\n        address _feedUSDCETH,\\n        address _feedUSDTETH\\n    )\\n        public\\n    {\\n        ethUsd = _feedETHUSD;\\n        feeds[0] = _feedDAIETH;\\n        feeds[1] = _feedUSDCETH;\\n        feeds[2] = _feedUSDTETH;\\n    }\\n\\n    /**\\n     * @notice Retrieves the current price of ETH/USD as provided by Chainlink\\n     * @dev Reverts if the answer from Chainlink is not safe\\n     */\\n    function getEthereumPrice() external view override returns (uint256 _price) {\\n        _price = getSafeAnswer(ethUsd);\\n        require(_price > 0, \\\"!getEthereumPrice\\\");\\n        _price = _price.mul(ETH_USD_MUL);\\n\\n    }\\n\\n    /**\\n     * @notice Retrieves the minimum price of the 3pool tokens as provided by Chainlink\\n     * @dev Reverts if none of the Chainlink nodes are safe\\n     */\\n    function getMinimumPrice() external view override returns (uint256 _minPrice) {\\n        for (uint8 i = 0; i < 3; i++) {\\n            // get the safe answer from Chainlink\\n            uint256 _answer = getSafeAnswer(feeds[i]);\\n\\n            // store the first iteration regardless (handle that later if 0)\\n            // otherwise,check that _answer is greater than 0 and only store it if less\\n            // than the previously observed price\\n            if (i == 0 || (_answer > 0 && _answer < _minPrice)) {\\n                _minPrice = _answer;\\n            }\\n        }\\n\\n        // if we couldn't get a valid price from any of the Chainlink feeds,\\n        // revert because nothing is safe\\n        require(_minPrice > 0, \\\"!getMinimumPrice\\\");\\n    }\\n\\n    /**\\n     * @notice Get and check the answer provided by Chainlink\\n     * @param _feed The address of the Chainlink price feed\\n     */\\n    function getSafeAnswer(address _feed) public view override returns (uint256) {\\n        (\\n            uint80 roundId,\\n            int256 answer,\\n            uint256 startedAt,\\n            uint256 updatedAt,\\n            uint80 answeredInRound\\n        ) = AggregatorV3Interface(_feed).latestRoundData();\\n\\n        // latest round is carried over from previous round\\n        if (answeredInRound < roundId) {\\n            return 0;\\n        }\\n\\n        // latest answer is stale\\n        // solhint-disable-next-line not-rely-on-time\\n        if (updatedAt < block.timestamp.sub(MAX_STALE_ANSWER)) {\\n            return 0;\\n        }\\n\\n        // round has taken too long to collect answers\\n        if (updatedAt.sub(startedAt) > MAX_ROUND_TIME) {\\n            return 0;\\n        }\\n\\n        // Chainlink already rejects answers outside of a range (like what would cause\\n        // a negative answer)\\n        return uint256(answer);\\n    }\\n}\\n\",\"keccak256\":\"0x1063be0c751dc569ccfe6cb556f85d41b334fd8a9b7d75eca66f060c5e99a1ee\",\"license\":\"MIT\"}},\"version\":1}",
+  "bytecode": "0x608060405234801561001057600080fd5b506040516105d13803806105d18339818101604052608081101561003357600080fd5b50805160208201516040830151606090930151600080546001600160a01b039485166001600160a01b03199182161782556001805494861694821694909417909355600280549585169584169590951790945560038054909216921691909117905561052c9081906100a590396000f3fe608060405234801561001057600080fd5b50600436106100885760003560e01c80639bddd05f1161005b5780639bddd05f1461010e578063a663303314610116578063ac4316cb1461011e578063dd314e9c1461012657610088565b8063195e60611461008d5780634a5479f3146100c55780635a960216146100fe5780635c196d1614610106575b600080fd5b6100b3600480360360208110156100a357600080fd5b50356001600160a01b031661012e565b60408051918252519081900360200190f35b6100e2600480360360208110156100db57600080fd5b5035610234565b604080516001600160a01b039092168252519081900360200190f35b6100e2610251565b6100b3610260565b6100b3610269565b6100b36102de565b6100b36102e5565b6100b3610394565b600080600080600080866001600160a01b031663feaf968c6040518163ffffffff1660e01b815260040160a06040518083038186803b15801561017057600080fd5b505afa158015610184573d6000803e3d6000fd5b505050506040513d60a081101561019a57600080fd5b5080516020820151604083015160608401516080909401519298509096509450909250905069ffffffffffffffffffff80861690821610156101e45760009550505050505061022f565b6101f1426201518061039a565b8210156102065760009550505050505061022f565b610e10610213838561039a565b11156102275760009550505050505061022f565b509193505050505b919050565b6001816003811061024157fe5b01546001600160a01b0316905081565b6000546001600160a01b031681565b6402540be40081565b6000805461027f906001600160a01b031661012e565b9050600081116102ca576040805162461bcd60e51b815260206004820152601160248201527021676574457468657265756d507269636560781b604482015290519081900360640190fd5b6102d9816402540be4006103e5565b905090565b6201518081565b6000805b60038160ff16101561034857600061031a60018360ff166003811061030a57fe5b01546001600160a01b031661012e565b905060ff82161580610336575060008111801561033657508281105b1561033f578092505b506001016102e9565b5060008111610391576040805162461bcd60e51b815260206004820152601060248201526f216765744d696e696d756d507269636560801b604482015290519081900360640190fd5b90565b610e1081565b60006103dc83836040518060400160405280601e81526020017f536166654d6174683a207375627472616374696f6e206f766572666c6f77000081525061043e565b90505b92915050565b6000826103f4575060006103df565b8282028284828161040157fe5b04146103dc5760405162461bcd60e51b81526004018080602001828103825260218152602001806104d66021913960400191505060405180910390fd5b600081848411156104cd5760405162461bcd60e51b81526004018080602001828103825283818151815260200191508051906020019080838360005b8381101561049257818101518382015260200161047a565b50505050905090810190601f1680156104bf5780820380516001836020036101000a031916815260200191505b509250505060405180910390fd5b50505090039056fe536166654d6174683a206d756c7469706c69636174696f6e206f766572666c6f77a26469706673582212201e38f939995de7a9ff389c1e17cce3296a0f10f1896f2e9b2bf7efeb7da1d5ec64736f6c634300060c0033",
+  "deployedBytecode": "0x608060405234801561001057600080fd5b50600436106100885760003560e01c80639bddd05f1161005b5780639bddd05f1461010e578063a663303314610116578063ac4316cb1461011e578063dd314e9c1461012657610088565b8063195e60611461008d5780634a5479f3146100c55780635a960216146100fe5780635c196d1614610106575b600080fd5b6100b3600480360360208110156100a357600080fd5b50356001600160a01b031661012e565b60408051918252519081900360200190f35b6100e2600480360360208110156100db57600080fd5b5035610234565b604080516001600160a01b039092168252519081900360200190f35b6100e2610251565b6100b3610260565b6100b3610269565b6100b36102de565b6100b36102e5565b6100b3610394565b600080600080600080866001600160a01b031663feaf968c6040518163ffffffff1660e01b815260040160a06040518083038186803b15801561017057600080fd5b505afa158015610184573d6000803e3d6000fd5b505050506040513d60a081101561019a57600080fd5b5080516020820151604083015160608401516080909401519298509096509450909250905069ffffffffffffffffffff80861690821610156101e45760009550505050505061022f565b6101f1426201518061039a565b8210156102065760009550505050505061022f565b610e10610213838561039a565b11156102275760009550505050505061022f565b509193505050505b919050565b6001816003811061024157fe5b01546001600160a01b0316905081565b6000546001600160a01b031681565b6402540be40081565b6000805461027f906001600160a01b031661012e565b9050600081116102ca576040805162461bcd60e51b815260206004820152601160248201527021676574457468657265756d507269636560781b604482015290519081900360640190fd5b6102d9816402540be4006103e5565b905090565b6201518081565b6000805b60038160ff16101561034857600061031a60018360ff166003811061030a57fe5b01546001600160a01b031661012e565b905060ff82161580610336575060008111801561033657508281105b1561033f578092505b506001016102e9565b5060008111610391576040805162461bcd60e51b815260206004820152601060248201526f216765744d696e696d756d507269636560801b604482015290519081900360640190fd5b90565b610e1081565b60006103dc83836040518060400160405280601e81526020017f536166654d6174683a207375627472616374696f6e206f766572666c6f77000081525061043e565b90505b92915050565b6000826103f4575060006103df565b8282028284828161040157fe5b04146103dc5760405162461bcd60e51b81526004018080602001828103825260218152602001806104d66021913960400191505060405180910390fd5b600081848411156104cd5760405162461bcd60e51b81526004018080602001828103825283818151815260200191508051906020019080838360005b8381101561049257818101518382015260200161047a565b50505050905090810190601f1680156104bf5780820380516001836020036101000a031916815260200191505b509250505060405180910390fd5b50505090039056fe536166654d6174683a206d756c7469706c69636174696f6e206f766572666c6f77a26469706673582212201e38f939995de7a9ff389c1e17cce3296a0f10f1896f2e9b2bf7efeb7da1d5ec64736f6c634300060c0033",
+  "devdoc": {
+    "kind": "dev",
+    "methods": {
+      "getEthereumPrice()": {
+        "details": "Reverts if the answer from Chainlink is not safe"
+      },
+      "getMinimumPrice()": {
+        "details": "Reverts if none of the Chainlink nodes are safe"
+      },
+      "getSafeAnswer(address)": {
+        "params": {
+          "_feed": "The address of the Chainlink price feed"
+        }
+      }
+    },
+    "version": 1
+  },
+  "userdoc": {
+    "kind": "user",
+    "methods": {
+      "getEthereumPrice()": {
+        "notice": "Retrieves the current price of ETH/USD as provided by Chainlink"
+      },
+      "getMinimumPrice()": {
+        "notice": "Retrieves the minimum price of the 3pool tokens as provided by Chainlink"
+      },
+      "getSafeAnswer(address)": {
+        "notice": "Get and check the answer provided by Chainlink"
+      }
+    },
+    "version": 1
+  },
+  "storageLayout": {
+    "storage": [
+      {
+        "astId": 3336,
+        "contract": "contracts/metavault/StableSwap3PoolOracle.sol:StableSwap3PoolOracle",
+        "label": "ethUsd",
+        "offset": 0,
+        "slot": "0",
+        "type": "t_address"
+      },
+      {
+        "astId": 3340,
+        "contract": "contracts/metavault/StableSwap3PoolOracle.sol:StableSwap3PoolOracle",
+        "label": "feeds",
+        "offset": 0,
+        "slot": "1",
+        "type": "t_array(t_address)3_storage"
+      }
+    ],
+    "types": {
+      "t_address": {
+        "encoding": "inplace",
+        "label": "address",
+        "numberOfBytes": "20"
+      },
+      "t_array(t_address)3_storage": {
+        "base": "t_address",
+        "encoding": "inplace",
+        "label": "address[3]",
+        "numberOfBytes": "96"
+      }
+    }
+  }
+}
