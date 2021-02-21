@@ -30,6 +30,7 @@ contract CanonicalController is IController {
         address converter;
         uint256 balance;
         address[] strategies;
+        mapping(address => uint256) balances;
         mapping(address => uint256) index;
         mapping(address => uint256) caps;
     }
@@ -96,7 +97,6 @@ contract CanonicalController is IController {
      * @param _token The address of the token
      * @param _strategy The address of the strategy
      * @param _cap The cap of the strategy
-     * @param _canHarvest Flag to determine if the added strategy can be harvested
      * @param _timeout The timeout between harvests
      */
     function addStrategy(
@@ -104,7 +104,6 @@ contract CanonicalController is IController {
         address _token,
         address _strategy,
         uint256 _cap,
-        bool _canHarvest,
         uint256 _timeout
     )
         external
@@ -125,11 +124,8 @@ contract CanonicalController is IController {
         _vaultDetails[_vault].index[_strategy] = index;
         // store the mapping of strategy to the vault
         _vaultStrategies[_strategy] = _vault;
-        // if the strategy should be harvested
-        if (_canHarvest) {
-            // add it to the harvester
-            IHarvester(manager.harvester()).addStrategy(_token, _strategy, _timeout);
-        }
+        // add it to the harvester
+        IHarvester(manager.harvester()).addStrategy(_token, _strategy, _timeout);
         emit StrategyAdded(_token, _strategy, _cap);
     }
 
@@ -198,6 +194,8 @@ contract CanonicalController is IController {
         delete vaultDetail.index[_strategy];
         // remove the strategy's cap
         delete vaultDetail.caps[_strategy];
+        // remove the strategy's balance
+        delete vaultDetail.balances[_strategy];
         // remove the mapping of strategy to the vault
         delete _vaultStrategies[_strategy];
         // pull funds from the removed strategy to the vault
@@ -256,6 +254,7 @@ contract CanonicalController is IController {
         if (_balance > _cap && _cap != 0) {
             uint256 _diff = _balance.sub(_cap);
             IStrategy(_strategy).withdraw(_diff);
+            updateBalance(_vault, _strategy);
         }
     }
 
@@ -314,10 +313,11 @@ contract CanonicalController is IController {
     {
         // WithdrawAll sends 'want' to 'vault'
         IStrategy(_strategy).withdrawAll();
+        updateBalance(_vaultStrategies[_strategy], _strategy);
     }
 
     /**
-     * (GOVERNANCE|STRATEGIST|HARVESTER)-ONLY FUNCTIONS
+     * HARVESTER-ONLY FUNCTIONS
      */
 
     /**
@@ -336,6 +336,7 @@ contract CanonicalController is IController {
         uint256 _after = IStrategy(_strategy).balanceOf();
         address _vault = _vaultStrategies[_strategy];
         _vaultDetails[_vault].balance = _vaultDetails[_vault].balance.add(_after.sub(_before));
+        _vaultDetails[_vault].balances[_strategy] = _after;
         emit Harvest(_strategy);
     }
 
@@ -373,6 +374,7 @@ contract CanonicalController is IController {
             _vaultDetails[_vault].balance = _vaultDetails[_vault].balance.add(_amount);
             // call the strategy deposit function
             IStrategy(_strategy).deposit();
+            updateBalance(msg.sender, _strategy);
             emit Earn(_token, _strategy);
         }
     }
@@ -397,7 +399,6 @@ contract CanonicalController is IController {
             address[] memory _strategies,
             uint256[] memory _amounts
         ) = getBestStrategyWithdraw(_token, _amount);
-        address _vault = manager.vaults(_token);
         for (uint i = 0; i < _strategies.length; i++) {
             // getBestStrategyWithdraw will return arrays larger than needed
             // if this happens, simply exit the loop
@@ -405,14 +406,15 @@ contract CanonicalController is IController {
                 break;
             }
             IStrategy(_strategies[i]).withdraw(_amounts[i]);
+            updateBalance(msg.sender, _strategies[i]);
             address _want = IStrategy(_strategies[i]).want();
             if (_want != _token) {
-                IConverter(_vaultDetails[_vault].converter).convert(_want, _token, _amounts[i]);
+                IConverter(_vaultDetails[msg.sender].converter).convert(_want, _token, _amounts[i]);
             }
         }
         _amount = IERC20(_token).balanceOf(address(this));
-        _vaultDetails[_vault].balance = _vaultDetails[_vault].balance.sub(_amount);
-        IERC20(_token).safeTransfer(_vault, _amount);
+        _vaultDetails[msg.sender].balance = _vaultDetails[msg.sender].balance.sub(_amount);
+        IERC20(_token).safeTransfer(msg.sender, _amount);
     }
 
     /**
@@ -511,10 +513,10 @@ contract CanonicalController is IController {
             for (uint i = k; i > 0; i--) {
                 _strategy = _vaultDetails[_vault].strategies[i - 1];
                 // get the new balance if the _amount were added to the strategy
-                uint256 balance = IStrategy(_strategy).balanceOf().add(_amount);
-                uint256 cap = _vaultDetails[_vault].caps[_strategy];
+                uint256 _balance = _vaultDetails[_vault].balances[_strategy].add(_amount);
+                uint256 _cap = _vaultDetails[_vault].caps[_strategy];
                 // stop scanning if the deposit wouldn't go over the cap
-                if (balance <= cap || cap == 0) {
+                if (_balance <= _cap || _cap == 0) {
                     break;
                 }
             }
@@ -557,7 +559,7 @@ contract CanonicalController is IController {
             _strategy = _vaultDetails[_vault].strategies[i];
             _strategies[i] = _strategy;
             // get the balance of the strategy
-            _balance = IStrategy(_strategy).balanceOf();
+            _balance = _vaultDetails[_vault].balances[_strategy];
             // if the strategy doesn't have the balance to cover the withdraw
             if (_balance < _amount) {
                 // withdraw what we can and add to the _amounts
@@ -569,6 +571,19 @@ contract CanonicalController is IController {
                 break;
             }
         }
+    }
+
+    /**
+     * INTERNAL FUNCTIONS
+     */
+
+    function updateBalance(
+        address _vault,
+        address _strategy
+    )
+        internal
+    {
+        _vaultDetails[_vault].balances[_strategy] = IStrategy(_strategy).balanceOf();
     }
 
     /**
