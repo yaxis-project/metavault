@@ -11,4 +11,4 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
     });
 };
 
-module.exports.tags = ['canonical', 'live'];
+module.exports.tags = ['canonical'];

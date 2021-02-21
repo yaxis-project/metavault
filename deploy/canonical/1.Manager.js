@@ -15,4 +15,4 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
     });
 };
 
-module.exports.tags = ['canonical', 'live'];
+module.exports.tags = ['canonical'];
