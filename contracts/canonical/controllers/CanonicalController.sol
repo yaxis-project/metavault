@@ -13,7 +13,7 @@ import "../interfaces/IStrategy.sol";
 import "../interfaces/IManager.sol";
 
 /**
- * @title StrategyControllerV3
+ * @title CanonicalController
  * @notice This controller allows multiple strategies to be used
  * for a single token, and multiple tokens are supported.
  */
@@ -76,7 +76,11 @@ contract CanonicalController is IController {
     /**
      * @param _manager The address of the manager
      */
-    constructor(address _manager) public {
+    constructor(
+        address _manager
+    )
+        public
+    {
         manager = IManager(_manager);
         globalInvestEnabled = true;
         maxStrategies = 10;
@@ -88,7 +92,6 @@ contract CanonicalController is IController {
 
     /**
      * @notice Adds a strategy for a given token
-     * @dev Only callable by the strategist
      * @param _vault The address of the vault
      * @param _token The address of the token
      * @param _strategy The address of the strategy
@@ -103,7 +106,10 @@ contract CanonicalController is IController {
         uint256 _cap,
         bool _canHarvest,
         uint256 _timeout
-    ) external onlyStrategist {
+    )
+        external
+        onlyStrategist
+    {
         require(manager.allowedStrategies(_strategy), "!allowedStrategy");
         require(manager.vaults(_token) != address(0), "!vaults");
         require(_vaultDetails[_vault].converter != address(0), "!converter");
@@ -129,14 +135,16 @@ contract CanonicalController is IController {
 
     /**
      * @notice Withdraws token from a strategy to governance
-     * @dev Only callable by governance or the strategist
      * @param _strategy The address of the strategy
      * @param _token The address of the token
      */
     function inCaseStrategyGetStuck(
         address _strategy,
         address _token
-    ) external onlyStrategist {
+    )
+        external
+        onlyStrategist
+    {
         IStrategy(_strategy).withdraw(_token);
         IERC20(_token).safeTransfer(
             manager.governance(),
@@ -146,20 +154,21 @@ contract CanonicalController is IController {
 
     /**
      * @notice Withdraws token from the controller to governance
-     * @dev Only callable by governance or the strategist
      * @param _token The address of the token
      * @param _amount The amount that will be withdrawn
      */
     function inCaseTokensGetStuck(
         address _token,
         uint256 _amount
-    ) external onlyStrategist {
+    )
+        external
+        onlyStrategist
+    {
         IERC20(_token).safeTransfer(manager.governance(), _amount);
     }
 
     /**
      * @notice Removes a strategy for a given token
-     * @dev Only callable by governance or strategist
      * @param _vault The address of the vault
      * @param _strategy The address of the strategy
      * @param _timeout The timeout between harvests
@@ -168,7 +177,10 @@ contract CanonicalController is IController {
         address _vault,
         address _strategy,
         uint256 _timeout
-    ) external onlyStrategist {
+    )
+        external
+        onlyStrategist
+    {
         VaultDetail storage vaultDetail = _vaultDetails[_vault];
         // get the index of the strategy to remove
         uint256 index = vaultDetail.index[_strategy];
@@ -197,7 +209,6 @@ contract CanonicalController is IController {
 
     /**
      * @notice Reorders two strategies for a given token
-     * @dev Only callable by governance or strategist
      * @param _vault The address of the vault
      * @param _strategy1 The address of the first strategy
      * @param _strategy2 The address of the second strategy
@@ -206,7 +217,10 @@ contract CanonicalController is IController {
         address _vault,
         address _strategy1,
         address _strategy2
-    ) external onlyStrategist {
+    )
+        external
+        onlyStrategist
+    {
         VaultDetail storage vaultDetail = _vaultDetails[_vault];
         // get the indexes of the strategies
         uint256 index1 = vaultDetail.index[_strategy1];
@@ -222,7 +236,6 @@ contract CanonicalController is IController {
 
     /**
      * @notice Sets/updates the cap of a strategy for a token
-     * @dev Only callable by governance or strategist
      * @dev If the balance of the strategy is greater than the new cap (except if
      * the cap is 0), then withdraw the difference from the strategy to the vault.
      * @param _vault The address of the vault
@@ -233,7 +246,10 @@ contract CanonicalController is IController {
         address _vault,
         address _strategy,
         uint256 _cap
-    ) external onlyStrategist {
+    )
+        external
+        onlyStrategist
+    {
         _vaultDetails[_vault].caps[_strategy] = _cap;
         uint256 _balance = IStrategy(_strategy).balanceOf();
         // send excess funds (over cap) back to the vault
@@ -245,42 +261,57 @@ contract CanonicalController is IController {
 
     /**
      * @notice Sets/updates the converter for a given vault
-     * @dev Only callable by governance or strategist
      * @param _vault The address of the vault
      * @param _converter The address of the converter
      */
     function setConverter(
         address _vault,
         address _converter
-    ) external onlyStrategist {
+    )
+        external
+        onlyStrategist
+    {
         require(manager.allowedConverters(_converter), "!allowedConverters");
         _vaultDetails[_vault].converter = _converter;
     }
 
     /**
      * @notice Sets/updates the global invest enabled flag
-     * @dev Only callable by governance or strategist
      * @param _investEnabled The new bool of the invest enabled flag
      */
-    function setInvestEnabled(bool _investEnabled) external onlyStrategist {
+    function setInvestEnabled(
+        bool _investEnabled
+    )
+        external
+        onlyStrategist
+    {
         globalInvestEnabled = _investEnabled;
     }
 
     /**
      * @notice Sets/updates the maximum number of strategies for a token
-     * @dev Only callable by governance or strategist
      * @param _maxStrategies The new value of the maximum strategies
      */
-    function setMaxStrategies(uint256 _maxStrategies) external onlyStrategist {
-      maxStrategies = _maxStrategies;
+    function setMaxStrategies(
+        uint256 _maxStrategies
+    )
+        external
+        onlyStrategist
+    {
+        maxStrategies = _maxStrategies;
     }
 
     /**
      * @notice Withdraws all funds from a strategy
-     * @dev Only callable by governance or the strategist
      * @param _strategy The address of the strategy
      */
-    function withdrawAll(address _strategy) external override onlyStrategist {
+    function withdrawAll(
+        address _strategy
+    )
+        external
+        override
+        onlyStrategist
+    {
         // WithdrawAll sends 'want' to 'vault'
         IStrategy(_strategy).withdrawAll();
     }
@@ -291,10 +322,15 @@ contract CanonicalController is IController {
 
     /**
      * @notice Harvests the specified strategy
-     * @dev Only callable by governance, the strategist, or the harvester
      * @param _strategy The address of the strategy
      */
-    function harvestStrategy(address _strategy) external override onlyHarvester {
+    function harvestStrategy(
+        address _strategy
+    )
+        external
+        override
+        onlyHarvester
+    {
         uint256 _before = IStrategy(_strategy).balanceOf();
         IStrategy(_strategy).harvest();
         uint256 _after = IStrategy(_strategy).balanceOf();
@@ -309,11 +345,17 @@ contract CanonicalController is IController {
 
     /**
      * @notice Invests funds into a strategy
-     * @dev Only callable by a vault
      * @param _token The address of the token
      * @param _amount The amount that will be invested
      */
-    function earn(address _token, uint256 _amount) external override onlyVault(_token) {
+    function earn(
+        address _token,
+        uint256 _amount
+    )
+        external
+        override
+        onlyVault(_token)
+    {
         // get the first strategy that will accept the deposit
         address _strategy = getBestStrategyEarn(msg.sender, _amount);
         if (_strategy != address(0)) {
@@ -337,14 +379,20 @@ contract CanonicalController is IController {
 
     /**
      * @notice Withdraws funds from a strategy
-     * @dev Only callable by a vault
      * @dev If the withdraw amount is greater than the first strategy given
      * by getBestStrategyWithdraw, this function will loop over strategies
      * until the requested amount is met.
      * @param _token The address of the token
      * @param _amount The amount that will be withdrawn
      */
-    function withdraw(address _token, uint256 _amount) external override onlyVault(_token) {
+    function withdraw(
+        address _token,
+        uint256 _amount
+    )
+        external
+        override
+        onlyVault(_token)
+    {
         (
             address[] memory _strategies,
             uint256[] memory _amounts
@@ -376,7 +424,12 @@ contract CanonicalController is IController {
      * @dev This function is optimized to prevent looping over all strategy balances,
      * and instead the controller tracks the earn, withdraw, and harvest amounts.
      */
-    function balanceOf() external view override returns (uint256 _balance) {
+    function balanceOf()
+        external
+        view
+        override
+        returns (uint256 _balance)
+    {
         return _vaultDetails[msg.sender].balance;
     }
 
@@ -385,7 +438,14 @@ contract CanonicalController is IController {
      * @param _vault The address of the vault
      * @param _strategy The address of the strategy
      */
-    function getCap(address _vault, address _strategy) external view returns (uint256) {
+    function getCap(
+        address _vault,
+        address _strategy
+    )
+        external
+        view
+        returns (uint256)
+    {
         return _vaultDetails[_vault].caps[_strategy];
     }
 
@@ -393,7 +453,12 @@ contract CanonicalController is IController {
      * @notice Returns whether investing is enabled for the calling vault
      * @dev Should be called by the vault
      */
-    function investEnabled() external view override returns (bool) {
+    function investEnabled()
+        external
+        view
+        override
+        returns (bool)
+    {
         if (globalInvestEnabled) {
             return _vaultDetails[msg.sender].strategies.length > 0;
         }
@@ -404,11 +469,22 @@ contract CanonicalController is IController {
      * @notice Returns all the strategies for a given token
      * @param _token The address of the token
      */
-    function strategies(address _token) external view returns (address[] memory) {
+    function strategies(
+        address _token
+    )
+        external
+        view
+        returns (address[] memory)
+    {
         return _vaultDetails[manager.vaults(_token)].strategies;
     }
 
-    function strategies() external view override returns (uint256) {
+    function strategies()
+        external
+        view
+        override
+        returns (uint256)
+    {
         return _vaultDetails[msg.sender].strategies.length;
     }
 
@@ -424,7 +500,11 @@ contract CanonicalController is IController {
     function getBestStrategyEarn(
         address _vault,
         uint256 _amount
-    ) public view returns (address _strategy) {
+    )
+        public
+        view
+        returns (address _strategy)
+    {
         uint256 k = _vaultDetails[_vault].strategies.length;
         if (k > 0) {
             // scan backwards from the index to the beginning of strategies
@@ -456,10 +536,14 @@ contract CanonicalController is IController {
     function getBestStrategyWithdraw(
         address _token,
         uint256 _amount
-    ) public view returns (
-        address[] memory _strategies,
-        uint256[] memory _amounts
-    ) {
+    )
+        public
+        view
+        returns (
+            address[] memory _strategies,
+            uint256[] memory _amounts
+        )
+    {
         // get the length of strategies for a single token
         address _vault = manager.vaults(_token);
         uint256 k = _vaultDetails[_vault].strategies.length;
