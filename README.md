@@ -27,7 +27,18 @@ Deployed addresses can be obtained by running:
 yarn hardhat contracts --network kovan
 ```
 
-This will produce the following output:
+### Mainnet
+
+```
+StableSwap3PoolConverter 0xa4ea2fD4a88cB66488109eFb8Ecd4A96F5376261
+StableSwap3PoolOracle 0x8DFDdc191C6Fd7596deEEf52BC783546993962ee
+StrategyControllerV2 0xD2c5fe04d97c8C7cea36FbB5016E934C39dCe549
+StrategyCurve3Crv 0x3c7618f78A5CcbE9D2A45D2F71C68b688A89C655
+yAxisMetaVaultHarvester 0x18DbeFac8eb66fDF559e31D5C154F4ffBc63FF99
+yAxisMetaVaultManager 0xe3d32C20Be68e6189a52f60148c850dF7A2Bb5DD
+```
+
+### Kovan
 
 ```
 CRV 0x15827C1E7D31ABc35cd9f5c066507bEF3D10C978
