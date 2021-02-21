@@ -1,0 +1,620 @@
+{
+  "address": "0x18DbeFac8eb66fDF559e31D5C154F4ffBc63FF99",
+  "abi": [
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_vaultManager",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "_controller",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "constructor"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "controller",
+          "type": "address"
+        }
+      ],
+      "name": "ControllerSet",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "controller",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "strategy",
+          "type": "address"
+        }
+      ],
+      "name": "Harvest",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "harvester",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "bool",
+          "name": "status",
+          "type": "bool"
+        }
+      ],
+      "name": "HarvesterSet",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "token",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "strategy",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "timeout",
+          "type": "uint256"
+        }
+      ],
+      "name": "StrategyAdded",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "token",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "strategy",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "timeout",
+          "type": "uint256"
+        }
+      ],
+      "name": "StrategyRemoved",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "vaultManager",
+          "type": "address"
+        }
+      ],
+      "name": "VaultManagerSet",
+      "type": "event"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_token",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "_strategy",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_timeout",
+          "type": "uint256"
+        }
+      ],
+      "name": "addStrategy",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_token",
+          "type": "address"
+        }
+      ],
+      "name": "canHarvest",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "controller",
+      "outputs": [
+        {
+          "internalType": "contract IController",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "contract IController",
+          "name": "_controller",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "_strategy",
+          "type": "address"
+        }
+      ],
+      "name": "harvest",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_token",
+          "type": "address"
+        }
+      ],
+      "name": "harvestNextStrategy",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "name": "isHarvester",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_token",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "_strategy",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_timeout",
+          "type": "uint256"
+        }
+      ],
+      "name": "removeStrategy",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "contract IController",
+          "name": "_controller",
+          "type": "address"
+        }
+      ],
+      "name": "setController",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_harvester",
+          "type": "address"
+        },
+        {
+          "internalType": "bool",
+          "name": "_status",
+          "type": "bool"
+        }
+      ],
+      "name": "setHarvester",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_vaultManager",
+          "type": "address"
+        }
+      ],
+      "name": "setVaultManager",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "name": "strategies",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "timeout",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "lastCalled",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_token",
+          "type": "address"
+        }
+      ],
+      "name": "strategyAddresses",
+      "outputs": [
+        {
+          "internalType": "address[]",
+          "name": "",
+          "type": "address[]"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "vaultManager",
+      "outputs": [
+        {
+          "internalType": "contract IVaultManager",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    }
+  ],
+  "transactionHash": "0x2e47e5cafe720ca84d33c47e839e12ea2320680852e6717f1c62f4add78ad6ff",
+  "receipt": {
+    "to": null,
+    "from": "0x65F84A48e640a908d0DF7B6f00B871352F77022D",
+    "contractAddress": "0x18DbeFac8eb66fDF559e31D5C154F4ffBc63FF99",
+    "transactionIndex": 77,
+    "gasUsed": "1263389",
+    "logsBloom": "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+    "blockHash": "0x0b121e54014a7561d0f0ca686507691c1a04e85d77dcac37f2253301745c76d8",
+    "transactionHash": "0x2e47e5cafe720ca84d33c47e839e12ea2320680852e6717f1c62f4add78ad6ff",
+    "logs": [],
+    "blockNumber": 11901663,
+    "cumulativeGasUsed": "4584418",
+    "status": 1,
+    "byzantium": true
+  },
+  "args": [
+    "0xe3d32C20Be68e6189a52f60148c850dF7A2Bb5DD",
+    "0xD2c5fe04d97c8C7cea36FbB5016E934C39dCe549"
+  ],
+  "solcInputHash": "3de2fa958fb77ce58b6c702d42713fa5",
+  "metadata": "{\"compiler\":{\"version\":\"0.6.12+commit.27d51765\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_vaultManager\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_controller\",\"type\":\"address\"}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"controller\",\"type\":\"address\"}],\"name\":\"ControllerSet\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"controller\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"strategy\",\"type\":\"address\"}],\"name\":\"Harvest\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"harvester\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"bool\",\"name\":\"status\",\"type\":\"bool\"}],\"name\":\"HarvesterSet\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"strategy\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"timeout\",\"type\":\"uint256\"}],\"name\":\"StrategyAdded\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"strategy\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"timeout\",\"type\":\"uint256\"}],\"name\":\"StrategyRemoved\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"vaultManager\",\"type\":\"address\"}],\"name\":\"VaultManagerSet\",\"type\":\"event\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_token\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_strategy\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"_timeout\",\"type\":\"uint256\"}],\"name\":\"addStrategy\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_token\",\"type\":\"address\"}],\"name\":\"canHarvest\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"controller\",\"outputs\":[{\"internalType\":\"contract IController\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"contract IController\",\"name\":\"_controller\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_strategy\",\"type\":\"address\"}],\"name\":\"harvest\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_token\",\"type\":\"address\"}],\"name\":\"harvestNextStrategy\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"isHarvester\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_token\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_strategy\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"_timeout\",\"type\":\"uint256\"}],\"name\":\"removeStrategy\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"contract IController\",\"name\":\"_controller\",\"type\":\"address\"}],\"name\":\"setController\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_harvester\",\"type\":\"address\"},{\"internalType\":\"bool\",\"name\":\"_status\",\"type\":\"bool\"}],\"name\":\"setHarvester\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_vaultManager\",\"type\":\"address\"}],\"name\":\"setVaultManager\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"strategies\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"timeout\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"lastCalled\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_token\",\"type\":\"address\"}],\"name\":\"strategyAddresses\",\"outputs\":[{\"internalType\":\"address[]\",\"name\":\"\",\"type\":\"address[]\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"vaultManager\",\"outputs\":[{\"internalType\":\"contract IVaultManager\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"}],\"devdoc\":{\"kind\":\"dev\",\"methods\":{\"addStrategy(address,address,uint256)\":{\"params\":{\"_strategy\":\"The address of the strategy\",\"_timeout\":\"The timeout between harvests\",\"_token\":\"The address of the token\"}},\"canHarvest(address)\":{\"params\":{\"_token\":\"The address of the token\"}},\"constructor\":{\"params\":{\"_controller\":\"The address of the controller\",\"_vaultManager\":\"The address of the yAxisMetaVaultManager contract\"}},\"harvest(address,address)\":{\"details\":\"This function ignores the timeout\",\"params\":{\"_controller\":\"The address of the controller\",\"_strategy\":\"The address of the strategy\"}},\"harvestNextStrategy(address)\":{\"params\":{\"_token\":\"The address of the token\"}},\"removeStrategy(address,address,uint256)\":{\"params\":{\"_strategy\":\"The address of the strategy\",\"_timeout\":\"The timeout between harvests\",\"_token\":\"The address of the token\"}},\"setController(address)\":{\"params\":{\"_controller\":\"The address of the controller\"}},\"setHarvester(address,bool)\":{\"params\":{\"_harvester\":\"The address of the harvester\",\"_status\":\"The status to allow the harvester to harvest\"}},\"setVaultManager(address)\":{\"params\":{\"_vaultManager\":\"The address of the vault manager\"}},\"strategyAddresses(address)\":{\"params\":{\"_token\":\"The address of the token\"}}},\"title\":\"yAxisMetaVaultHarvester\",\"version\":1},\"userdoc\":{\"events\":{\"ControllerSet(address)\":{\"notice\":\"Logged when a controller is set\"},\"Harvest(address,address)\":{\"notice\":\"Logged when harvest is called for a strategy\"},\"HarvesterSet(address,bool)\":{\"notice\":\"Logged when a harvester is set\"},\"StrategyAdded(address,address,uint256)\":{\"notice\":\"Logged when a strategy is added for a token\"},\"StrategyRemoved(address,address,uint256)\":{\"notice\":\"Logged when a strategy is removed for a token\"},\"VaultManagerSet(address)\":{\"notice\":\"Logged when a vault manger is set\"}},\"kind\":\"user\",\"methods\":{\"addStrategy(address,address,uint256)\":{\"notice\":\"Adds a strategy to the rotation for a given token and sets a timeout\"},\"canHarvest(address)\":{\"notice\":\"Returns the availability of a token's strategy to be harvested\"},\"harvest(address,address)\":{\"notice\":\"Harvests a given strategy on the provided controller\"},\"harvestNextStrategy(address)\":{\"notice\":\"Harvests the next available strategy for a given token and rotates the strategies\"},\"removeStrategy(address,address,uint256)\":{\"notice\":\"Removes a strategy from the rotation for a given token and sets a timeout\"},\"setController(address)\":{\"notice\":\"Sets the address of the controller\"},\"setHarvester(address,bool)\":{\"notice\":\"Sets the status of a harvester address to be able to call harvest functions\"},\"setVaultManager(address)\":{\"notice\":\"Sets the address of the vault manager contract\"},\"strategyAddresses(address)\":{\"notice\":\"Returns the addresses of the strategies for a given token\"}},\"notice\":\"This contract is to be used as a central point to call harvest on all strategies for any given token. It has its own permissions for harvesters (set by the strategist or governance).\",\"version\":1}},\"settings\":{\"compilationTarget\":{\"contracts/metavault/yAxisMetaVaultHarvester.sol\":\"yAxisMetaVaultHarvester\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\",\"useLiteralContent\":true},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[]},\"sources\":{\"@openzeppelin/contracts/math/SafeMath.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\n\\npragma solidity >=0.6.0 <0.8.0;\\n\\n/**\\n * @dev Wrappers over Solidity's arithmetic operations with added overflow\\n * checks.\\n *\\n * Arithmetic operations in Solidity wrap on overflow. This can easily result\\n * in bugs, because programmers usually assume that an overflow raises an\\n * error, which is the standard behavior in high level programming languages.\\n * `SafeMath` restores this intuition by reverting the transaction when an\\n * operation overflows.\\n *\\n * Using this library instead of the unchecked operations eliminates an entire\\n * class of bugs, so it's recommended to use it always.\\n */\\nlibrary SafeMath {\\n    /**\\n     * @dev Returns the addition of two unsigned integers, reverting on\\n     * overflow.\\n     *\\n     * Counterpart to Solidity's `+` operator.\\n     *\\n     * Requirements:\\n     *\\n     * - Addition cannot overflow.\\n     */\\n    function add(uint256 a, uint256 b) internal pure returns (uint256) {\\n        uint256 c = a + b;\\n        require(c >= a, \\\"SafeMath: addition overflow\\\");\\n\\n        return c;\\n    }\\n\\n    /**\\n     * @dev Returns the subtraction of two unsigned integers, reverting on\\n     * overflow (when the result is negative).\\n     *\\n     * Counterpart to Solidity's `-` operator.\\n     *\\n     * Requirements:\\n     *\\n     * - Subtraction cannot overflow.\\n     */\\n    function sub(uint256 a, uint256 b) internal pure returns (uint256) {\\n        return sub(a, b, \\\"SafeMath: subtraction overflow\\\");\\n    }\\n\\n    /**\\n     * @dev Returns the subtraction of two unsigned integers, reverting with custom message on\\n     * overflow (when the result is negative).\\n     *\\n     * Counterpart to Solidity's `-` operator.\\n     *\\n     * Requirements:\\n     *\\n     * - Subtraction cannot overflow.\\n     */\\n    function sub(uint256 a, uint256 b, string memory errorMessage) internal pure returns (uint256) {\\n        require(b <= a, errorMessage);\\n        uint256 c = a - b;\\n\\n        return c;\\n    }\\n\\n    /**\\n     * @dev Returns the multiplication of two unsigned integers, reverting on\\n     * overflow.\\n     *\\n     * Counterpart to Solidity's `*` operator.\\n     *\\n     * Requirements:\\n     *\\n     * - Multiplication cannot overflow.\\n     */\\n    function mul(uint256 a, uint256 b) internal pure returns (uint256) {\\n        // Gas optimization: this is cheaper than requiring 'a' not being zero, but the\\n        // benefit is lost if 'b' is also tested.\\n        // See: https://github.com/OpenZeppelin/openzeppelin-contracts/pull/522\\n        if (a == 0) {\\n            return 0;\\n        }\\n\\n        uint256 c = a * b;\\n        require(c / a == b, \\\"SafeMath: multiplication overflow\\\");\\n\\n        return c;\\n    }\\n\\n    /**\\n     * @dev Returns the integer division of two unsigned integers. Reverts on\\n     * division by zero. The result is rounded towards zero.\\n     *\\n     * Counterpart to Solidity's `/` operator. Note: this function uses a\\n     * `revert` opcode (which leaves remaining gas untouched) while Solidity\\n     * uses an invalid opcode to revert (consuming all remaining gas).\\n     *\\n     * Requirements:\\n     *\\n     * - The divisor cannot be zero.\\n     */\\n    function div(uint256 a, uint256 b) internal pure returns (uint256) {\\n        return div(a, b, \\\"SafeMath: division by zero\\\");\\n    }\\n\\n    /**\\n     * @dev Returns the integer division of two unsigned integers. Reverts with custom message on\\n     * division by zero. The result is rounded towards zero.\\n     *\\n     * Counterpart to Solidity's `/` operator. Note: this function uses a\\n     * `revert` opcode (which leaves remaining gas untouched) while Solidity\\n     * uses an invalid opcode to revert (consuming all remaining gas).\\n     *\\n     * Requirements:\\n     *\\n     * - The divisor cannot be zero.\\n     */\\n    function div(uint256 a, uint256 b, string memory errorMessage) internal pure returns (uint256) {\\n        require(b > 0, errorMessage);\\n        uint256 c = a / b;\\n        // assert(a == b * c + a % b); // There is no case in which this doesn't hold\\n\\n        return c;\\n    }\\n\\n    /**\\n     * @dev Returns the remainder of dividing two unsigned integers. (unsigned integer modulo),\\n     * Reverts when dividing by zero.\\n     *\\n     * Counterpart to Solidity's `%` operator. This function uses a `revert`\\n     * opcode (which leaves remaining gas untouched) while Solidity uses an\\n     * invalid opcode to revert (consuming all remaining gas).\\n     *\\n     * Requirements:\\n     *\\n     * - The divisor cannot be zero.\\n     */\\n    function mod(uint256 a, uint256 b) internal pure returns (uint256) {\\n        return mod(a, b, \\\"SafeMath: modulo by zero\\\");\\n    }\\n\\n    /**\\n     * @dev Returns the remainder of dividing two unsigned integers. (unsigned integer modulo),\\n     * Reverts with custom message when dividing by zero.\\n     *\\n     * Counterpart to Solidity's `%` operator. This function uses a `revert`\\n     * opcode (which leaves remaining gas untouched) while Solidity uses an\\n     * invalid opcode to revert (consuming all remaining gas).\\n     *\\n     * Requirements:\\n     *\\n     * - The divisor cannot be zero.\\n     */\\n    function mod(uint256 a, uint256 b, string memory errorMessage) internal pure returns (uint256) {\\n        require(b != 0, errorMessage);\\n        return a % b;\\n    }\\n}\\n\",\"keccak256\":\"0x3b21f2c8d626de3b9925ae33e972d8bf5c8b1bffb3f4ee94daeed7d0679036e6\",\"license\":\"MIT\"},\"contracts/metavault/IController.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\n\\npragma solidity 0.6.12;\\n\\ninterface IController {\\n    function balanceOf(address) external view returns (uint256);\\n    function earn(address, uint256) external;\\n    function investEnabled() external view returns (bool);\\n    function harvestStrategy(address) external;\\n    function strategyTokens(address) external returns (address);\\n    function vaults(address) external view returns (address);\\n    function want(address) external view returns (address);\\n    function withdraw(address, uint256) external;\\n    function withdrawFee(address, uint256) external view returns (uint256);\\n}\\n\",\"keccak256\":\"0x34677b3f7fc870d4738321e11c0395054e0c995100878ff628e681e41b7ce199\",\"license\":\"MIT\"},\"contracts/metavault/IHarvester.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\n\\npragma solidity 0.6.12;\\n\\ninterface IHarvester {\\n    function addStrategy(address, address, uint256) external;\\n    function removeStrategy(address, address, uint256) external;\\n}\\n\\n\",\"keccak256\":\"0x982dea367f57b3e88776e4084b7510b0b16be900f713dfb6b4be8dd9fbd0ae99\",\"license\":\"MIT\"},\"contracts/metavault/IVaultManager.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\n\\npragma solidity 0.6.12;\\n\\ninterface IVaultManager {\\n    function controllers(address) external view returns (bool);\\n    function getHarvestFeeInfo() external view returns (address, address, uint256, address, uint256, address, uint256);\\n    function governance() external view returns (address);\\n    function harvester() external view returns (address);\\n    function insuranceFee() external view returns (uint256);\\n    function insurancePool() external view returns (address);\\n    function insurancePoolFee() external view returns (uint256);\\n    function stakingPool() external view returns (address);\\n    function stakingPoolShareFee() external view returns (uint256);\\n    function strategist() external view returns (address);\\n    function treasury() external view returns (address);\\n    function treasuryBalance() external view returns (uint256);\\n    function treasuryFee() external view returns (uint256);\\n    function vaults(address) external view returns (bool);\\n    function withdrawalProtectionFee() external view returns (uint256);\\n    function yax() external view returns (address);\\n}\\n\",\"keccak256\":\"0x9755c468ca7cd281bc678a1692f294765da5fa734d63c20fbdac12c31a665ed2\",\"license\":\"MIT\"},\"contracts/metavault/yAxisMetaVaultHarvester.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\n\\npragma solidity 0.6.12;\\n\\nimport \\\"@openzeppelin/contracts/math/SafeMath.sol\\\";\\n\\nimport \\\"./IController.sol\\\";\\nimport \\\"./IHarvester.sol\\\";\\nimport \\\"./IVaultManager.sol\\\";\\n\\n/**\\n * @title yAxisMetaVaultHarvester\\n * @notice This contract is to be used as a central point to call\\n * harvest on all strategies for any given token. It has its own\\n * permissions for harvesters (set by the strategist or governance).\\n */\\ncontract yAxisMetaVaultHarvester is IHarvester { // solhint-disable-line contract-name-camelcase\\n    using SafeMath for uint256;\\n\\n    IVaultManager public vaultManager;\\n    IController public controller;\\n\\n    struct Strategy {\\n        uint256 timeout;\\n        uint256 lastCalled;\\n        address[] addresses;\\n    }\\n\\n    mapping(address => Strategy) public strategies;\\n    mapping(address => bool) public isHarvester;\\n\\n    /**\\n     * @notice Logged when a controller is set\\n     */\\n    event ControllerSet(address indexed controller);\\n\\n    /**\\n     * @notice Logged when harvest is called for a strategy\\n     */\\n    event Harvest(\\n        address indexed controller,\\n        address indexed strategy\\n    );\\n\\n    /**\\n     * @notice Logged when a harvester is set\\n     */\\n    event HarvesterSet(address indexed harvester, bool status);\\n\\n    /**\\n     * @notice Logged when a strategy is added for a token\\n     */\\n    event StrategyAdded(address indexed token, address indexed strategy, uint256 timeout);\\n\\n    /**\\n     * @notice Logged when a strategy is removed for a token\\n     */\\n    event StrategyRemoved(address indexed token, address indexed strategy, uint256 timeout);\\n\\n    /**\\n     * @notice Logged when a vault manger is set\\n     */\\n    event VaultManagerSet(address indexed vaultManager);\\n\\n    /**\\n     * @param _vaultManager The address of the yAxisMetaVaultManager contract\\n     * @param _controller The address of the controller\\n     */\\n    constructor(address _vaultManager, address _controller) public {\\n        vaultManager = IVaultManager(_vaultManager);\\n        controller = IController(_controller);\\n    }\\n\\n    /**\\n     * (GOVERNANCE|STRATEGIST)-ONLY FUNCTIONS\\n     */\\n\\n    /**\\n     * @notice Adds a strategy to the rotation for a given token and sets a timeout\\n     * @param _token The address of the token\\n     * @param _strategy The address of the strategy\\n     * @param _timeout The timeout between harvests\\n     */\\n    function addStrategy(\\n        address _token,\\n        address _strategy,\\n        uint256 _timeout\\n    ) external override onlyStrategist {\\n        strategies[_token].addresses.push(_strategy);\\n        strategies[_token].timeout = _timeout;\\n        emit StrategyAdded(_token, _strategy, _timeout);\\n    }\\n\\n    /**\\n     * @notice Removes a strategy from the rotation for a given token and sets a timeout\\n     * @param _token The address of the token\\n     * @param _strategy The address of the strategy\\n     * @param _timeout The timeout between harvests\\n     */\\n    function removeStrategy(\\n        address _token,\\n        address _strategy,\\n        uint256 _timeout\\n    ) external override onlyStrategist {\\n        uint256 tail = strategies[_token].addresses.length;\\n        uint256 index;\\n        bool found;\\n        for (uint i; i < tail; i++) {\\n            if (strategies[_token].addresses[i] == _strategy) {\\n                index = i;\\n                found = true;\\n                break;\\n            }\\n        }\\n\\n        if (found) {\\n            strategies[_token].addresses[index] = strategies[_token].addresses[tail.sub(1)];\\n            strategies[_token].addresses.pop();\\n            strategies[_token].timeout = _timeout;\\n            emit StrategyRemoved(_token, _strategy, _timeout);\\n        }\\n    }\\n\\n    /**\\n     * @notice Sets the address of the controller\\n     * @param _controller The address of the controller\\n     */\\n    function setController(IController _controller) external onlyStrategist {\\n        controller = _controller;\\n        emit ControllerSet(address(_controller));\\n    }\\n\\n    /**\\n     * @notice Sets the status of a harvester address to be able to call harvest functions\\n     * @param _harvester The address of the harvester\\n     * @param _status The status to allow the harvester to harvest\\n     */\\n    function setHarvester(address _harvester, bool _status) public onlyStrategist {\\n        isHarvester[_harvester] = _status;\\n        emit HarvesterSet(_harvester, _status);\\n    }\\n\\n    /**\\n     * @notice Sets the address of the vault manager contract\\n     * @param _vaultManager The address of the vault manager\\n     */\\n    function setVaultManager(address _vaultManager) external onlyStrategist {\\n        vaultManager = IVaultManager(_vaultManager);\\n        emit VaultManagerSet(_vaultManager);\\n    }\\n\\n    /**\\n     * (GOVERNANCE|STRATEGIST|HARVESTER)-ONLY FUNCTIONS\\n     */\\n\\n    /**\\n     * @notice Harvests a given strategy on the provided controller\\n     * @dev This function ignores the timeout\\n     * @param _controller The address of the controller\\n     * @param _strategy The address of the strategy\\n     */\\n    function harvest(\\n        IController _controller,\\n        address _strategy\\n    ) public onlyHarvester {\\n        _controller.harvestStrategy(_strategy);\\n        emit Harvest(address(_controller), _strategy);\\n    }\\n\\n    /**\\n     * @notice Harvests the next available strategy for a given token and\\n     * rotates the strategies\\n     * @param _token The address of the token\\n     */\\n    function harvestNextStrategy(address _token) external {\\n        require(canHarvest(_token), \\\"!canHarvest\\\");\\n        address strategy = strategies[_token].addresses[0];\\n        harvest(controller, strategy);\\n        uint256 k = strategies[_token].addresses.length;\\n        if (k > 1) {\\n            address[] memory _strategies = new address[](k);\\n            for (uint i; i < k-1; i++) {\\n                _strategies[i] = strategies[_token].addresses[i+1];\\n            }\\n            _strategies[k-1] = strategy;\\n            strategies[_token].addresses = _strategies;\\n        }\\n        // solhint-disable-next-line not-rely-on-time\\n        strategies[_token].lastCalled = block.timestamp;\\n    }\\n\\n    /**\\n     * EXTERNAL VIEW FUNCTIONS\\n     */\\n\\n    /**\\n     * @notice Returns the addresses of the strategies for a given token\\n     * @param _token The address of the token\\n     */\\n    function strategyAddresses(address _token) external view returns (address[] memory) {\\n        return strategies[_token].addresses;\\n    }\\n\\n    /**\\n     * PUBLIC VIEW FUNCTIONS\\n     */\\n\\n    /**\\n     * @notice Returns the availability of a token's strategy to be harvested\\n     * @param _token The address of the token\\n     */\\n    function canHarvest(address _token) public view returns (bool) {\\n        Strategy storage strategy = strategies[_token];\\n        if (strategy.addresses.length == 0 ||\\n            // solhint-disable-next-line not-rely-on-time\\n            strategy.lastCalled > block.timestamp.sub(strategy.timeout)) {\\n            return false;\\n        }\\n        return true;\\n    }\\n\\n    /**\\n     * MODIFIERS\\n     */\\n\\n    modifier onlyHarvester() {\\n        require(isHarvester[msg.sender], \\\"!harvester\\\");\\n        _;\\n    }\\n\\n    modifier onlyStrategist() {\\n        require(vaultManager.controllers(msg.sender)\\n             || msg.sender == vaultManager.strategist()\\n             || msg.sender == vaultManager.governance(),\\n             \\\"!strategist\\\"\\n        );\\n        _;\\n    }\\n}\\n\",\"keccak256\":\"0x538f3538003e017671c0a32032ed2881f1b04280a41504300e8906034db55eaa\",\"license\":\"MIT\"}},\"version\":1}",
+  "bytecode": "0x608060405234801561001057600080fd5b506040516115943803806115948339818101604052604081101561003357600080fd5b508051602090910151600080546001600160a01b039384166001600160a01b0319918216179091556001805493909216921691909117905561151a8061007a6000396000f3fe608060405234801561001057600080fd5b50600436106100cf5760003560e01c806392eefe9b1161008c578063b543503e11610066578063b543503e146102d7578063cc2b238b146102fd578063f77c479114610323578063fb70261a1461032b576100cf565b806392eefe9b146102015780639af409dd14610227578063a71bbfd51461029d576100cf565b806331b71057146100d457806339ebf823146101045780634b704acd1461014357806366cc1857146101795780636bb3722e146101a75780638a4adf24146101dd575b600080fd5b610102600480360360408110156100ea57600080fd5b506001600160a01b0381351690602001351515610351565b005b61012a6004803603602081101561011a57600080fd5b50356001600160a01b031661057b565b6040805192835260208301919091528051918290030190f35b6101026004803603606081101561015957600080fd5b506001600160a01b03813581169160208101359091169060400135610594565b6101026004803603604081101561018f57600080fd5b506001600160a01b03813581169160200135166107de565b610102600480360360608110156101bd57600080fd5b506001600160a01b038135811691602081013590911690604001356108d2565b6101e5610c63565b604080516001600160a01b039092168252519081900360200190f35b6101026004803603602081101561021757600080fd5b50356001600160a01b0316610c72565b61024d6004803603602081101561023d57600080fd5b50356001600160a01b0316610e86565b60408051602080825283518183015283519192839290830191858101910280838360005b83811015610289578181015183820152602001610271565b505050509050019250505060405180910390f35b6102c3600480360360208110156102b357600080fd5b50356001600160a01b0316610f00565b604080519115158252519081900360200190f35b610102600480360360208110156102ed57600080fd5b50356001600160a01b0316610f15565b6101026004803603602081101561031357600080fd5b50356001600160a01b0316611127565b6101e5611320565b6102c36004803603602081101561034157600080fd5b50356001600160a01b031661132f565b60005460408051636d46114f60e11b815233600482015290516001600160a01b039092169163da8c229e91602480820192602092909190829003018186803b15801561039c57600080fd5b505afa1580156103b0573d6000803e3d6000fd5b505050506040513d60208110156103c657600080fd5b505180610452575060008054906101000a90046001600160a01b03166001600160a01b0316631fe4a6866040518163ffffffff1660e01b815260040160206040518083038186803b15801561041a57600080fd5b505afa15801561042e573d6000803e3d6000fd5b505050506040513d602081101561044457600080fd5b50516001600160a01b031633145b806104dc575060008054906101000a90046001600160a01b03166001600160a01b0316635aa6e6756040518163ffffffff1660e01b815260040160206040518083038186803b1580156104a457600080fd5b505afa1580156104b8573d6000803e3d6000fd5b505050506040513d60208110156104ce57600080fd5b50516001600160a01b031633145b61051b576040805162461bcd60e51b815260206004820152600b60248201526a085cdd1c985d1959da5cdd60aa1b604482015290519081900360640190fd5b6001600160a01b038216600081815260036020908152604091829020805460ff1916851515908117909155825190815291517f0dd4aeebdb71d8f88640d3361815b0e64e31aaf0ee73ad7f5a421115fac879ae9281900390910190a25050565b6002602052600090815260409020805460019091015482565b60005460408051636d46114f60e11b815233600482015290516001600160a01b039092169163da8c229e91602480820192602092909190829003018186803b1580156105df57600080fd5b505afa1580156105f3573d6000803e3d6000fd5b505050506040513d602081101561060957600080fd5b505180610695575060008054906101000a90046001600160a01b03166001600160a01b0316631fe4a6866040518163ffffffff1660e01b815260040160206040518083038186803b15801561065d57600080fd5b505afa158015610671573d6000803e3d6000fd5b505050506040513d602081101561068757600080fd5b50516001600160a01b031633145b8061071f575060008054906101000a90046001600160a01b03166001600160a01b0316635aa6e6756040518163ffffffff1660e01b815260040160206040518083038186803b1580156106e757600080fd5b505afa1580156106fb573d6000803e3d6000fd5b505050506040513d602081101561071157600080fd5b50516001600160a01b031633145b61075e576040805162461bcd60e51b815260206004820152600b60248201526a085cdd1c985d1959da5cdd60aa1b604482015290519081900360640190fd5b6001600160a01b03838116600081815260026020818152604080842092830180546001810182559085528285200180546001600160a01b03191696891696871790559284905290859055815185815291517fc2008aa15e9b0989ec7ae02bc3d8054428c527c989269ffb2a5bff829028a0129281900390910190a3505050565b3360009081526003602052604090205460ff1661082f576040805162461bcd60e51b815260206004820152600a60248201526910b430b93b32b9ba32b960b11b604482015290519081900360640190fd5b816001600160a01b03166361f13e00826040518263ffffffff1660e01b815260040180826001600160a01b03168152602001915050600060405180830381600087803b15801561087e57600080fd5b505af1158015610892573d6000803e3d6000fd5b50506040516001600160a01b038085169350851691507ffdfdf879d9abdea70f1d228c39cf14f5e7179a54f36b378f29bccfe7648f333e90600090a35050565b60005460408051636d46114f60e11b815233600482015290516001600160a01b039092169163da8c229e91602480820192602092909190829003018186803b15801561091d57600080fd5b505afa158015610931573d6000803e3d6000fd5b505050506040513d602081101561094757600080fd5b5051806109d3575060008054906101000a90046001600160a01b03166001600160a01b0316631fe4a6866040518163ffffffff1660e01b815260040160206040518083038186803b15801561099b57600080fd5b505afa1580156109af573d6000803e3d6000fd5b505050506040513d60208110156109c557600080fd5b50516001600160a01b031633145b80610a5d575060008054906101000a90046001600160a01b03166001600160a01b0316635aa6e6756040518163ffffffff1660e01b815260040160206040518083038186803b158015610a2557600080fd5b505afa158015610a39573d6000803e3d6000fd5b505050506040513d6020811015610a4f57600080fd5b50516001600160a01b031633145b610a9c576040805162461bcd60e51b815260206004820152600b60248201526a085cdd1c985d1959da5cdd60aa1b604482015290519081900360640190fd5b6001600160a01b0383166000908152600260208190526040822001549080805b83811015610b3057856001600160a01b031660026000896001600160a01b03166001600160a01b031681526020019081526020016000206002018281548110610b0157fe5b6000918252602090912001546001600160a01b03161415610b285780925060019150610b30565b600101610abc565b508015610c5b576001600160a01b038616600090815260026020819052604090912001610b5e846001611380565b81548110610b6857fe5b60009182526020808320909101546001600160a01b03898116845260029283905260409093209091018054929091169184908110610ba257fe5b600091825260208083209190910180546001600160a01b0319166001600160a01b0394851617905591881681526002918290526040902001805480610be357fe5b60008281526020808220830160001990810180546001600160a01b03191690559092019092556001600160a01b0388811680845260028352604093849020889055835188815293519189169390927fdd3e131c7baafda30070fc3f53c5153570a3e6552809d20e2b682dd30fa7cc6e92918290030190a35b505050505050565b6000546001600160a01b031681565b60005460408051636d46114f60e11b815233600482015290516001600160a01b039092169163da8c229e91602480820192602092909190829003018186803b158015610cbd57600080fd5b505afa158015610cd1573d6000803e3d6000fd5b505050506040513d6020811015610ce757600080fd5b505180610d73575060008054906101000a90046001600160a01b03166001600160a01b0316631fe4a6866040518163ffffffff1660e01b815260040160206040518083038186803b158015610d3b57600080fd5b505afa158015610d4f573d6000803e3d6000fd5b505050506040513d6020811015610d6557600080fd5b50516001600160a01b031633145b80610dfd575060008054906101000a90046001600160a01b03166001600160a01b0316635aa6e6756040518163ffffffff1660e01b815260040160206040518083038186803b158015610dc557600080fd5b505afa158015610dd9573d6000803e3d6000fd5b505050506040513d6020811015610def57600080fd5b50516001600160a01b031633145b610e3c576040805162461bcd60e51b815260206004820152600b60248201526a085cdd1c985d1959da5cdd60aa1b604482015290519081900360640190fd5b600180546001600160a01b0319166001600160a01b0383169081179091556040517f79f74fd5964b6943d8a1865abfb7f668c92fa3f32c0a2e3195da7d0946703ad790600090a250565b6001600160a01b038116600090815260026020818152604092839020909101805483518184028101840190945280845260609392830182828015610ef357602002820191906000526020600020905b81546001600160a01b03168152600190910190602001808311610ed5575b505050505090505b919050565b60036020526000908152604090205460ff1681565b60005460408051636d46114f60e11b815233600482015290516001600160a01b039092169163da8c229e91602480820192602092909190829003018186803b158015610f6057600080fd5b505afa158015610f74573d6000803e3d6000fd5b505050506040513d6020811015610f8a57600080fd5b505180611016575060008054906101000a90046001600160a01b03166001600160a01b0316631fe4a6866040518163ffffffff1660e01b815260040160206040518083038186803b158015610fde57600080fd5b505afa158015610ff2573d6000803e3d6000fd5b505050506040513d602081101561100857600080fd5b50516001600160a01b031633145b806110a0575060008054906101000a90046001600160a01b03166001600160a01b0316635aa6e6756040518163ffffffff1660e01b815260040160206040518083038186803b15801561106857600080fd5b505afa15801561107c573d6000803e3d6000fd5b505050506040513d602081101561109257600080fd5b50516001600160a01b031633145b6110df576040805162461bcd60e51b815260206004820152600b60248201526a085cdd1c985d1959da5cdd60aa1b604482015290519081900360640190fd5b600080546001600160a01b0319166001600160a01b038316908117825560405190917f8e902340d35762a5a36507c20fe38e5d549a721d9f846d6de7f397b5c26ab85391a250565b6111308161132f565b61116f576040805162461bcd60e51b815260206004820152600b60248201526a0858d85b92185c9d995cdd60aa1b604482015290519081900360640190fd5b6001600160a01b03811660009081526002602081905260408220018054829061119457fe5b6000918252602090912001546001546001600160a01b0391821692506111bb9116826107de565b6001600160a01b0382166000908152600260208190526040909120015460018111156112fe5760608167ffffffffffffffff811180156111fa57600080fd5b50604051908082528060200260200182016040528015611224578160200160208202803683370190505b50905060005b600183038110156112aa576001600160a01b03851660009081526002602081905260409091200180546001830190811061126057fe5b9060005260206000200160009054906101000a90046001600160a01b031682828151811061128a57fe5b6001600160a01b039092166020928302919091019091015260010161122a565b50828160018403815181106112bb57fe5b6001600160a01b0392831660209182029290920181019190915290851660009081526002808352604090912083516112fb93919092019190840190611460565b50505b50506001600160a01b0316600090815260026020526040902042600190910155565b6001546001600160a01b031681565b6001600160a01b0381166000908152600260208190526040822090810154158061136857508054611361904290611380565b8160010154115b15611377576000915050610efb565b50600192915050565b60006113c283836040518060400160405280601e81526020017f536166654d6174683a207375627472616374696f6e206f766572666c6f7700008152506113c9565b9392505050565b600081848411156114585760405162461bcd60e51b81526004018080602001828103825283818151815260200191508051906020019080838360005b8381101561141d578181015183820152602001611405565b50505050905090810190601f16801561144a5780820380516001836020036101000a031916815260200191505b509250505060405180910390fd5b505050900390565b8280548282559060005260206000209081019282156114b5579160200282015b828111156114b557825182546001600160a01b0319166001600160a01b03909116178255602090920191600190910190611480565b506114c19291506114c5565b5090565b5b808211156114c15780546001600160a01b03191681556001016114c656fea2646970667358221220700a5bf8de1b2f1447fc353bd2d8b5a1ddb73a362fd0930fb83afecaf32c388d64736f6c634300060c0033",
+  "deployedBytecode": "0x608060405234801561001057600080fd5b50600436106100cf5760003560e01c806392eefe9b1161008c578063b543503e11610066578063b543503e146102d7578063cc2b238b146102fd578063f77c479114610323578063fb70261a1461032b576100cf565b806392eefe9b146102015780639af409dd14610227578063a71bbfd51461029d576100cf565b806331b71057146100d457806339ebf823146101045780634b704acd1461014357806366cc1857146101795780636bb3722e146101a75780638a4adf24146101dd575b600080fd5b610102600480360360408110156100ea57600080fd5b506001600160a01b0381351690602001351515610351565b005b61012a6004803603602081101561011a57600080fd5b50356001600160a01b031661057b565b6040805192835260208301919091528051918290030190f35b6101026004803603606081101561015957600080fd5b506001600160a01b03813581169160208101359091169060400135610594565b6101026004803603604081101561018f57600080fd5b506001600160a01b03813581169160200135166107de565b610102600480360360608110156101bd57600080fd5b506001600160a01b038135811691602081013590911690604001356108d2565b6101e5610c63565b604080516001600160a01b039092168252519081900360200190f35b6101026004803603602081101561021757600080fd5b50356001600160a01b0316610c72565b61024d6004803603602081101561023d57600080fd5b50356001600160a01b0316610e86565b60408051602080825283518183015283519192839290830191858101910280838360005b83811015610289578181015183820152602001610271565b505050509050019250505060405180910390f35b6102c3600480360360208110156102b357600080fd5b50356001600160a01b0316610f00565b604080519115158252519081900360200190f35b610102600480360360208110156102ed57600080fd5b50356001600160a01b0316610f15565b6101026004803603602081101561031357600080fd5b50356001600160a01b0316611127565b6101e5611320565b6102c36004803603602081101561034157600080fd5b50356001600160a01b031661132f565b60005460408051636d46114f60e11b815233600482015290516001600160a01b039092169163da8c229e91602480820192602092909190829003018186803b15801561039c57600080fd5b505afa1580156103b0573d6000803e3d6000fd5b505050506040513d60208110156103c657600080fd5b505180610452575060008054906101000a90046001600160a01b03166001600160a01b0316631fe4a6866040518163ffffffff1660e01b815260040160206040518083038186803b15801561041a57600080fd5b505afa15801561042e573d6000803e3d6000fd5b505050506040513d602081101561044457600080fd5b50516001600160a01b031633145b806104dc575060008054906101000a90046001600160a01b03166001600160a01b0316635aa6e6756040518163ffffffff1660e01b815260040160206040518083038186803b1580156104a457600080fd5b505afa1580156104b8573d6000803e3d6000fd5b505050506040513d60208110156104ce57600080fd5b50516001600160a01b031633145b61051b576040805162461bcd60e51b815260206004820152600b60248201526a085cdd1c985d1959da5cdd60aa1b604482015290519081900360640190fd5b6001600160a01b038216600081815260036020908152604091829020805460ff1916851515908117909155825190815291517f0dd4aeebdb71d8f88640d3361815b0e64e31aaf0ee73ad7f5a421115fac879ae9281900390910190a25050565b6002602052600090815260409020805460019091015482565b60005460408051636d46114f60e11b815233600482015290516001600160a01b039092169163da8c229e91602480820192602092909190829003018186803b1580156105df57600080fd5b505afa1580156105f3573d6000803e3d6000fd5b505050506040513d602081101561060957600080fd5b505180610695575060008054906101000a90046001600160a01b03166001600160a01b0316631fe4a6866040518163ffffffff1660e01b815260040160206040518083038186803b15801561065d57600080fd5b505afa158015610671573d6000803e3d6000fd5b505050506040513d602081101561068757600080fd5b50516001600160a01b031633145b8061071f575060008054906101000a90046001600160a01b03166001600160a01b0316635aa6e6756040518163ffffffff1660e01b815260040160206040518083038186803b1580156106e757600080fd5b505afa1580156106fb573d6000803e3d6000fd5b505050506040513d602081101561071157600080fd5b50516001600160a01b031633145b61075e576040805162461bcd60e51b815260206004820152600b60248201526a085cdd1c985d1959da5cdd60aa1b604482015290519081900360640190fd5b6001600160a01b03838116600081815260026020818152604080842092830180546001810182559085528285200180546001600160a01b03191696891696871790559284905290859055815185815291517fc2008aa15e9b0989ec7ae02bc3d8054428c527c989269ffb2a5bff829028a0129281900390910190a3505050565b3360009081526003602052604090205460ff1661082f576040805162461bcd60e51b815260206004820152600a60248201526910b430b93b32b9ba32b960b11b604482015290519081900360640190fd5b816001600160a01b03166361f13e00826040518263ffffffff1660e01b815260040180826001600160a01b03168152602001915050600060405180830381600087803b15801561087e57600080fd5b505af1158015610892573d6000803e3d6000fd5b50506040516001600160a01b038085169350851691507ffdfdf879d9abdea70f1d228c39cf14f5e7179a54f36b378f29bccfe7648f333e90600090a35050565b60005460408051636d46114f60e11b815233600482015290516001600160a01b039092169163da8c229e91602480820192602092909190829003018186803b15801561091d57600080fd5b505afa158015610931573d6000803e3d6000fd5b505050506040513d602081101561094757600080fd5b5051806109d3575060008054906101000a90046001600160a01b03166001600160a01b0316631fe4a6866040518163ffffffff1660e01b815260040160206040518083038186803b15801561099b57600080fd5b505afa1580156109af573d6000803e3d6000fd5b505050506040513d60208110156109c557600080fd5b50516001600160a01b031633145b80610a5d575060008054906101000a90046001600160a01b03166001600160a01b0316635aa6e6756040518163ffffffff1660e01b815260040160206040518083038186803b158015610a2557600080fd5b505afa158015610a39573d6000803e3d6000fd5b505050506040513d6020811015610a4f57600080fd5b50516001600160a01b031633145b610a9c576040805162461bcd60e51b815260206004820152600b60248201526a085cdd1c985d1959da5cdd60aa1b604482015290519081900360640190fd5b6001600160a01b0383166000908152600260208190526040822001549080805b83811015610b3057856001600160a01b031660026000896001600160a01b03166001600160a01b031681526020019081526020016000206002018281548110610b0157fe5b6000918252602090912001546001600160a01b03161415610b285780925060019150610b30565b600101610abc565b508015610c5b576001600160a01b038616600090815260026020819052604090912001610b5e846001611380565b81548110610b6857fe5b60009182526020808320909101546001600160a01b03898116845260029283905260409093209091018054929091169184908110610ba257fe5b600091825260208083209190910180546001600160a01b0319166001600160a01b0394851617905591881681526002918290526040902001805480610be357fe5b60008281526020808220830160001990810180546001600160a01b03191690559092019092556001600160a01b0388811680845260028352604093849020889055835188815293519189169390927fdd3e131c7baafda30070fc3f53c5153570a3e6552809d20e2b682dd30fa7cc6e92918290030190a35b505050505050565b6000546001600160a01b031681565b60005460408051636d46114f60e11b815233600482015290516001600160a01b039092169163da8c229e91602480820192602092909190829003018186803b158015610cbd57600080fd5b505afa158015610cd1573d6000803e3d6000fd5b505050506040513d6020811015610ce757600080fd5b505180610d73575060008054906101000a90046001600160a01b03166001600160a01b0316631fe4a6866040518163ffffffff1660e01b815260040160206040518083038186803b158015610d3b57600080fd5b505afa158015610d4f573d6000803e3d6000fd5b505050506040513d6020811015610d6557600080fd5b50516001600160a01b031633145b80610dfd575060008054906101000a90046001600160a01b03166001600160a01b0316635aa6e6756040518163ffffffff1660e01b815260040160206040518083038186803b158015610dc557600080fd5b505afa158015610dd9573d6000803e3d6000fd5b505050506040513d6020811015610def57600080fd5b50516001600160a01b031633145b610e3c576040805162461bcd60e51b815260206004820152600b60248201526a085cdd1c985d1959da5cdd60aa1b604482015290519081900360640190fd5b600180546001600160a01b0319166001600160a01b0383169081179091556040517f79f74fd5964b6943d8a1865abfb7f668c92fa3f32c0a2e3195da7d0946703ad790600090a250565b6001600160a01b038116600090815260026020818152604092839020909101805483518184028101840190945280845260609392830182828015610ef357602002820191906000526020600020905b81546001600160a01b03168152600190910190602001808311610ed5575b505050505090505b919050565b60036020526000908152604090205460ff1681565b60005460408051636d46114f60e11b815233600482015290516001600160a01b039092169163da8c229e91602480820192602092909190829003018186803b158015610f6057600080fd5b505afa158015610f74573d6000803e3d6000fd5b505050506040513d6020811015610f8a57600080fd5b505180611016575060008054906101000a90046001600160a01b03166001600160a01b0316631fe4a6866040518163ffffffff1660e01b815260040160206040518083038186803b158015610fde57600080fd5b505afa158015610ff2573d6000803e3d6000fd5b505050506040513d602081101561100857600080fd5b50516001600160a01b031633145b806110a0575060008054906101000a90046001600160a01b03166001600160a01b0316635aa6e6756040518163ffffffff1660e01b815260040160206040518083038186803b15801561106857600080fd5b505afa15801561107c573d6000803e3d6000fd5b505050506040513d602081101561109257600080fd5b50516001600160a01b031633145b6110df576040805162461bcd60e51b815260206004820152600b60248201526a085cdd1c985d1959da5cdd60aa1b604482015290519081900360640190fd5b600080546001600160a01b0319166001600160a01b038316908117825560405190917f8e902340d35762a5a36507c20fe38e5d549a721d9f846d6de7f397b5c26ab85391a250565b6111308161132f565b61116f576040805162461bcd60e51b815260206004820152600b60248201526a0858d85b92185c9d995cdd60aa1b604482015290519081900360640190fd5b6001600160a01b03811660009081526002602081905260408220018054829061119457fe5b6000918252602090912001546001546001600160a01b0391821692506111bb9116826107de565b6001600160a01b0382166000908152600260208190526040909120015460018111156112fe5760608167ffffffffffffffff811180156111fa57600080fd5b50604051908082528060200260200182016040528015611224578160200160208202803683370190505b50905060005b600183038110156112aa576001600160a01b03851660009081526002602081905260409091200180546001830190811061126057fe5b9060005260206000200160009054906101000a90046001600160a01b031682828151811061128a57fe5b6001600160a01b039092166020928302919091019091015260010161122a565b50828160018403815181106112bb57fe5b6001600160a01b0392831660209182029290920181019190915290851660009081526002808352604090912083516112fb93919092019190840190611460565b50505b50506001600160a01b0316600090815260026020526040902042600190910155565b6001546001600160a01b031681565b6001600160a01b0381166000908152600260208190526040822090810154158061136857508054611361904290611380565b8160010154115b15611377576000915050610efb565b50600192915050565b60006113c283836040518060400160405280601e81526020017f536166654d6174683a207375627472616374696f6e206f766572666c6f7700008152506113c9565b9392505050565b600081848411156114585760405162461bcd60e51b81526004018080602001828103825283818151815260200191508051906020019080838360005b8381101561141d578181015183820152602001611405565b50505050905090810190601f16801561144a5780820380516001836020036101000a031916815260200191505b509250505060405180910390fd5b505050900390565b8280548282559060005260206000209081019282156114b5579160200282015b828111156114b557825182546001600160a01b0319166001600160a01b03909116178255602090920191600190910190611480565b506114c19291506114c5565b5090565b5b808211156114c15780546001600160a01b03191681556001016114c656fea2646970667358221220700a5bf8de1b2f1447fc353bd2d8b5a1ddb73a362fd0930fb83afecaf32c388d64736f6c634300060c0033",
+  "devdoc": {
+    "kind": "dev",
+    "methods": {
+      "addStrategy(address,address,uint256)": {
+        "params": {
+          "_strategy": "The address of the strategy",
+          "_timeout": "The timeout between harvests",
+          "_token": "The address of the token"
+        }
+      },
+      "canHarvest(address)": {
+        "params": {
+          "_token": "The address of the token"
+        }
+      },
+      "constructor": {
+        "params": {
+          "_controller": "The address of the controller",
+          "_vaultManager": "The address of the yAxisMetaVaultManager contract"
+        }
+      },
+      "harvest(address,address)": {
+        "details": "This function ignores the timeout",
+        "params": {
+          "_controller": "The address of the controller",
+          "_strategy": "The address of the strategy"
+        }
+      },
+      "harvestNextStrategy(address)": {
+        "params": {
+          "_token": "The address of the token"
+        }
+      },
+      "removeStrategy(address,address,uint256)": {
+        "params": {
+          "_strategy": "The address of the strategy",
+          "_timeout": "The timeout between harvests",
+          "_token": "The address of the token"
+        }
+      },
+      "setController(address)": {
+        "params": {
+          "_controller": "The address of the controller"
+        }
+      },
+      "setHarvester(address,bool)": {
+        "params": {
+          "_harvester": "The address of the harvester",
+          "_status": "The status to allow the harvester to harvest"
+        }
+      },
+      "setVaultManager(address)": {
+        "params": {
+          "_vaultManager": "The address of the vault manager"
+        }
+      },
+      "strategyAddresses(address)": {
+        "params": {
+          "_token": "The address of the token"
+        }
+      }
+    },
+    "title": "yAxisMetaVaultHarvester",
+    "version": 1
+  },
+  "userdoc": {
+    "events": {
+      "ControllerSet(address)": {
+        "notice": "Logged when a controller is set"
+      },
+      "Harvest(address,address)": {
+        "notice": "Logged when harvest is called for a strategy"
+      },
+      "HarvesterSet(address,bool)": {
+        "notice": "Logged when a harvester is set"
+      },
+      "StrategyAdded(address,address,uint256)": {
+        "notice": "Logged when a strategy is added for a token"
+      },
+      "StrategyRemoved(address,address,uint256)": {
+        "notice": "Logged when a strategy is removed for a token"
+      },
+      "VaultManagerSet(address)": {
+        "notice": "Logged when a vault manger is set"
+      }
+    },
+    "kind": "user",
+    "methods": {
+      "addStrategy(address,address,uint256)": {
+        "notice": "Adds a strategy to the rotation for a given token and sets a timeout"
+      },
+      "canHarvest(address)": {
+        "notice": "Returns the availability of a token's strategy to be harvested"
+      },
+      "harvest(address,address)": {
+        "notice": "Harvests a given strategy on the provided controller"
+      },
+      "harvestNextStrategy(address)": {
+        "notice": "Harvests the next available strategy for a given token and rotates the strategies"
+      },
+      "removeStrategy(address,address,uint256)": {
+        "notice": "Removes a strategy from the rotation for a given token and sets a timeout"
+      },
+      "setController(address)": {
+        "notice": "Sets the address of the controller"
+      },
+      "setHarvester(address,bool)": {
+        "notice": "Sets the status of a harvester address to be able to call harvest functions"
+      },
+      "setVaultManager(address)": {
+        "notice": "Sets the address of the vault manager contract"
+      },
+      "strategyAddresses(address)": {
+        "notice": "Returns the addresses of the strategies for a given token"
+      }
+    },
+    "notice": "This contract is to be used as a central point to call harvest on all strategies for any given token. It has its own permissions for harvesters (set by the strategist or governance).",
+    "version": 1
+  },
+  "storageLayout": {
+    "storage": [
+      {
+        "astId": 15708,
+        "contract": "contracts/metavault/yAxisMetaVaultHarvester.sol:yAxisMetaVaultHarvester",
+        "label": "vaultManager",
+        "offset": 0,
+        "slot": "0",
+        "type": "t_contract(IVaultManager)2503"
+      },
+      {
+        "astId": 15710,
+        "contract": "contracts/metavault/yAxisMetaVaultHarvester.sol:yAxisMetaVaultHarvester",
+        "label": "controller",
+        "offset": 0,
+        "slot": "1",
+        "type": "t_contract(IController)2048"
+      },
+      {
+        "astId": 15722,
+        "contract": "contracts/metavault/yAxisMetaVaultHarvester.sol:yAxisMetaVaultHarvester",
+        "label": "strategies",
+        "offset": 0,
+        "slot": "2",
+        "type": "t_mapping(t_address,t_struct(Strategy)15718_storage)"
+      },
+      {
+        "astId": 15726,
+        "contract": "contracts/metavault/yAxisMetaVaultHarvester.sol:yAxisMetaVaultHarvester",
+        "label": "isHarvester",
+        "offset": 0,
+        "slot": "3",
+        "type": "t_mapping(t_address,t_bool)"
+      }
+    ],
+    "types": {
+      "t_address": {
+        "encoding": "inplace",
+        "label": "address",
+        "numberOfBytes": "20"
+      },
+      "t_array(t_address)dyn_storage": {
+        "base": "t_address",
+        "encoding": "dynamic_array",
+        "label": "address[]",
+        "numberOfBytes": "32"
+      },
+      "t_bool": {
+        "encoding": "inplace",
+        "label": "bool",
+        "numberOfBytes": "1"
+      },
+      "t_contract(IController)2048": {
+        "encoding": "inplace",
+        "label": "contract IController",
+        "numberOfBytes": "20"
+      },
+      "t_contract(IVaultManager)2503": {
+        "encoding": "inplace",
+        "label": "contract IVaultManager",
+        "numberOfBytes": "20"
+      },
+      "t_mapping(t_address,t_bool)": {
+        "encoding": "mapping",
+        "key": "t_address",
+        "label": "mapping(address => bool)",
+        "numberOfBytes": "32",
+        "value": "t_bool"
+      },
+      "t_mapping(t_address,t_struct(Strategy)15718_storage)": {
+        "encoding": "mapping",
+        "key": "t_address",
+        "label": "mapping(address => struct yAxisMetaVaultHarvester.Strategy)",
+        "numberOfBytes": "32",
+        "value": "t_struct(Strategy)15718_storage"
+      },
+      "t_struct(Strategy)15718_storage": {
+        "encoding": "inplace",
+        "label": "struct yAxisMetaVaultHarvester.Strategy",
+        "members": [
+          {
+            "astId": 15712,
+            "contract": "contracts/metavault/yAxisMetaVaultHarvester.sol:yAxisMetaVaultHarvester",
+            "label": "timeout",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_uint256"
+          },
+          {
+            "astId": 15714,
+            "contract": "contracts/metavault/yAxisMetaVaultHarvester.sol:yAxisMetaVaultHarvester",
+            "label": "lastCalled",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_uint256"
+          },
+          {
+            "astId": 15717,
+            "contract": "contracts/metavault/yAxisMetaVaultHarvester.sol:yAxisMetaVaultHarvester",
+            "label": "addresses",
+            "offset": 0,
+            "slot": "2",
+            "type": "t_array(t_address)dyn_storage"
+          }
+        ],
+        "numberOfBytes": "96"
+      },
+      "t_uint256": {
+        "encoding": "inplace",
+        "label": "uint256",
+        "numberOfBytes": "32"
+      }
+    }
+  }
+}
