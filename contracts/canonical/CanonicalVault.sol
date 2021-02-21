@@ -15,6 +15,11 @@ import "./interfaces/IConverter.sol";
 import "./interfaces/ICanonicalVault.sol";
 import "./interfaces/ExtendedIERC20.sol";
 
+/**
+ * @title CanonicalVault
+ * @notice The canonical vault is where users deposit and withdraw
+ * like-kind assets that have been added by governance.
+ */
 contract CanonicalVault is ERC20, ICanonicalVault {
     using Address for address;
     using SafeMath for uint256;
@@ -33,6 +38,10 @@ contract CanonicalVault is ERC20, ICanonicalVault {
     event Withdraw(address indexed account, uint256 amount);
     event Earn(address indexed token, uint256 amount);
 
+    /**
+     * @param _name The name of the vault token for depositors
+     * @param _symbol The symbol of the vault token for depositors
+     */
     constructor(
         string memory _name,
         string memory _symbol,
@@ -48,6 +57,12 @@ contract CanonicalVault is ERC20, ICanonicalVault {
      * STRATEGIST-ONLY FUNCTIONS
      */
 
+    /**
+     * @notice Sets the value for the earnLowerlimit
+     * @dev earnLowerlimit determines the minimum balance of this contract for earn
+     * to be called
+     * @param _earnLowerlimit The new earnLowerlimit value
+     */
     function setEarnLowerlimit(
         uint256 _earnLowerlimit
     )
@@ -57,6 +72,11 @@ contract CanonicalVault is ERC20, ICanonicalVault {
         earnLowerlimit = _earnLowerlimit;
     }
 
+    /**
+     * @notice Sets the value for min
+     * @dev min is the minimum percent of funds to keep small withdrawals cheap
+     * @param _min The new min value
+     */
     function setMin(
         uint256 _min
     )
@@ -67,6 +87,12 @@ contract CanonicalVault is ERC20, ICanonicalVault {
         min = _min;
     }
 
+    /**
+     * @notice Sets the value for the totalDepositCap
+     * @dev totalDepositCap is the maximum amount of value that can be deposited
+     * to the metavault at a time
+     * @param _totalDepositCap The new totalDepositCap value
+     */
     function setTotalDepositCap(
         uint256 _totalDepositCap
     )
@@ -80,6 +106,9 @@ contract CanonicalVault is ERC20, ICanonicalVault {
      * USER-FACING FUNCTIONS
      */
 
+    /**
+     * @notice Sends accrued 3CRV tokens on the metavault to the controller to be deposited to strategies
+     */
     function earn(address _token)
         public
         override
@@ -93,6 +122,12 @@ contract CanonicalVault is ERC20, ICanonicalVault {
         }
     }
 
+    /**
+     * @notice Deposit a single token to the vault
+     * @dev Users must approve the vault to spend their token
+     * @param _token The address of the token being deposited
+     * @param _amount The amount of the token to deposit
+     */
     function deposit(
         address _token,
         uint256 _amount
@@ -117,6 +152,12 @@ contract CanonicalVault is ERC20, ICanonicalVault {
         }
     }
 
+    /**
+     * @notice Deposits multiple tokens simultaneously to the vault
+     * @dev Users must approve the vault to spend their stablecoin
+     * @param _tokens The addresses of each token being deposited
+     * @param _amounts The amounts of each token being deposited
+     */
     function depositAll(
         address[] calldata _tokens,
         uint256[] calldata _amounts
@@ -144,6 +185,11 @@ contract CanonicalVault is ERC20, ICanonicalVault {
         }
     }
 
+    /**
+     * @notice Withdraws an amount of shares to a given output token
+     * @param _shares The amount of shares to withdraw
+     * @param _output The address of the token to receive
+     */
     function withdraw(
         uint256 _shares,
         address _output
@@ -180,6 +226,10 @@ contract CanonicalVault is ERC20, ICanonicalVault {
         emit Withdraw(msg.sender, _rate);
     }
 
+    /**
+     * @notice Withdraw the entire balance for an account
+     * @param _output The address of the desired token to receive
+     */
     function withdrawAll(
         address _output
     )
