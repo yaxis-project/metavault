@@ -112,7 +112,7 @@ contract StableSwap3PoolConverter is IConverter {
     /**
      * @notice Returns the address of the 3CRV token
      */
-    function token() external override returns (address) {
+    function token() external view override returns (address) {
         return address(token3CRV);
     }
 
