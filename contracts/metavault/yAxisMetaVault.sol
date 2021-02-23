@@ -412,7 +412,7 @@ contract yAxisMetaVault is ERC20, IMetaVault {
 
     /**
      * @notice Deposits multiple stablecoins simultaneously to the metavault
-     * @dev 0: DAI, 1: USDT, 2: USDC, 3: 3CRV
+     * @dev 0: DAI, 1: USDC, 2: USDT, 3: 3CRV
      * @dev Users must approve the metavault to spend their stablecoin
      * @param _amounts The amounts of each stablecoin being deposited
      * @param _min_mint_amount The expected amount of shares to receive
