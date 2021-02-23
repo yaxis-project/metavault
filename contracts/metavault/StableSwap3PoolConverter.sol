@@ -101,12 +101,11 @@ contract StableSwap3PoolConverter is IConverter {
      * the latest data from Chainlink
      * @param _inputAmount The input amount of tokens that are being converted
      */
-    function getExpected(uint256 _inputAmount) public view returns (uint256) {
-        return _inputAmount.mul(
-                    oracle.getEthereumPrice().mul(
-                        oracle.getMinimumPrice()
-                    ).div(1e18)
-                ).div(1e18);
+    function getExpected(uint256 _inputAmount) public view returns (uint256 _min, uint256 _max) {
+        ( _min, _max ) = oracle.getPrices();
+        uint256 _eth = oracle.getEthereumPrice();
+        _min = _inputAmount.mul(_eth).mul(_min).div(1e18).div(1e18);
+        _max = _inputAmount.mul(_eth).mul(_max).div(1e18).div(1e18);
     }
 
     /**
@@ -120,27 +119,30 @@ contract StableSwap3PoolConverter is IConverter {
         address _output,
         uint256 _inputAmount
     ) external override onlyAuthorized returns (uint256 _outputAmount) {
-        uint256 _expected = getExpected(_inputAmount);
         if (_output == address(token3CRV)) { // convert to 3CRV
             uint256[3] memory amounts;
             for (uint8 i = 0; i < 3; i++) {
                 if (_input == address(tokens[i])) {
+                    ( uint256 _min, uint256 _max ) = getExpected(_inputAmount.mul(PRECISION_MUL[i]));
                     amounts[i] = _inputAmount;
                     uint256 _before = token3CRV.balanceOf(address(this));
-                    stableSwap3Pool.add_liquidity(amounts, _expected);
+                    stableSwap3Pool.add_liquidity(amounts, _min);
                     uint256 _after = token3CRV.balanceOf(address(this));
                     _outputAmount = _after.sub(_before);
+                    require(_outputAmount <= _max, ">_max");
                     token3CRV.safeTransfer(msg.sender, _outputAmount);
                     return _outputAmount;
                 }
             }
         } else if (_input == address(token3CRV)) { // convert from 3CRV
+            ( uint256 _min, uint256 _max ) = getExpected(_inputAmount);
             for (uint8 i = 0; i < 3; i++) {
                 if (_output == address(tokens[i])) {
                     uint256 _before = tokens[i].balanceOf(address(this));
-                    stableSwap3Pool.remove_liquidity_one_coin(_inputAmount, i, _expected.div(PRECISION_MUL[i]));
+                    stableSwap3Pool.remove_liquidity_one_coin(_inputAmount, i, _min.div(PRECISION_MUL[i]));
                     uint256 _after = tokens[i].balanceOf(address(this));
                     _outputAmount = _after.sub(_before);
+                    require(_outputAmount <= _max, ">_max");
                     tokens[i].safeTransfer(msg.sender, _outputAmount);
                     return _outputAmount;
                 }
@@ -192,11 +194,12 @@ contract StableSwap3PoolConverter is IConverter {
         for (uint8 i; i < 3; i++) {
             _sum = _sum.add(amounts[i].mul(PRECISION_MUL[i]));
         }
-        uint256 _expected = getExpected(_sum);
+        ( uint256 _min, uint256 _max ) = getExpected(_sum);
         uint256 _before = token3CRV.balanceOf(address(this));
-        stableSwap3Pool.add_liquidity(amounts, _expected);
+        stableSwap3Pool.add_liquidity(amounts, _min);
         uint256 _after = token3CRV.balanceOf(address(this));
         _shareAmount = _after.sub(_before);
+        require(_shareAmount <= _max, ">_max");
         token3CRV.safeTransfer(msg.sender, _shareAmount);
     }
 
