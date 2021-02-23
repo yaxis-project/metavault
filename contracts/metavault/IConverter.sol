@@ -5,7 +5,7 @@
 pragma solidity 0.6.12;
 
 interface IConverter {
-    function token() external returns (address _share);
+    function token() external view returns (address _share);
     function convert(
         address _input,
         address _output,

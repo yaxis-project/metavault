@@ -25,13 +25,13 @@ contract StableSwap3PoolConverter is IConverter {
 
     uint256 public constant ONE_HUNDRED_PERCENT = 10000;
 
+    IVaultManager public immutable vaultManager;
+    IStableSwap3PoolOracle public immutable oracle;
+    IStableSwap3Pool public immutable stableSwap3Pool;
+
     uint256[3] public PRECISION_MUL = [1, 1e12, 1e12];
     IERC20[3] public tokens; // DAI, USDC, USDT
     IERC20 public token3CRV; // 3Crv
-
-    IStableSwap3Pool public stableSwap3Pool;
-    IVaultManager public vaultManager;
-    IStableSwap3PoolOracle public oracle;
 
     mapping(address => bool) public strategies;
 
@@ -58,32 +58,12 @@ contract StableSwap3PoolConverter is IConverter {
         tokens[2] = _tokenUSDT;
         token3CRV = _token3CRV;
         stableSwap3Pool = _stableSwap3Pool;
-        tokens[0].safeApprove(address(stableSwap3Pool), type(uint256).max);
-        tokens[1].safeApprove(address(stableSwap3Pool), type(uint256).max);
-        tokens[2].safeApprove(address(stableSwap3Pool), type(uint256).max);
-        token3CRV.safeApprove(address(stableSwap3Pool), type(uint256).max);
+        tokens[0].safeApprove(address(_stableSwap3Pool), type(uint256).max);
+        tokens[1].safeApprove(address(_stableSwap3Pool), type(uint256).max);
+        tokens[2].safeApprove(address(_stableSwap3Pool), type(uint256).max);
+        token3CRV.safeApprove(address(_stableSwap3Pool), type(uint256).max);
         vaultManager = _vaultManager;
         oracle = _oracle;
-    }
-
-    /**
-     * @notice Sets a new address for the 3Pool contract
-     * @param _stableSwap3Pool The address of 3Pool
-     */
-    function setStableSwap3Pool(IStableSwap3Pool _stableSwap3Pool) external onlyGovernance {
-        stableSwap3Pool = _stableSwap3Pool;
-        tokens[0].safeApprove(address(stableSwap3Pool), type(uint256).max);
-        tokens[1].safeApprove(address(stableSwap3Pool), type(uint256).max);
-        tokens[2].safeApprove(address(stableSwap3Pool), type(uint256).max);
-        token3CRV.safeApprove(address(stableSwap3Pool), type(uint256).max);
-    }
-
-    /**
-     * @notice Called by Governance to set the value for the vaultManager address
-     * @param _vaultManager The new vaultManager value
-     */
-    function setVaultManager(IVaultManager _vaultManager) external onlyGovernance {
-        vaultManager = _vaultManager;
     }
 
     /**
@@ -112,7 +92,7 @@ contract StableSwap3PoolConverter is IConverter {
     /**
      * @notice Returns the address of the 3CRV token
      */
-    function token() external override returns (address) {
+    function token() external view override returns (address) {
         return address(token3CRV);
     }
 
@@ -208,8 +188,13 @@ contract StableSwap3PoolConverter is IConverter {
     function convert_stables(
         uint256[3] calldata amounts
     ) external override onlyAuthorized returns (uint256 _shareAmount) {
+        uint256 _sum;
+        for (uint8 i; i < 3; i++) {
+            _sum = _sum.add(amounts[i].mul(PRECISION_MUL[i]));
+        }
+        uint256 _expected = getExpected(_sum);
         uint256 _before = token3CRV.balanceOf(address(this));
-        stableSwap3Pool.add_liquidity(amounts, 1);
+        stableSwap3Pool.add_liquidity(amounts, _expected);
         uint256 _after = token3CRV.balanceOf(address(this));
         _shareAmount = _after.sub(_before);
         token3CRV.safeTransfer(msg.sender, _shareAmount);
