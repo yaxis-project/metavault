@@ -188,8 +188,13 @@ contract StableSwap3PoolConverter is IConverter {
     function convert_stables(
         uint256[3] calldata amounts
     ) external override onlyAuthorized returns (uint256 _shareAmount) {
+        uint256 _sum;
+        for (uint8 i; i < 3; i++) {
+            _sum = _sum.add(amounts[i].mul(PRECISION_MUL[i]));
+        }
+        uint256 _expected = getExpected(_sum);
         uint256 _before = token3CRV.balanceOf(address(this));
-        stableSwap3Pool.add_liquidity(amounts, 1);
+        stableSwap3Pool.add_liquidity(amounts, _expected);
         uint256 _after = token3CRV.balanceOf(address(this));
         _shareAmount = _after.sub(_before);
         token3CRV.safeTransfer(msg.sender, _shareAmount);
