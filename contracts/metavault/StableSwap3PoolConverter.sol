@@ -25,13 +25,13 @@ contract StableSwap3PoolConverter is IConverter {
 
     uint256 public constant ONE_HUNDRED_PERCENT = 10000;
 
+    IVaultManager public immutable vaultManager;
+    IStableSwap3PoolOracle public immutable oracle;
+    IStableSwap3Pool public immutable stableSwap3Pool;
+
     uint256[3] public PRECISION_MUL = [1, 1e12, 1e12];
     IERC20[3] public tokens; // DAI, USDC, USDT
     IERC20 public token3CRV; // 3Crv
-
-    IStableSwap3Pool public stableSwap3Pool;
-    IVaultManager public vaultManager;
-    IStableSwap3PoolOracle public oracle;
 
     mapping(address => bool) public strategies;
 
@@ -58,32 +58,12 @@ contract StableSwap3PoolConverter is IConverter {
         tokens[2] = _tokenUSDT;
         token3CRV = _token3CRV;
         stableSwap3Pool = _stableSwap3Pool;
-        tokens[0].safeApprove(address(stableSwap3Pool), type(uint256).max);
-        tokens[1].safeApprove(address(stableSwap3Pool), type(uint256).max);
-        tokens[2].safeApprove(address(stableSwap3Pool), type(uint256).max);
-        token3CRV.safeApprove(address(stableSwap3Pool), type(uint256).max);
+        tokens[0].safeApprove(address(_stableSwap3Pool), type(uint256).max);
+        tokens[1].safeApprove(address(_stableSwap3Pool), type(uint256).max);
+        tokens[2].safeApprove(address(_stableSwap3Pool), type(uint256).max);
+        token3CRV.safeApprove(address(_stableSwap3Pool), type(uint256).max);
         vaultManager = _vaultManager;
         oracle = _oracle;
-    }
-
-    /**
-     * @notice Sets a new address for the 3Pool contract
-     * @param _stableSwap3Pool The address of 3Pool
-     */
-    function setStableSwap3Pool(IStableSwap3Pool _stableSwap3Pool) external onlyGovernance {
-        stableSwap3Pool = _stableSwap3Pool;
-        tokens[0].safeApprove(address(stableSwap3Pool), type(uint256).max);
-        tokens[1].safeApprove(address(stableSwap3Pool), type(uint256).max);
-        tokens[2].safeApprove(address(stableSwap3Pool), type(uint256).max);
-        token3CRV.safeApprove(address(stableSwap3Pool), type(uint256).max);
-    }
-
-    /**
-     * @notice Called by Governance to set the value for the vaultManager address
-     * @param _vaultManager The new vaultManager value
-     */
-    function setVaultManager(IVaultManager _vaultManager) external onlyGovernance {
-        vaultManager = _vaultManager;
     }
 
     /**
