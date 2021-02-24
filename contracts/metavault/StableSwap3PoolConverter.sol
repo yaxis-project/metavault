@@ -28,10 +28,10 @@ contract StableSwap3PoolConverter is IConverter {
     IVaultManager public immutable vaultManager;
     IStableSwap3PoolOracle public immutable oracle;
     IStableSwap3Pool public immutable stableSwap3Pool;
+    IERC20 public immutable token3CRV; // 3Crv
 
     uint256[3] public PRECISION_MUL = [1, 1e12, 1e12];
     IERC20[3] public tokens; // DAI, USDC, USDT
-    IERC20 public token3CRV; // 3Crv
 
     mapping(address => bool) public strategies;
 
@@ -61,7 +61,7 @@ contract StableSwap3PoolConverter is IConverter {
         tokens[0].safeApprove(address(_stableSwap3Pool), type(uint256).max);
         tokens[1].safeApprove(address(_stableSwap3Pool), type(uint256).max);
         tokens[2].safeApprove(address(_stableSwap3Pool), type(uint256).max);
-        token3CRV.safeApprove(address(_stableSwap3Pool), type(uint256).max);
+        _token3CRV.safeApprove(address(_stableSwap3Pool), type(uint256).max);
         vaultManager = _vaultManager;
         oracle = _oracle;
     }
