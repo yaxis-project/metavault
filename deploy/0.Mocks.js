@@ -27,7 +27,7 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
         await deploy('USDT', {
             from: deployer,
             log: true,
-            contract: 'MockERC20',
+            contract: 'MockERC20NonStandard',
             args: ['Tether', 'USDT', 6]
         });
         const usdt = await deployments.get('USDT');
