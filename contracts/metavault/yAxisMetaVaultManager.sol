@@ -3,6 +3,7 @@
 pragma solidity 0.6.12;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 
 import "./IVaultManager.sol";
 
@@ -13,6 +14,8 @@ import "./IVaultManager.sol";
  * this contract only.
  */
 contract yAxisMetaVaultManager is IVaultManager { // solhint-disable-line contract-name-camelcase
+    using SafeERC20 for IERC20;
+
     address public override governance;
     address public override harvester;
     address public override insurancePool;
@@ -66,7 +69,7 @@ contract yAxisMetaVaultManager is IVaultManager { // solhint-disable-line contra
         address _to
     ) external {
         require(msg.sender == governance, "!governance");
-        _token.transfer(_to, _amount);
+        _token.safeTransfer(_to, _amount);
     }
 
     /**

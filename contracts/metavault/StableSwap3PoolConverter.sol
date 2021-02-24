@@ -242,7 +242,7 @@ contract StableSwap3PoolConverter is IConverter {
         uint256 _amount,
         address _to
     ) external onlyGovernance {
-        _token.transfer(_to, _amount);
+        _token.safeTransfer(_to, _amount);
     }
 
     /**

@@ -9,7 +9,18 @@ const ether = parseEther;
 const { setupTestMetavault } = require('../helpers/setup');
 
 describe('stuck_funds.test', () => {
-    let deployer, user, dai, t3crv, weth, controller, vault, strategyCurve3Crv;
+    let deployer,
+        deployerSig,
+        user,
+        dai,
+        t3crv,
+        weth,
+        usdt,
+        controller,
+        vault,
+        vaultManager,
+        converter,
+        strategyCurve3Crv;
 
     before(async () => {
         const config = await setupTestMetavault();
@@ -18,6 +29,10 @@ describe('stuck_funds.test', () => {
         dai = config.dai;
         controller = config.controller;
         vault = config.vault;
+        vaultManager = config.vaultManager;
+        usdt = config.usdt;
+        converter = config.converter;
+        deployerSig = await ethers.provider.getSigner(deployer);
         t3crv = await ethers.getContractAt('MockERC20', config.t3crv.address, deployer);
         weth = await ethers.getContractAt('MockERC20', config.weth.address, deployer);
         const StrategyCurve3Crv = await deployments.get('StrategyCurve3Crv');
@@ -62,6 +77,22 @@ describe('stuck_funds.test', () => {
         await controller.inCaseTokensGetStuck(weth.address, ether('1'));
         expect(await weth.balanceOf(controller.address)).to.equal(0);
         expect(await weth.balanceOf(deployer)).to.equal(ether('2')); // governance has 2 WETH
+    });
+
+    it('stuck USDT in vault manager', async () => {
+        expect(await usdt.balanceOf(vaultManager.address)).to.equal(0);
+        await usdt.connect(deployerSig).mint(vaultManager.address, ether('1'));
+        expect(await usdt.balanceOf(vaultManager.address)).to.equal(ether('1'));
+        await vaultManager.governanceRecoverUnsupported(usdt.address, ether('1'), deployer);
+        expect(await usdt.balanceOf(vaultManager.address)).to.equal(0);
+    });
+
+    it('stuck USDT in converter', async () => {
+        expect(await usdt.balanceOf(converter.address)).to.equal(0);
+        await usdt.connect(deployerSig).mint(converter.address, ether('1'));
+        expect(await usdt.balanceOf(converter.address)).to.equal(ether('1'));
+        await converter.governanceRecoverUnsupported(usdt.address, ether('1'), deployer);
+        expect(await usdt.balanceOf(converter.address)).to.equal(0);
     });
 
     it('stuck t3crv.address (core) in strategy', async () => {
