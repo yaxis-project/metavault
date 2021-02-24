@@ -38,9 +38,10 @@ abstract contract BaseStrategy is IStrategy {
 
     address public immutable override want;
     address public immutable weth;
+    address public immutable controller;
+    IVaultManager public immutable vaultManager;
+
     string public override name;
-    address public controller;
-    IVaultManager public vaultManager;
     ISwap public router;
 
     event ApproveForSpender(address token, address spender, uint256 amount);
@@ -92,16 +93,6 @@ abstract contract BaseStrategy is IStrategy {
         require(msg.sender == vaultManager.governance(), "!governance");
         _token.safeApprove(_spender, _amount);
         emit ApproveForSpender(address(_token), _spender, _amount);
-    }
-
-    /**
-     * @notice Sets the address of the controller
-     * @param _controller The address of the controller
-     */
-    function setController(address _controller) external {
-        require(msg.sender == vaultManager.governance(), "!governance");
-        controller = _controller;
-        emit SetController(_controller);
     }
 
     /**
