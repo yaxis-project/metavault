@@ -3,12 +3,12 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
     const { deployer } = await getNamedAccounts();
     const manager = await deployments.get('Manager');
 
-    await deploy('CanonicalVaultStables', {
-        contract: 'CanonicalVault',
+    await deploy('VaultStables', {
+        contract: 'Vault',
         from: deployer,
         log: true,
-        args: ['CanonicalVault: Stables', 'CV:S', manager.address]
+        args: ['Vault: Stables', 'CV:S', manager.address]
     });
 };
 
-module.exports.tags = ['canonical'];
+module.exports.tags = ['v3'];

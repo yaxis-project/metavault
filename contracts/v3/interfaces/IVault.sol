@@ -4,7 +4,7 @@ pragma solidity 0.6.12;
 
 import "./IManager.sol";
 
-interface ICanonicalVault {
+interface IVault {
     function available(address _token) external view returns (uint256);
     function balance() external view returns (uint256);
     function deposit(address _token, uint256 _amount) external;

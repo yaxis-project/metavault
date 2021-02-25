@@ -12,15 +12,15 @@ import "@openzeppelin/contracts/GSN/Context.sol";
 import "./interfaces/IManager.sol";
 import "./interfaces/IController.sol";
 import "./interfaces/IConverter.sol";
-import "./interfaces/ICanonicalVault.sol";
+import "./interfaces/IVault.sol";
 import "./interfaces/ExtendedIERC20.sol";
 
 /**
- * @title CanonicalVault
- * @notice The canonical vault is where users deposit and withdraw
+ * @title Vault
+ * @notice The vault is where users deposit and withdraw
  * like-kind assets that have been added by governance.
  */
-contract CanonicalVault is ERC20, ICanonicalVault {
+contract Vault is ERC20, IVault {
     using Address for address;
     using SafeMath for uint256;
     using SafeERC20 for IERC20;

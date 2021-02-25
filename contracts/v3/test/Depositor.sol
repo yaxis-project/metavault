@@ -5,19 +5,19 @@ pragma solidity 0.6.12;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 
-import "../interfaces/ICanonicalVault.sol";
+import "../interfaces/IVault.sol";
 
 contract Depositor {
     using SafeERC20 for IERC20;
 
-    ICanonicalVault immutable vault;
+    IVault immutable vault;
 
     constructor(
         address _vault
     )
         public
     {
-        vault = ICanonicalVault(_vault);
+        vault = IVault(_vault);
     }
 
     function depositVault(

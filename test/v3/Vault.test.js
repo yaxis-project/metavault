@@ -6,14 +6,14 @@ const hardhat = require('hardhat');
 const { deployments, ethers } = hardhat;
 const { parseEther } = ethers.utils;
 const ether = parseEther;
-const { setupTestCanonical } = require('../helpers/setup');
+const { setupTestV3 } = require('../helpers/setup');
 
-describe('CanonicalVault', () => {
+describe('Vault', () => {
     let deployer, treasury, user;
     let dai, usdc, usdt, vault, manager, controller, depositor;
 
     beforeEach(async () => {
-        const config = await setupTestCanonical();
+        const config = await setupTestV3();
         [deployer, treasury, , user] = await ethers.getSigners();
         dai = config.dai;
         usdc = config.usdc;

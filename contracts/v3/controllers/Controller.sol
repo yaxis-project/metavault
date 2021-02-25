@@ -7,17 +7,17 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import "../interfaces/IController.sol";
 import "../interfaces/IConverter.sol";
-import "../interfaces/ICanonicalVault.sol";
+import "../interfaces/IVault.sol";
 import "../interfaces/IHarvester.sol";
 import "../interfaces/IStrategy.sol";
 import "../interfaces/IManager.sol";
 
 /**
- * @title CanonicalController
+ * @title Controller
  * @notice This controller allows multiple strategies to be used
  * for a single token, and multiple tokens are supported.
  */
-contract CanonicalController is IController {
+contract Controller is IController {
     using SafeERC20 for IERC20;
     using SafeMath for uint256;
 

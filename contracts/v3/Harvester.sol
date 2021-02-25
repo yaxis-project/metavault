@@ -4,7 +4,7 @@ pragma solidity 0.6.12;
 
 import "@openzeppelin/contracts/math/SafeMath.sol";
 
-import "./interfaces/ICanonicalVault.sol";
+import "./interfaces/IVault.sol";
 import "./interfaces/IController.sol";
 import "./interfaces/IHarvester.sol";
 import "./interfaces/IManager.sol";
@@ -137,7 +137,7 @@ contract Harvester is IHarvester {
      */
 
     function earn(
-        ICanonicalVault _vault,
+        IVault _vault,
         address _token
     ) external onlyHarvester {
         _vault.earn(_token);

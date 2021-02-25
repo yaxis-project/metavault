@@ -51,9 +51,9 @@ exports.setupTestToken = deployments.createFixture(
     }
 );
 
-exports.setupTestCanonical = deployments.createFixture(
+exports.setupTestV3 = deployments.createFixture(
     async ({ deployments, getNamedAccounts, ethers }) => {
-        await deployments.fixture('canonical');
+        await deployments.fixture('v3');
         const {
             deployer,
             user,
@@ -81,18 +81,14 @@ exports.setupTestCanonical = deployments.createFixture(
         );
         const Manager = await deployments.get('Manager');
         const manager = await ethers.getContractAt('Manager', Manager.address, deployer);
-        const Controller = await deployments.get('CanonicalController');
+        const Controller = await deployments.get('Controller');
         const controller = await ethers.getContractAt(
-            'CanonicalController',
+            'Controller',
             Controller.address,
             deployer
         );
-        const StableVault = await deployments.get('CanonicalVaultStables');
-        const stableVault = await ethers.getContractAt(
-            'CanonicalVault',
-            StableVault.address,
-            user
-        );
+        const StableVault = await deployments.get('VaultStables');
+        const stableVault = await ethers.getContractAt('Vault', StableVault.address, user);
 
         await dai.faucet(ethers.utils.parseEther('100000000'));
         await usdc.faucet('100000000000000');
