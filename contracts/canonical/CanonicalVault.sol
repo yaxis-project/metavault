@@ -94,6 +94,7 @@ contract CanonicalVault is ERC20, ICanonicalVault {
      */
     function earn(address _token)
         public
+        onlyHarvester
         override
     {
         IController _controller = IController(manager.controllers(address(this)));
@@ -363,6 +364,11 @@ contract CanonicalVault is ERC20, ICanonicalVault {
 
     modifier checkVault() {
         require(manager.allowedVaults(address(this)), "!vault");
+        _;
+    }
+
+    modifier onlyHarvester() {
+        require(msg.sender == manager.harvester(), "!strategist");
         _;
     }
 
