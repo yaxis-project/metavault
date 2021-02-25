@@ -33,29 +33,48 @@ contract StrategyIdleV2 is BaseStrategy {
         IERC20(_underlying).safeApprove(_idleYieldToken, type(uint256).max);
     }
 
-    function balanceOfPool() public view override returns (uint256) {
+    function balanceOfPool()
+        public
+        view
+        override
+        returns (uint256)
+    {
         uint256 balance = balanceOfYieldToken();
         return balance
             .mul(pricePerToken())
             .div(1e18);
     }
 
-    function pricePerToken() public view returns (uint256) {
+    function pricePerToken()
+        public
+        view
+        returns (uint256)
+    {
         return IIdleTokenV3_1(idleYieldToken).tokenPrice();
     }
 
-    function balanceOfYieldToken() public view returns (uint256) {
+    function balanceOfYieldToken()
+        public
+        view
+        returns (uint256)
+    {
         return IERC20(idleYieldToken).balanceOf(address(this));
     }
 
-    function _deposit() internal override {
+    function _deposit()
+        internal
+        override
+    {
         uint256 balance = balanceOfWant();
         if (balance > 0) {
             IIdleTokenV3_1(idleYieldToken).mintIdleToken(balance, true, address(0));
         }
     }
 
-    function _harvest() internal override {
+    function _harvest()
+        internal
+        override
+    {
         IIdleTokenV3_1(idleYieldToken).redeemIdleToken(0);
         uint256 remainingWeth = _payHarvestFees(IDLE);
 
@@ -68,7 +87,12 @@ contract StrategyIdleV2 is BaseStrategy {
         _deposit();
     }
 
-    function _withdraw(uint256 _amount) internal override {
+    function _withdraw(
+        uint256 _amount
+    )
+        internal
+        override
+    {
         _amount = _amount.mul(1e18).div(IIdleTokenV3_1(idleYieldToken).tokenPrice());
         IIdleTokenV3_1(idleYieldToken).redeemIdleToken(_amount);
 
@@ -76,7 +100,10 @@ contract StrategyIdleV2 is BaseStrategy {
         _liquidateAsset(IDLE, want);
     }
 
-    function _withdrawAll() internal override {
+    function _withdrawAll()
+        internal
+        override
+    {
         uint256 balance = balanceOfYieldToken();
         IIdleTokenV3_1(idleYieldToken).redeemIdleToken(balance);
 
@@ -84,10 +111,15 @@ contract StrategyIdleV2 is BaseStrategy {
         _liquidateAsset(IDLE, want);
     }
 
-    function _liquidateAsset(address asset, address to) internal {
-        uint256 assetBalance = IERC20(asset).balanceOf(address(this));
-        if (assetBalance > 0) {
-            _swapTokens(asset, to, assetBalance);
+    function _liquidateAsset(
+        address _asset,
+        address _to
+    )
+        internal
+    {
+        uint256 _assetBalance = IERC20(_asset).balanceOf(address(this));
+        if (_assetBalance > 0) {
+            _swapTokens(_asset, _to, _assetBalance);
         }
     }
 }

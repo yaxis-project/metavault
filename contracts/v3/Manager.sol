@@ -469,8 +469,8 @@ contract Manager is IManager {
         address _vault
     )
         external
-        override
         view
+        override
         returns (address[] memory)
     {
         return tokens[_vault];

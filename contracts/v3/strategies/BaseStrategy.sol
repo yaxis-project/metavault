@@ -77,7 +77,13 @@ abstract contract BaseStrategy is IStrategy {
      * @param _spender The address of the spender
      * @param _amount The amount to spend
      */
-    function approveForSpender(IERC20 _token, address _spender, uint256 _amount) external {
+    function approveForSpender(
+        IERC20 _token,
+        address _spender,
+        uint256 _amount
+    )
+        external
+    {
         require(msg.sender == manager.governance(), "!governance");
         _token.safeApprove(_spender, _amount);
     }
@@ -86,7 +92,11 @@ abstract contract BaseStrategy is IStrategy {
      * @notice Sets the address of the ISwap-compatible router
      * @param _router The address of the router
      */
-    function setRouter(address _router) external {
+    function setRouter(
+        address _router
+    )
+        external
+    {
         require(msg.sender == manager.governance(), "!governance");
         router = ISwap(_router);
         IERC20(weth).safeApprove(address(_router), 0);
@@ -100,21 +110,33 @@ abstract contract BaseStrategy is IStrategy {
     /**
      * @notice Deposits funds to the strategy's pool
      */
-    function deposit() external override onlyController {
+    function deposit()
+        external
+        override
+        onlyController
+    {
         _deposit();
     }
 
     /**
      * @notice Harvest funds in the strategy's pool
      */
-    function harvest() external override onlyController {
+    function harvest()
+        external
+        override
+        onlyController
+    {
         _harvest();
     }
 
     /**
      * @notice Sends stuck want tokens in the strategy to the controller
      */
-    function skim() external override onlyController {
+    function skim()
+        external
+        override
+        onlyController
+    {
         IERC20(want).safeTransfer(controller, balanceOfWant());
     }
 
@@ -122,7 +144,13 @@ abstract contract BaseStrategy is IStrategy {
      * @notice Sends stuck tokens in the strategy to the controller
      * @param _asset The address of the token to withdraw
      */
-    function withdraw(address _asset) external override onlyController {
+    function withdraw(
+        address _asset
+    )
+        external
+        override
+        onlyController
+    {
         require(want != _asset, "want");
 
         IERC20 _assetToken = IERC20(_asset);
@@ -134,7 +162,13 @@ abstract contract BaseStrategy is IStrategy {
      * @notice Initiated from a vault, withdraws funds from the pool
      * @param _amount The amount of the want token to withdraw
      */
-    function withdraw(uint256 _amount) external override onlyController {
+    function withdraw(
+        uint256 _amount
+    )
+        external
+        override
+        onlyController
+    {
         uint256 _balance = balanceOfWant();
         if (_balance < _amount) {
             _amount = _withdrawSome(_amount.sub(_balance));
@@ -147,7 +181,11 @@ abstract contract BaseStrategy is IStrategy {
     /**
      * @notice Withdraws all funds from the strategy
      */
-    function withdrawAll() external override onlyController {
+    function withdrawAll()
+        external
+        override
+        onlyController
+    {
         _withdrawAll();
 
         uint256 _balance = IERC20(want).balanceOf(address(this));
@@ -162,7 +200,12 @@ abstract contract BaseStrategy is IStrategy {
     /**
      * @notice Returns the strategy's balance of the want token plus the balance of pool
      */
-    function balanceOf() external override view returns (uint256) {
+    function balanceOf()
+        external
+        view
+        override
+        returns (uint256)
+    {
         return balanceOfWant().add(balanceOfPool());
     }
 
@@ -174,12 +217,22 @@ abstract contract BaseStrategy is IStrategy {
      * @notice Returns the balance of the pool
      * @dev Must be implemented by the strategy
      */
-    function balanceOfPool() public view override virtual returns (uint256);
+    function balanceOfPool()
+        public
+        view
+        virtual
+        override
+        returns (uint256);
 
     /**
      * @notice Returns the balance of the want token on the strategy
      */
-    function balanceOfWant() public view override returns (uint256) {
+    function balanceOfWant()
+        public
+        view
+        override
+        returns (uint256)
+    {
         return IERC20(want).balanceOf(address(this));
     }
 
@@ -187,13 +240,20 @@ abstract contract BaseStrategy is IStrategy {
      * INTERNAL FUNCTIONS
      */
 
-    function _deposit() internal virtual;
+    function _deposit()
+        internal
+        virtual;
 
-    function _harvest() internal virtual;
+    function _harvest()
+        internal
+        virtual;
 
     function _payHarvestFees(
         address _poolToken
-    ) internal returns (uint256 _wethBal) {
+    )
+        internal
+        returns (uint256 _wethBal)
+    {
         uint256 _amount = IERC20(_poolToken).balanceOf(address(this));
         _swapTokens(_poolToken, weth, _amount);
         _wethBal = IERC20(weth).balanceOf(address(this));
@@ -238,7 +298,13 @@ abstract contract BaseStrategy is IStrategy {
         }
     }
 
-    function _swapTokens(address _input, address _output, uint256 _amount) internal {
+    function _swapTokens(
+        address _input,
+        address _output,
+        uint256 _amount
+    )
+        internal
+    {
         address[] memory path = new address[](2);
         path[0] = _input;
         path[1] = _output;
@@ -252,11 +318,22 @@ abstract contract BaseStrategy is IStrategy {
         );
     }
 
-    function _withdraw(uint256 _amount) internal virtual;
+    function _withdraw(
+        uint256 _amount
+    )
+        internal
+        virtual;
 
-    function _withdrawAll() internal virtual;
+    function _withdrawAll()
+        internal
+        virtual;
 
-    function _withdrawSome(uint256 _amount) internal returns (uint256) {
+    function _withdrawSome(
+        uint256 _amount
+    )
+        internal
+        returns (uint256)
+    {
         uint256 _before = IERC20(want).balanceOf(address(this));
         _withdraw(_amount);
         uint256 _after = IERC20(want).balanceOf(address(this));

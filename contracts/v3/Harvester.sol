@@ -86,7 +86,11 @@ contract Harvester is IHarvester {
         address _token,
         address _strategy,
         uint256 _timeout
-    ) external override onlyStrategist {
+    )
+        external
+        override
+        onlyStrategist
+    {
         strategies[_token].addresses.push(_strategy);
         strategies[_token].timeout = _timeout;
         emit StrategyAdded(_token, _strategy, _timeout);
@@ -102,7 +106,11 @@ contract Harvester is IHarvester {
         address _token,
         address _strategy,
         uint256 _timeout
-    ) external override onlyStrategist {
+    )
+        external
+        override
+        onlyStrategist
+    {
         uint256 tail = strategies[_token].addresses.length;
         uint256 index;
         bool found;
@@ -127,7 +135,13 @@ contract Harvester is IHarvester {
      * @param _harvester The address of the harvester
      * @param _status The status to allow the harvester to harvest
      */
-    function setHarvester(address _harvester, bool _status) public onlyStrategist {
+    function setHarvester(
+        address _harvester,
+        bool _status
+    )
+        external
+        onlyStrategist
+    {
         isHarvester[_harvester] = _status;
         emit HarvesterSet(_harvester, _status);
     }
@@ -139,7 +153,10 @@ contract Harvester is IHarvester {
     function earn(
         IVault _vault,
         address _token
-    ) external onlyHarvester {
+    )
+        external
+        onlyHarvester
+    {
         _vault.earn(_token);
     }
 
@@ -152,7 +169,10 @@ contract Harvester is IHarvester {
     function harvest(
         IController _controller,
         address _strategy
-    ) public onlyHarvester {
+    )
+        public
+        onlyHarvester
+    {
         _controller.harvestStrategy(_strategy);
         emit Harvest(address(_controller), _strategy);
     }
@@ -162,7 +182,11 @@ contract Harvester is IHarvester {
      * rotates the strategies
      * @param _token The address of the token
      */
-    function harvestNextStrategy(address _token) external {
+    function harvestNextStrategy(
+        address _token
+    )
+        external
+    {
         require(canHarvest(_token), "!canHarvest");
         address strategy = strategies[_token].addresses[0];
         harvest(controller, strategy);
@@ -187,7 +211,13 @@ contract Harvester is IHarvester {
      * @notice Returns the addresses of the strategies for a given token
      * @param _token The address of the token
      */
-    function strategyAddresses(address _token) external view returns (address[] memory) {
+    function strategyAddresses(
+        address _token
+    )
+        external
+        view
+        returns (address[] memory)
+    {
         return strategies[_token].addresses;
     }
 
@@ -199,7 +229,13 @@ contract Harvester is IHarvester {
      * @notice Returns the availability of a token's strategy to be harvested
      * @param _token The address of the token
      */
-    function canHarvest(address _token) public view returns (bool) {
+    function canHarvest(
+        address _token
+    )
+        public
+        view
+        returns (bool)
+    {
         Strategy storage strategy = strategies[_token];
         if (strategy.addresses.length == 0 ||
             // solhint-disable-next-line not-rely-on-time

@@ -53,7 +53,10 @@ contract StrategyCurve3CrvV2 is BaseStrategy {
         IERC20(_want).safeApprove(address(_stableSwap3Pool), type(uint256).max);
     }
 
-    function _deposit() internal override {
+    function _deposit()
+        internal
+        override
+    {
         uint256 _wantBal = balanceOfWant();
         if (_wantBal > 0) {
             // deposit [want] to Gauge
@@ -61,11 +64,15 @@ contract StrategyCurve3CrvV2 is BaseStrategy {
         }
     }
 
-    function _claimReward() internal {
+    function _claimReward()
+        internal
+    {
         crvMintr.mint(address(gauge));
     }
 
-    function _addLiquidity() internal {
+    function _addLiquidity()
+        internal
+    {
         uint256[3] memory amounts;
         amounts[0] = IERC20(dai).balanceOf(address(this));
         amounts[1] = IERC20(usdc).balanceOf(address(this));
@@ -73,7 +80,11 @@ contract StrategyCurve3CrvV2 is BaseStrategy {
         stableSwap3Pool.add_liquidity(amounts, 1);
     }
 
-    function getMostPremium() public view returns (address, uint256) {
+    function getMostPremium()
+        public
+        view
+        returns (address, uint256)
+    {
         uint256[] memory balances = new uint256[](3);
         balances[0] = stableSwap3Pool.balances(0); // DAI
         balances[1] = stableSwap3Pool.balances(1).mul(10**12); // USDC
@@ -94,7 +105,10 @@ contract StrategyCurve3CrvV2 is BaseStrategy {
         return (dai, 0); // If they're somehow equal, we just want DAI
     }
 
-    function _harvest() internal override {
+    function _harvest()
+        internal
+        override
+    {
         _claimReward();
         uint256 _remainingWeth = _payHarvestFees(crv);
 
@@ -109,16 +123,29 @@ contract StrategyCurve3CrvV2 is BaseStrategy {
         }
     }
 
-    function _withdrawAll() internal override {
+    function _withdrawAll()
+        internal
+        override
+    {
         uint256 _bal = gauge.balanceOf(address(this));
         _withdraw(_bal);
     }
 
-    function _withdraw(uint256 _amount) internal override {
+    function _withdraw(
+        uint256 _amount
+    )
+        internal
+        override
+    {
         gauge.withdraw(_amount);
     }
 
-    function balanceOfPool() public view override returns (uint) {
+    function balanceOfPool()
+        public
+        view
+        override
+        returns (uint256)
+    {
         return gauge.balanceOf(address(this));
     }
 }

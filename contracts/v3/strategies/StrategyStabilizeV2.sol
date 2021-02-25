@@ -42,7 +42,12 @@ contract StrategyStabilizeV2 is BaseStrategy {
         IERC20(_zpaToken).safeApprove(_pool, type(uint256).max);
     }
 
-    function balanceOfPool() public view override returns (uint256) {
+    function balanceOfPool()
+        public
+        view
+        override
+        returns (uint256)
+    {
         IZPAToken _zpaToken = IZPAToken(zpaToken);
         uint256 zpaBalance = balanceOfzpaToken()
                             .mul(_zpaToken.pricePerToken())
@@ -53,11 +58,21 @@ contract StrategyStabilizeV2 is BaseStrategy {
             .add(zpaBalance).sub(calculateZPATokenWithdrawFee(zpaBalance));
     }
 
-    function balanceOfzpaToken() public view returns (uint256) {
+    function balanceOfzpaToken()
+        public
+        view
+        returns (uint256)
+    {
         return IERC20(zpaToken).balanceOf(address(this));
     }
 
-    function calculateZPATokenWithdrawFee(uint256 amount) public view returns (uint256) {
+    function calculateZPATokenWithdrawFee(
+        uint256 amount
+    )
+        public
+        view
+        returns (uint256)
+    {
         uint256 _depositTime = depositTime;
         if (_depositTime == 0) {
             // Never deposited
@@ -73,7 +88,10 @@ contract StrategyStabilizeV2 is BaseStrategy {
         return amount.mul(fee).div(DIVISION_FACTOR);
     }
 
-    function _deposit() internal override {
+    function _deposit()
+        internal
+        override
+    {
         uint256 amount = balanceOfWant();
         if (amount > 0) {
             depositTime = block.timestamp;
@@ -85,7 +103,10 @@ contract StrategyStabilizeV2 is BaseStrategy {
         }
     }
 
-    function _harvest() internal override {
+    function _harvest()
+        internal
+        override
+    {
         IZPAPool(pool).getReward(poolId);
         uint256 remainingWeth = _payHarvestFees(STBZ);
 
@@ -98,7 +119,12 @@ contract StrategyStabilizeV2 is BaseStrategy {
         }
     }
 
-    function _withdraw(uint256 _amount) internal override {
+    function _withdraw(
+        uint256 _amount
+    )
+        internal
+        override
+    {
         _amount = _amount.mul(1e18).div(IZPAToken(zpaToken).pricePerToken());
         uint256 _before = balanceOfzpaToken();
         IZPAPool(pool).withdraw(poolId, _amount);
@@ -107,7 +133,10 @@ contract StrategyStabilizeV2 is BaseStrategy {
         IZPAToken(zpaToken).redeem(_amount);
     }
 
-    function _withdrawAll() internal override {
+    function _withdrawAll()
+        internal
+        override
+    {
         uint256 amount = IZPAPool(pool).poolBalance(poolId, address(this));
         IZPAPool(pool).exit(poolId, amount);
     }

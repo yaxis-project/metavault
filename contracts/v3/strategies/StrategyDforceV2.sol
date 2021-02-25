@@ -33,18 +33,30 @@ contract StrategyDforceV2 is BaseStrategy {
         IERC20(_dToken).safeApprove(_pool, type(uint256).max);
     }
 
-    function balanceOfPool() public view override returns (uint256) {
+    function balanceOfPool()
+        public
+        view
+        override
+        returns (uint256)
+    {
         return (dRewards(pool).balanceOf(address(this)))
             .mul(dERC20(dToken).getExchangeRate())
             .div(1e18)
             .add(balanceOfdToken());
     }
 
-    function balanceOfdToken() public view returns (uint256) {
+    function balanceOfdToken()
+        public
+        view
+        returns (uint256)
+    {
         return dERC20(dToken).getTokenBalance(address(this));
     }
 
-    function _deposit() internal override {
+    function _deposit()
+        internal
+        override
+    {
         uint256 _amount = balanceOfWant();
         if (_amount > 0) {
             dERC20(dToken).mint(address(this), _amount);
@@ -55,7 +67,10 @@ contract StrategyDforceV2 is BaseStrategy {
         }
     }
 
-    function _harvest() internal override {
+    function _harvest()
+        internal
+        override
+    {
         dRewards(pool).getReward();
         uint256 _remainingWeth = _payHarvestFees(DF);
 
@@ -68,7 +83,12 @@ contract StrategyDforceV2 is BaseStrategy {
         }
     }
 
-    function _withdraw(uint256 _amount) internal override {
+    function _withdraw(
+        uint256 _amount
+    )
+        internal
+        override
+    {
         _amount = _amount.mul(1e18).div(dERC20(dToken).getExchangeRate());
         uint256 _before = IERC20(dToken).balanceOf(address(this));
         dRewards(pool).withdraw(_amount);
@@ -77,7 +97,10 @@ contract StrategyDforceV2 is BaseStrategy {
         dERC20(dToken).redeem(address(this), _amount);
     }
 
-    function _withdrawAll() internal override {
+    function _withdrawAll()
+        internal
+        override
+    {
         dRewards(pool).exit();
         uint256 _amount = IERC20(dToken).balanceOf(address(this));
         if (_amount > 0) {

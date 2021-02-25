@@ -61,47 +61,64 @@ contract StrategyPickle3CrvV2 is BaseStrategy {
         IERC20(_pickle).safeApprove(address(_router), type(uint256).max);
     }
 
-    function setStableForLiquidity(address _stableForAddLiquidity) external onlyStrategist {
+    function setStableForLiquidity(
+        address _stableForAddLiquidity
+    )
+        external
+        onlyStrategist
+    {
         require(_stableForAddLiquidity != address(0), "!address(0)");
         stableForAddLiquidity = _stableForAddLiquidity;
     }
 
-    function _deposit() internal override {
-        uint _wantBal = balanceOfWant();
+    function _deposit()
+        internal
+        override
+    {
+        uint256 _wantBal = balanceOfWant();
         if (_wantBal > 0) {
             // deposit 3crv to pickleJar
             pickleJar.depositAll();
         }
 
-        uint _p3crvBal = IERC20(p3crv).balanceOf(address(this));
+        uint256 _p3crvBal = IERC20(p3crv).balanceOf(address(this));
         if (_p3crvBal > 0) {
             // stake p3crv to pickleMasterChef
             pickleMasterChef.deposit(poolId, _p3crvBal);
         }
     }
 
-    function _claimReward() internal {
+    function _claimReward()
+        internal
+    {
         pickleMasterChef.withdraw(poolId, 0);
     }
 
-    function _withdrawAll() internal override {
-        (uint amount,) = pickleMasterChef.userInfo(poolId, address(this));
+    function _withdrawAll()
+        internal
+        override
+    {
+        (uint256 amount,) = pickleMasterChef.userInfo(poolId, address(this));
         pickleMasterChef.withdraw(poolId, amount);
         pickleJar.withdrawAll();
     }
 
     // to get back want (3CRV)
-    function _addLiquidity() internal {
+    function _addLiquidity()
+        internal
+    {
         // 0: DAI, 1: USDC, 2: USDT
-        uint[3] memory amounts;
+        uint256[3] memory amounts;
         amounts[0] = IERC20(dai).balanceOf(address(this));
         amounts[1] = IERC20(usdc).balanceOf(address(this));
         amounts[2] = IERC20(usdt).balanceOf(address(this));
-        // add_liquidity(uint[3] calldata amounts, uint min_mint_amount)
         stableSwap3Pool.add_liquidity(amounts, 1);
     }
 
-    function _harvest() internal override {
+    function _harvest()
+        internal
+        override
+    {
         _claimReward();
         uint256 _remainingWeth = _payHarvestFees(pickle);
 
@@ -115,26 +132,36 @@ contract StrategyPickle3CrvV2 is BaseStrategy {
         }
     }
 
-    function _withdraw(uint256 _amount) internal override {
+    function _withdraw(
+        uint256 _amount
+    )
+        internal
+        override
+    {
         // unstake p3crv from pickleMasterChef
-        uint _ratio = pickleJar.getRatio();
+        uint256 _ratio = pickleJar.getRatio();
         _amount = _amount.mul(1e18).div(_ratio);
-        (uint _stakedAmount,) = pickleMasterChef.userInfo(poolId, address(this));
+        (uint256 _stakedAmount,) = pickleMasterChef.userInfo(poolId, address(this));
         if (_amount > _stakedAmount) {
             _amount = _stakedAmount;
         }
-        uint _before = pickleJar.balanceOf(address(this));
+        uint256 _before = pickleJar.balanceOf(address(this));
         pickleMasterChef.withdraw(poolId, _amount);
-        uint _after = pickleJar.balanceOf(address(this));
+        uint256 _after = pickleJar.balanceOf(address(this));
         _amount = _after.sub(_before);
 
         // withdraw 3crv from pickleJar
         pickleJar.withdraw(_amount);
     }
 
-    function balanceOfPool() public view override returns (uint) {
-        uint p3crvBal = pickleJar.balanceOf(address(this));
-        (uint amount,) = pickleMasterChef.userInfo(poolId, address(this));
+    function balanceOfPool()
+        public
+        view
+        override
+        returns (uint256)
+    {
+        uint256 p3crvBal = pickleJar.balanceOf(address(this));
+        (uint256 amount,) = pickleMasterChef.userInfo(poolId, address(this));
         return p3crvBal.add(amount).mul(pickleJar.getRatio()).div(1e18);
     }
 }
