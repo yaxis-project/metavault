@@ -40,7 +40,7 @@ contract Manager is IManager {
     uint256 public override treasuryFee;
     uint256 public override withdrawalProtectionFee;
 
-    uint256 public setPendingStrategistTime;
+    uint256 private setPendingStrategistTime;
 
     // Governance must first allow the following properties before
     // the strategist can make use of them
@@ -233,7 +233,7 @@ contract Manager is IManager {
     function setInsuranceFee(
         uint256 _insuranceFee
     )
-        public
+        external
         onlyGovernance
     {
         require(_insuranceFee <= 100, "_insuranceFee over 1%");
@@ -247,7 +247,7 @@ contract Manager is IManager {
     function setInsurancePool(
         address _insurancePool
     )
-        public
+        external
         onlyGovernance
     {
         insurancePool = _insurancePool;
@@ -261,7 +261,7 @@ contract Manager is IManager {
     function setInsurancePoolFee(
         uint256 _insurancePoolFee
     )
-        public
+        external
         onlyGovernance
     {
         require(_insurancePoolFee <= 2000, "_insurancePoolFee over 20%");
@@ -275,7 +275,7 @@ contract Manager is IManager {
     function setStakingPool(
         address _stakingPool
     )
-        public
+        external
         onlyGovernance
     {
         stakingPool = _stakingPool;
@@ -289,7 +289,7 @@ contract Manager is IManager {
     function setStakingPoolShareFee(
         uint256 _stakingPoolShareFee
     )
-        public
+        external
         onlyGovernance
     {
         require(_stakingPoolShareFee <= 5000, "_stakingPoolShareFee over 50%");
@@ -319,7 +319,7 @@ contract Manager is IManager {
     function setTreasury(
         address _treasury
     )
-        public
+        external
         onlyGovernance
     {
         treasury = _treasury;
@@ -334,7 +334,7 @@ contract Manager is IManager {
     function setTreasuryBalance(
         uint256 _treasuryBalance
     )
-        public
+        external
         onlyGovernance
     {
         treasuryBalance = _treasuryBalance;
@@ -348,7 +348,7 @@ contract Manager is IManager {
     function setTreasuryFee(
         uint256 _treasuryFee
     )
-        public
+        external
         onlyGovernance
     {
         require(_treasuryFee <= 2000, "_treasuryFee over 20%");
@@ -363,7 +363,7 @@ contract Manager is IManager {
     function setWithdrawalProtectionFee(
         uint256 _withdrawalProtectionFee
     )
-        public
+        external
         onlyGovernance
     {
         require(_withdrawalProtectionFee <= 100, "_withdrawalProtectionFee over 1%");

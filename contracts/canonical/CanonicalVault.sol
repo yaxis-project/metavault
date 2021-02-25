@@ -86,7 +86,7 @@ contract CanonicalVault is ERC20, ICanonicalVault {
     }
 
     /**
-     * USER-FACING FUNCTIONS
+     * HARVESTER-ONLY FUNCTIONS
      */
 
     /**
@@ -105,6 +105,10 @@ contract CanonicalVault is ERC20, ICanonicalVault {
             emit Earn(_token, _balance);
         }
     }
+
+    /**
+     * USER-FACING FUNCTIONS
+     */
 
     /**
      * @notice Deposit a single token to the vault
