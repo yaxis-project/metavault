@@ -157,7 +157,7 @@ contract Vault is ERC20, IVault {
         checkVault
     {
         require(_tokens.length == _amounts.length, "!length");
-        for (uint8 i = 0; i < _amounts.length; i++) {
+        for (uint8 i; i < _amounts.length; i++) {
             if (_amounts[i] > 0) {
                 require(_checkToken(_tokens[i]), "!_tokens");
                 uint256 _balance = balance();
@@ -189,31 +189,35 @@ contract Vault is ERC20, IVault {
         checkContract
         checkToken(_output)
     {
-        uint256 _rate = (balance().mul(_shares)).div(totalSupply());
+        uint256 _amount = (balance().mul(_shares)).div(totalSupply());
         _burn(msg.sender, _shares);
 
         uint256 _withdrawalProtectionFee = manager.withdrawalProtectionFee();
         if (_withdrawalProtectionFee > 0) {
-            uint256 _withdrawalProtection = _rate.mul(_withdrawalProtectionFee).div(MAX);
-            _rate = _rate.sub(_withdrawalProtection);
+            uint256 _withdrawalProtection = _amount.mul(_withdrawalProtectionFee).div(MAX);
+            _amount = _amount.sub(_withdrawalProtection);
         }
 
         uint256 _balance = IERC20(_output).balanceOf(address(this));
-        if (_balance < _rate) {
+        if (_balance < _amount) {
+            uint256 _conversionFee = manager.conversionFee();
+            if (_conversionFee > 0) {
+                _amount = _amount.mul(_conversionFee).div(MAX);
+            }
             IController _controller = IController(manager.controllers(address(this)));
-            uint256 _toWithdraw = _rate.sub(_balance);
+            uint256 _toWithdraw = _amount.sub(_balance);
             if (_controller.strategies() > 0) {
                 _controller.withdraw(_output, _toWithdraw);
             }
             uint256 _after = IERC20(_output).balanceOf(address(this));
             uint256 _diff = _after.sub(_balance);
             if (_diff < _toWithdraw) {
-                _rate = _balance.add(_diff);
+                _amount = _balance.add(_diff);
             }
         }
 
-        IERC20(_output).safeTransfer(msg.sender, _rate);
-        emit Withdraw(msg.sender, _rate);
+        IERC20(_output).safeTransfer(msg.sender, _amount);
+        emit Withdraw(msg.sender, _amount);
     }
 
     /**
@@ -281,12 +285,19 @@ contract Vault is ERC20, IVault {
         override
         returns (uint256 _balance)
     {
+        return balanceOfThis().add(IController(manager.controllers(address(this))).balanceOf());
+    }
+
+    function balanceOfThis()
+        public
+        view
+        returns (uint256 _balance)
+    {
         address[] memory _tokens = manager.getTokens(address(this));
-        for (uint8 i = 0; i < _tokens.length; i++) {
+        for (uint8 i; i < _tokens.length; i++) {
             address _token = _tokens[i];
             _balance = _balance.add(_normalizeDecimals(_token, IERC20(_token).balanceOf(address(this))));
         }
-        return _balance.add(IController(manager.controllers(address(this))).balanceOf());
     }
 
     function getPricePerFullShare()

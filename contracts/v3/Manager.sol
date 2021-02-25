@@ -34,6 +34,7 @@ contract Manager is IManager {
      *  The following fees are all mutable.
      *  They are updated by governance (community vote).
      */
+    uint256 public override conversionFee;
     uint256 public override insuranceFee;
     uint256 public override insurancePoolFee;
     uint256 public override stakingPoolShareFee;
@@ -112,6 +113,7 @@ contract Manager is IManager {
         governance = msg.sender;
         strategist = msg.sender;
         harvester = msg.sender;
+        conversionFee = 200;
         stakingPoolShareFee = 2000;
         treasuryBalance = 20000e18;
         treasuryFee = 500;
@@ -197,6 +199,16 @@ contract Manager is IManager {
     {
         allowedVaults[_vault] = _allowed;
         emit AllowedVault(_vault, _allowed);
+    }
+
+    function setConversionFee(
+        uint256 _conversionFee
+    )
+        external
+        onlyGovernance
+    {
+        require(_conversionFee <= 2000, "_conversionFee over 20%");
+        conversionFee = _conversionFee;
     }
 
     /**
