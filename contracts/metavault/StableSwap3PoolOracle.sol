@@ -14,7 +14,7 @@ contract StableSwap3PoolOracle is IStableSwap3PoolOracle {
     uint256 public constant MAX_STALE_ANSWER = 24 hours;
     uint256 public constant ETH_USD_MUL = 1e10; // ETH-USD feed is to 8 decimals
 
-    address public ethUsd;
+    address public immutable ethUsd;
     address[3] public feeds;
 
     constructor(
@@ -46,7 +46,7 @@ contract StableSwap3PoolOracle is IStableSwap3PoolOracle {
      * @notice Retrieves the minimum price of the 3pool tokens as provided by Chainlink
      * @dev Reverts if none of the Chainlink nodes are safe
      */
-    function getMinimumPrice() external view override returns (uint256 _minPrice) {
+    function getPrices() external view override returns (uint256 _minPrice, uint256 _maxPrice) {
         for (uint8 i = 0; i < 3; i++) {
             // get the safe answer from Chainlink
             uint256 _answer = getSafeAnswer(feeds[i]);
@@ -54,14 +54,19 @@ contract StableSwap3PoolOracle is IStableSwap3PoolOracle {
             // store the first iteration regardless (handle that later if 0)
             // otherwise,check that _answer is greater than 0 and only store it if less
             // than the previously observed price
-            if (i == 0 || (_answer > 0 && _answer < _minPrice)) {
+            if (i == 0) {
                 _minPrice = _answer;
+                _maxPrice = _answer;
+            } else if (_answer > 0 && _answer < _minPrice) {
+                _minPrice = _answer;
+            } else if (_answer > 0 && _answer > _maxPrice) {
+                _maxPrice = _answer;
             }
         }
 
         // if we couldn't get a valid price from any of the Chainlink feeds,
         // revert because nothing is safe
-        require(_minPrice > 0, "!getMinimumPrice");
+        require(_minPrice > 0 && _maxPrice > 0, "!getPrices");
     }
 
     /**

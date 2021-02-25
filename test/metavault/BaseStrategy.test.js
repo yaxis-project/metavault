@@ -58,9 +58,6 @@ describe('BaseStrategy', () => {
         await expect(
             strategy.connect(user).approveForSpender(yax.address, await user.getAddress(), 1)
         ).to.be.revertedWith('!governance');
-        await expect(strategy.connect(user).setController(yax.address)).to.be.revertedWith(
-            '!governance'
-        );
         await expect(strategy.connect(user).setRouter(yax.address)).to.be.revertedWith(
             '!governance'
         );
@@ -95,12 +92,6 @@ describe('BaseStrategy', () => {
         await vault.connect(user).deposit(ether('10'), dai.address, 1, true);
         await harvester.harvestNextStrategy(t3crv.address);
         expect(await yax.balanceOf(insurancePool)).to.least(1);
-    });
-
-    it('should set the controller', async () => {
-        expect(await strategy.controller()).to.equal(controller.address);
-        await strategy.setController(deployer);
-        expect(await strategy.controller()).to.equal(deployer);
     });
 
     it('should set the router', async () => {
