@@ -188,6 +188,13 @@ describe('Vault', () => {
                 ).to.be.revertedWith('>totalDepositCap');
             });
 
+            it('should revert if the input lengths do not match', async () => {
+                await dai.approve(vault.address, ether('100000000'));
+                await expect(
+                    vault.depositAll([dai.address], [ether('100000000'), 1])
+                ).to.be.revertedWith('!length');
+            });
+
             it('should deposit single token', async () => {
                 expect(await vault.balanceOf(user.address)).to.equal(0);
                 await expect(vault.depositAll([dai.address], [ether('1000')]))

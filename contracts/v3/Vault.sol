@@ -155,6 +155,7 @@ contract Vault is ERC20, IVault {
         checkContract
         checkVault
     {
+        require(_tokens.length == _amounts.length, "!length");
         for (uint8 i = 0; i < _amounts.length; i++) {
             if (_amounts[i] > 0) {
                 require(_checkToken(_tokens[i]), "!_tokens");
