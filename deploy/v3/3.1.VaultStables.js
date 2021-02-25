@@ -7,7 +7,7 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
         contract: 'Vault',
         from: deployer,
         log: true,
-        args: ['Vault: Stables', 'CV:S', manager.address]
+        args: ['Vault: Stables', 'MV:S', manager.address]
     });
 };
 

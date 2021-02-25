@@ -502,7 +502,7 @@ contract Controller is IController {
     }
 
     /**
-     * PUBLIC VIEW FUNCTIONS
+     * INTERNAL FUNCTIONS
      */
 
     /**
@@ -514,7 +514,7 @@ contract Controller is IController {
         address _vault,
         uint256 _amount
     )
-        public
+        internal
         view
         returns (address _strategy)
     {
@@ -550,7 +550,7 @@ contract Controller is IController {
         address _token,
         uint256 _amount
     )
-        public
+        internal
         view
         returns (
             address[] memory _strategies,
@@ -583,10 +583,6 @@ contract Controller is IController {
             }
         }
     }
-
-    /**
-     * INTERNAL FUNCTIONS
-     */
 
     function updateBalance(
         address _vault,
