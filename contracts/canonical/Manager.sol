@@ -18,6 +18,7 @@ contract Manager is IManager {
     using SafeMath for uint256;
 
     uint256 public constant PENDING_STRATEGIST_TIMELOCK = 24 hours;
+    uint256 public constant MAX_TOKENS = 256;
 
     address public immutable override yax;
 
@@ -395,6 +396,7 @@ contract Manager is IManager {
     {
         require(allowedTokens[_token], "!allowedTokens");
         require(allowedVaults[_vault], "!allowedVaults");
+        require(tokens[_vault].length < MAX_TOKENS, ">tokens");
         vaults[_token] = _vault;
         tokens[_vault].push(_token);
         emit TokenAdded(_vault, _token);
