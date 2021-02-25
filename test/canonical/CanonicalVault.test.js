@@ -33,25 +33,8 @@ describe('CanonicalVault', () => {
     it('should deploy with expected state', async () => {
         expect(await vault.manager()).to.equal(manager.address);
         expect(await vault.min()).to.equal(9500);
-        expect(await vault.earnLowerlimit()).to.equal(ether('500'));
         expect(await vault.totalDepositCap()).to.equal(ether('10000000'));
         expect(await vault.withdrawFee(ether('1'))).to.equal(ether('0.001'));
-    });
-
-    describe('setEarnLowerlimit', () => {
-        it('should revert when called by an address other than strategist', async () => {
-            expect(await vault.earnLowerlimit()).to.equal(ether('500'));
-            await expect(vault.setEarnLowerlimit(ether('1'))).to.be.revertedWith(
-                '!strategist'
-            );
-            expect(await vault.earnLowerlimit()).to.equal(ether('500'));
-        });
-
-        it('should set the earn lower limit when called by the strategist', async () => {
-            expect(await vault.earnLowerlimit()).to.equal(ether('500'));
-            await vault.connect(deployer).setEarnLowerlimit(ether('1'));
-            expect(await vault.earnLowerlimit()).to.equal(ether('1'));
-        });
     });
 
     describe('setMin', () => {

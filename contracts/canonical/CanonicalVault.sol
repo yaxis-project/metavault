@@ -31,7 +31,6 @@ contract CanonicalVault is ERC20, ICanonicalVault {
 
     // Strategist-updated variables
     uint256 public min;
-    uint256 public earnLowerlimit;
     uint256 public totalDepositCap;
 
     event Deposit(address indexed account, uint256 amount);
@@ -49,28 +48,12 @@ contract CanonicalVault is ERC20, ICanonicalVault {
     ) public ERC20(_name, _symbol) {
         manager = IManager(_manager);
         min = 9500;
-        earnLowerlimit = 500 ether;
         totalDepositCap = 10000000 ether;
     }
 
     /**
      * STRATEGIST-ONLY FUNCTIONS
      */
-
-    /**
-     * @notice Sets the value for the earnLowerlimit
-     * @dev earnLowerlimit determines the minimum balance of this contract for earn
-     * to be called
-     * @param _earnLowerlimit The new earnLowerlimit value
-     */
-    function setEarnLowerlimit(
-        uint256 _earnLowerlimit
-    )
-        external
-        onlyStrategist
-    {
-        earnLowerlimit = _earnLowerlimit;
-    }
 
     /**
      * @notice Sets the value for min
@@ -262,9 +245,6 @@ contract CanonicalVault is ERC20, ICanonicalVault {
         }
 
         if (_shares > 0) {
-            if (IERC20(_token).balanceOf(address(this)) > earnLowerlimit) {
-                earn(_token);
-            }
             _mint(_account, _shares);
         }
 
