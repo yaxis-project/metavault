@@ -94,8 +94,9 @@ contract Vault is ERC20, IVault {
      */
     function earn(address _token)
         public
-        onlyHarvester
         override
+        onlyHarvester
+        checkToken(_token)
     {
         IController _controller = IController(manager.controllers(address(this)));
         if (_controller.investEnabled()) {
@@ -267,8 +268,8 @@ contract Vault is ERC20, IVault {
         address _token
     )
         public
-        override
         view
+        override
         returns (uint256)
     {
         return IERC20(_token).balanceOf(address(this)).mul(min).div(MAX);
@@ -276,8 +277,8 @@ contract Vault is ERC20, IVault {
 
     function balance()
         public
-        override
         view
+        override
         returns (uint256 _balance)
     {
         address[] memory _tokens = manager.getTokens(address(this));
@@ -290,8 +291,8 @@ contract Vault is ERC20, IVault {
 
     function getPricePerFullShare()
         external
-        override
         view
+        override
         returns (uint256)
     {
         return balance().mul(1e18).div(totalSupply());
@@ -299,8 +300,8 @@ contract Vault is ERC20, IVault {
 
     function getTokens()
         external
-        override
         view
+        override
         returns (address[] memory)
     {
         return manager.getTokens(address(this));
@@ -310,8 +311,8 @@ contract Vault is ERC20, IVault {
         uint256 _amount
     )
         external
-        override
         view
+        override
         returns (uint256)
     {
         return manager.withdrawalProtectionFee().mul(_amount).div(MAX);
@@ -373,7 +374,7 @@ contract Vault is ERC20, IVault {
     }
 
     modifier onlyHarvester() {
-        require(msg.sender == manager.harvester(), "!strategist");
+        require(msg.sender == manager.harvester(), "!harvester");
         _;
     }
 

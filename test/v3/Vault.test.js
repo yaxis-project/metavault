@@ -65,6 +65,20 @@ describe('Vault', () => {
         });
     });
 
+    describe('earn', () => {
+        it('should revert when called by an address other than the harvester', async () => {
+            await expect(vault.earn(ethers.constants.AddressZero)).to.be.revertedWith(
+                '!harvester'
+            );
+        });
+
+        it('should revert when the token is not added', async () => {
+            await expect(
+                vault.connect(deployer).earn(ethers.constants.AddressZero)
+            ).to.be.revertedWith('!_token');
+        });
+    });
+
     describe('deposit', () => {
         it('should revert when the vault is not set up', async () => {
             await expect(vault.deposit(dai.address, 1)).to.be.revertedWith('!_token');
