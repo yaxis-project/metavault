@@ -22,8 +22,8 @@ contract StrategyPickle3CrvV2 is BaseStrategy {
     address public immutable usdt;
 
     PickleJar public immutable pickleJar;
-    PickleMasterChef public pickleMasterChef;
-    uint256 public poolId = 14;
+    PickleMasterChef public immutable pickleMasterChef;
+    uint256 public constant poolId = 14;
 
     IStableSwap3Pool public stableSwap3Pool;
     address public stableForAddLiquidity;
@@ -61,18 +61,9 @@ contract StrategyPickle3CrvV2 is BaseStrategy {
         IERC20(_pickle).safeApprove(address(_router), type(uint256).max);
     }
 
-    function setStableForLiquidity(address _stableForAddLiquidity) external onlyAuthorized {
+    function setStableForLiquidity(address _stableForAddLiquidity) external onlyStrategist {
+        require(_stableForAddLiquidity != address(0), "!address(0)");
         stableForAddLiquidity = _stableForAddLiquidity;
-    }
-
-    function setPickleMasterChef(PickleMasterChef _pickleMasterChef) external onlyAuthorized {
-        pickleMasterChef = _pickleMasterChef;
-        IERC20(p3crv).safeApprove(address(_pickleMasterChef), 0);
-        IERC20(p3crv).safeApprove(address(_pickleMasterChef), type(uint256).max);
-    }
-
-    function setPoolId(uint _poolId) external onlyAuthorized {
-        poolId = _poolId;
     }
 
     function _deposit() internal override {

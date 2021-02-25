@@ -300,6 +300,17 @@ contract Controller is IController {
         maxStrategies = _maxStrategies;
     }
 
+    function skim(
+        address _strategy
+    )
+        external
+        onlyStrategist
+    {
+        address _want = IStrategy(_strategy).want();
+        IStrategy(_strategy).skim();
+        IERC20(_want).safeTransfer(_vaultStrategies[_strategy], IERC20(_want).balanceOf(address(this)));
+    }
+
     /**
      * @notice Withdraws all funds from a strategy
      * @param _strategy The address of the strategy

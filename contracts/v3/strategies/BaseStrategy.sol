@@ -38,9 +38,9 @@ abstract contract BaseStrategy is IStrategy {
 
     address public immutable override want;
     address public immutable weth;
+    address public immutable controller;
+    IManager public immutable manager;
     string public override name;
-    address public controller;
-    IManager public manager;
     ISwap public router;
 
     /**
@@ -83,15 +83,6 @@ abstract contract BaseStrategy is IStrategy {
     }
 
     /**
-     * @notice Sets the address of the controller
-     * @param _controller The address of the controller
-     */
-    function setController(address _controller) external {
-        require(msg.sender == manager.governance(), "!governance");
-        controller = _controller;
-    }
-
-    /**
      * @notice Sets the address of the ISwap-compatible router
      * @param _router The address of the router
      */
@@ -103,27 +94,27 @@ abstract contract BaseStrategy is IStrategy {
     }
 
     /**
-     * AUTHORIZED-ONLY FUNCTIONS
+     * CONTROLLER-ONLY FUNCTIONS
      */
 
     /**
      * @notice Deposits funds to the strategy's pool
      */
-    function deposit() external override onlyAuthorized {
+    function deposit() external override onlyController {
         _deposit();
     }
 
     /**
      * @notice Harvest funds in the strategy's pool
      */
-    function harvest() external override onlyAuthorized {
+    function harvest() external override onlyController {
         _harvest();
     }
 
     /**
      * @notice Sends stuck want tokens in the strategy to the controller
      */
-    function skim() external override onlyAuthorized {
+    function skim() external override onlyController {
         IERC20(want).safeTransfer(controller, balanceOfWant());
     }
 
@@ -131,7 +122,7 @@ abstract contract BaseStrategy is IStrategy {
      * @notice Sends stuck tokens in the strategy to the controller
      * @param _asset The address of the token to withdraw
      */
-    function withdraw(address _asset) external override onlyAuthorized {
+    function withdraw(address _asset) external override onlyController {
         require(want != _asset, "want");
 
         IERC20 _assetToken = IERC20(_asset);
@@ -143,7 +134,7 @@ abstract contract BaseStrategy is IStrategy {
      * @notice Initiated from a vault, withdraws funds from the pool
      * @param _amount The amount of the want token to withdraw
      */
-    function withdraw(uint256 _amount) external override onlyAuthorized {
+    function withdraw(uint256 _amount) external override onlyController {
         uint256 _balance = balanceOfWant();
         if (_balance < _amount) {
             _amount = _withdrawSome(_amount.sub(_balance));
@@ -156,7 +147,7 @@ abstract contract BaseStrategy is IStrategy {
     /**
      * @notice Withdraws all funds from the strategy
      */
-    function withdrawAll() external override onlyAuthorized {
+    function withdrawAll() external override onlyController {
         _withdrawAll();
 
         uint256 _balance = IERC20(want).balanceOf(address(this));
@@ -278,12 +269,13 @@ abstract contract BaseStrategy is IStrategy {
      * MODIFIERS
      */
 
-    modifier onlyAuthorized() {
-        require(msg.sender == controller
-             || msg.sender == manager.strategist()
-             || msg.sender == manager.governance(),
-             "!authorized"
-        );
+    modifier onlyStrategist() {
+        require(msg.sender == manager.strategist(), "!strategist");
+        _;
+    }
+
+    modifier onlyController() {
+        require(msg.sender == controller, "!controller");
         _;
     }
 }
