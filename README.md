@@ -30,7 +30,7 @@ yarn hardhat contracts --network kovan
 ### Mainnet
 
 ```
-StableSwap3PoolConverter 0xe9aeB4482c846e48Ca021a75A3E2f492485e881e
+StableSwap3PoolConverter 0x2E93242202a13dD451C3147fC417CE95d49b0281
 StableSwap3PoolOracle 0x2a09392a6FbE7C5b9cA686a5f89387CD0045ea35
 StrategyControllerV2 0x0d857688d6A223A2F4e58CDd44119ABb7DC5A790
 StrategyCurve3Crv 0xED93BeCebaB166AbEeAC1C5FA3b5a0cAA0d34891
