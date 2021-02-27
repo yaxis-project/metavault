@@ -74,7 +74,7 @@ describe('oracle_safety', () => {
         await pool.remove_liquidity_imbalance([0, 0, removeUsdtValue], max);
         // step 3: try to deposit
         await expect(vault.deposit(earnValue, dai.address, 0, false)).to.be.revertedWith(
-            'Slippage screwed you'
+            '>_max'
         );
     });
 });

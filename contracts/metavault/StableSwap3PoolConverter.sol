@@ -32,6 +32,7 @@ contract StableSwap3PoolConverter is IConverter {
 
     uint256[3] public PRECISION_MUL = [1, 1e12, 1e12];
     IERC20[3] public tokens; // DAI, USDC, USDT
+    uint256 public minSlippage;
 
     mapping(address => bool) public strategies;
 
@@ -64,6 +65,7 @@ contract StableSwap3PoolConverter is IConverter {
         _token3CRV.safeApprove(address(_stableSwap3Pool), type(uint256).max);
         vaultManager = _vaultManager;
         oracle = _oracle;
+        minSlippage = 100;
     }
 
     /**
@@ -73,6 +75,15 @@ contract StableSwap3PoolConverter is IConverter {
      */
     function setStrategy(address _strategy, bool _status) external override onlyGovernance {
         strategies[_strategy] = _status;
+    }
+
+    /**
+     * @notice Called by the strategist to set the slippage allowed on the minimum tokens received
+     * @param _slippage The slippage percentage
+     */
+    function setMinSlippage(uint256 _slippage) external onlyStrategist {
+        require(_slippage < ONE_HUNDRED_PERCENT, "!_slippage");
+        minSlippage = _slippage;
     }
 
     /**
@@ -105,6 +116,11 @@ contract StableSwap3PoolConverter is IConverter {
         ( _min, _max ) = oracle.getPrices();
         uint256 _eth = oracle.getEthereumPrice();
         _min = _inputAmount.mul(_eth).mul(_min).div(1e18).div(1e18);
+        uint256 _slippage = minSlippage;
+        if (_slippage > 0) {
+            _slippage = _min.mul(_slippage).div(ONE_HUNDRED_PERCENT);
+            _min = _min.sub(_slippage);
+        }
         _max = _inputAmount.mul(_eth).mul(_max).div(1e18).div(1e18);
     }
 
@@ -267,6 +283,14 @@ contract StableSwap3PoolConverter is IConverter {
     modifier onlyGovernance() {
         require(vaultManager.controllers(msg.sender)
             || msg.sender == vaultManager.governance(), "!governance");
+        _;
+    }
+
+    /**
+     * @dev Throws if not called by the strategist
+     */
+    modifier onlyStrategist {
+        require(msg.sender == vaultManager.strategist(), "!strategist");
         _;
     }
 }

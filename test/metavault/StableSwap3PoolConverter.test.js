@@ -29,6 +29,12 @@ describe('StableSwap3PoolConverter', () => {
         ).to.be.revertedWith('!governance');
     });
 
+    it('should set the minSlippage', async () => {
+        expect(await converter.minSlippage()).to.equal(100);
+        await converter.setMinSlippage(200);
+        expect(await converter.minSlippage()).to.equal(200);
+    });
+
     it('should approve for spender', async () => {
         expect(await dai.allowance(converter.address, deployer)).to.equal(0);
         await converter.approveForSpender(dai.address, deployer, 1);
