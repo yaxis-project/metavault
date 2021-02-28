@@ -35,7 +35,12 @@ contract StablesOracle is IStablesOracle {
      * @notice Retrieves the current price of ETH/USD as provided by Chainlink
      * @dev Reverts if the answer from Chainlink is not safe
      */
-    function getEthereumPrice() external view override returns (uint256 _price) {
+    function getEthereumPrice()
+        external
+        view
+        override
+        returns (uint256 _price)
+    {
         _price = getSafeAnswer(ethUsd);
         require(_price > 0, "!getEthereumPrice");
         _price = _price.mul(ETH_USD_MUL);
@@ -46,7 +51,12 @@ contract StablesOracle is IStablesOracle {
      * @notice Retrieves the minimum price of the 3pool tokens as provided by Chainlink
      * @dev Reverts if none of the Chainlink nodes are safe
      */
-    function getPrices() external view override returns (uint256 _minPrice, uint256 _maxPrice) {
+    function getPrices()
+        external
+        view
+        override
+        returns (uint256 _minPrice, uint256 _maxPrice)
+    {
         for (uint8 i = 0; i < 3; i++) {
             // get the safe answer from Chainlink
             uint256 _answer = getSafeAnswer(feeds[i]);
@@ -73,7 +83,14 @@ contract StablesOracle is IStablesOracle {
      * @notice Get and check the answer provided by Chainlink
      * @param _feed The address of the Chainlink price feed
      */
-    function getSafeAnswer(address _feed) public view override returns (uint256) {
+    function getSafeAnswer(
+        address _feed
+    )
+        public
+        view
+        override
+        returns (uint256)
+    {
         (
             uint80 roundId,
             int256 answer,
