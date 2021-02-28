@@ -53,7 +53,7 @@ exports.setupTestToken = deployments.createFixture(
 
 exports.setupTestV3 = deployments.createFixture(
     async ({ deployments, getNamedAccounts, ethers }) => {
-        await deployments.fixture('v3');
+        await deployments.fixture(['v3', 'v3-strategies']);
         const {
             deployer,
             user,

@@ -6,7 +6,7 @@ import "../../interfaces/DForce.sol";
 import "../interfaces/IConverter.sol";
 import "./BaseStrategy.sol";
 
-contract StrategyDforceV2 is BaseStrategy {
+contract NativeStrategyDforce is BaseStrategy {
     address public immutable dToken;
     address public immutable pool;
     address public immutable DF;

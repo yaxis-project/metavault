@@ -5,7 +5,7 @@
 pragma solidity 0.6.12;
 
 interface IConverter {
-    function token() external returns (address);
+    function token() external view returns (address);
     function convert(
         address _input,
         address _output,
@@ -27,5 +27,4 @@ interface IConverter {
         uint _shares,
         address _output
     ) external view returns (uint _outputAmount);
-    function setStrategy(address _strategy, bool _status) external;
 }

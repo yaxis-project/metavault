@@ -7,7 +7,7 @@ import "../../interfaces/Balancer.sol";
 
 import "./BaseStrategy.sol";
 
-contract StrategyCurve3CrvV2 is BaseStrategy {
+contract NativeStrategyCurve3Crv is BaseStrategy {
     // used for Crv -> weth -> [dai/usdc/usdt] -> 3crv route
     address public immutable crv;
 
