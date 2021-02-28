@@ -10,7 +10,7 @@ const { setupTestV3 } = require('../helpers/setup');
 
 describe('Vault', () => {
     let deployer, treasury, user;
-    let dai, usdc, usdt, vault, manager, controller, depositor;
+    let dai, usdc, usdt, vault, manager, controller, harvester, depositor;
 
     beforeEach(async () => {
         const config = await setupTestV3();
@@ -20,6 +20,7 @@ describe('Vault', () => {
         usdt = config.usdt;
         manager = config.manager;
         controller = config.controller;
+        harvester = config.harvester;
         vault = config.stableVault;
         await manager.setGovernance(treasury.address);
 
@@ -74,7 +75,7 @@ describe('Vault', () => {
 
         it('should revert when the token is not added', async () => {
             await expect(
-                vault.connect(deployer).earn(ethers.constants.AddressZero)
+                harvester.connect(deployer).earn(vault.address, ethers.constants.AddressZero)
             ).to.be.revertedWith('!_token');
         });
     });
@@ -168,7 +169,12 @@ describe('Vault', () => {
 
     describe('depositAll', () => {
         it('should revert when the vault is not set up', async () => {
-            await expect(vault.depositAll([dai.address], [1])).to.be.revertedWith('!vault');
+            const NewVault = await deployments.deploy('Vault', {
+                from: deployer.address,
+                args: ['Vault: Stables', 'MV:S2', manager.address]
+            });
+            const newVault = await ethers.getContractAt('Vault', NewVault.address, user);
+            await expect(newVault.depositAll([dai.address], [1])).to.be.revertedWith('!vault');
         });
 
         context('when the vault is set up', () => {

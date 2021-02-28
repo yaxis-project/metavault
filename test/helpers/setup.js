@@ -81,6 +81,8 @@ exports.setupTestV3 = deployments.createFixture(
         );
         const Manager = await deployments.get('Manager');
         const manager = await ethers.getContractAt('Manager', Manager.address, deployer);
+        const Harvester = await deployments.get('Harvester');
+        const harvester = await ethers.getContractAt('Harvester', Harvester.address, deployer);
         const Controller = await deployments.get('Controller');
         const controller = await ethers.getContractAt(
             'Controller',
@@ -125,6 +127,7 @@ exports.setupTestV3 = deployments.createFixture(
             stableVault,
             manager,
             controller,
+            harvester,
             router
         };
     }

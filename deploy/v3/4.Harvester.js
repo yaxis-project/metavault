@@ -20,6 +20,14 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
                 'setHarvester',
                 harvester.address
             );
+
+            await execute(
+                'Harvester',
+                { from: deployer, log: true },
+                'setHarvester',
+                deployer,
+                true
+            );
         }
     }
 };
