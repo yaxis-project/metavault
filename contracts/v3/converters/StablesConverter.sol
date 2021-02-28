@@ -69,16 +69,25 @@ contract StablesConverter is IConverter {
     }
 
     /**
+     * STRATEGIST-ONLY FUNCTIONS
+     */
+
+    /**
      * @notice Called by the strategist to set the slippage allowed on the minimum tokens received
      * @param _slippage The slippage percentage
      */
-    function setMinSlippage(uint256 _slippage) external onlyStrategist {
+    function setMinSlippage(
+        uint256 _slippage
+    )
+        external
+        onlyStrategist
+    {
         require(_slippage < ONE_HUNDRED_PERCENT, "!_slippage");
         minSlippage = _slippage;
     }
 
     /**
-     * @notice Called by Governance to approve a token address to be spent by an address
+     * @notice Called by the strategist to approve a token address to be spent by an address
      * @param _token The address of the token
      * @param _spender The address of the spender
      * @param _amount The amount to spend
@@ -87,33 +96,34 @@ contract StablesConverter is IConverter {
         IERC20 _token,
         address _spender,
         uint256 _amount
-    ) external onlyGovernance {
+    )
+        external
+        onlyStrategist
+    {
         _token.safeApprove(_spender, _amount);
     }
 
     /**
-     * @notice Returns the address of the 3CRV token
+     * @notice Allows the strategist to withdraw tokens from the converter
+     * @dev This contract should never have any tokens in it at the end of a transaction
+     * @param _token The address of the token
+     * @param _amount The amount to withdraw
+     * @param _to The address to receive the tokens
      */
-    function token() external view override returns (address) {
-        return address(token3CRV);
+    function recoverUnsupported(
+        IERC20 _token,
+        uint256 _amount,
+        address _to
+    )
+        external
+        onlyStrategist
+    {
+        _token.safeTransfer(_to, _amount);
     }
 
     /**
-     * @notice Returns the expected amount of tokens for a given amount by querying
-     * the latest data from Chainlink
-     * @param _inputAmount The input amount of tokens that are being converted
+     * AUTHORIZED-ONLY FUNCTIONS
      */
-    function getExpected(uint256 _inputAmount) public view returns (uint256 _min, uint256 _max) {
-        ( _min, _max ) = oracle.getPrices();
-        uint256 _eth = oracle.getEthereumPrice();
-        _min = _inputAmount.mul(_eth).mul(_min).div(1e18).div(1e18);
-        uint256 _slippage = minSlippage;
-        if (_slippage > 0) {
-            _slippage = _min.mul(_slippage).div(ONE_HUNDRED_PERCENT);
-            _min = _min.sub(_slippage);
-        }
-        _max = _inputAmount.mul(_eth).mul(_max).div(1e18).div(1e18);
-    }
 
     /**
      * @notice Converts the amount of input tokens to output tokens
@@ -125,7 +135,12 @@ contract StablesConverter is IConverter {
         address _input,
         address _output,
         uint256 _inputAmount
-    ) external override onlyAuthorized returns (uint256 _outputAmount) {
+    )
+        external
+        override
+        onlyAuthorized
+        returns (uint256 _outputAmount)
+    {
         if (_output == address(token3CRV)) { // convert to 3CRV
             uint256[3] memory amounts;
             for (uint8 i = 0; i < 3; i++) {
@@ -159,6 +174,76 @@ contract StablesConverter is IConverter {
     }
 
     /**
+     * @notice Converts stables of the 3Pool to 3CRV
+     * @dev 0: DAI, 1: USDC, 2: USDT
+     * @param amounts Array of token amounts
+     */
+    function convert_stables(
+        uint256[3] calldata amounts
+    )
+        external
+        override
+        onlyAuthorized
+        returns (uint256 _shareAmount)
+    {
+        uint256 _sum;
+        for (uint8 i; i < 3; i++) {
+            _sum = _sum.add(amounts[i].mul(PRECISION_MUL[i]));
+        }
+        ( uint256 _min, uint256 _max ) = getExpected(_sum);
+        uint256 _before = token3CRV.balanceOf(address(this));
+        stableSwap3Pool.add_liquidity(amounts, _min);
+        uint256 _after = token3CRV.balanceOf(address(this));
+        _shareAmount = _after.sub(_before);
+        require(_shareAmount <= _max, ">_max");
+        token3CRV.safeTransfer(msg.sender, _shareAmount);
+    }
+
+    /**
+     * VIEWS
+     */
+
+    /**
+     * @notice Checks the amount of 3CRV given for the amounts
+     * @dev 0: DAI, 1: USDC, 2: USDT
+     * @param amounts Array of token amounts
+     * @param deposit Flag for depositing LP tokens
+     */
+    function calc_token_amount(
+        uint256[3] calldata amounts,
+        bool deposit
+    )
+        external
+        override
+        view
+        returns (uint256 _shareAmount)
+    {
+        _shareAmount = stableSwap3Pool.calc_token_amount(amounts, deposit);
+    }
+
+    /**
+     * @notice Checks the amount of an output token given for 3CRV
+     * @param _shares The amount of 3CRV
+     * @param _output The address of the output token
+     */
+    function calc_token_amount_withdraw(
+        uint256 _shares,
+        address _output
+    )
+        external
+        override
+        view
+        returns (uint256)
+    {
+        for (uint8 i = 0; i < 3; i++) {
+            if (_output == address(tokens[i])) {
+                return stableSwap3Pool.calc_withdraw_one_coin(_shares, i);
+            }
+        }
+        return 0;
+    }
+
+    /**
      * @notice Checks the amount of input tokens to output tokens
      * @param _input The address of the token being converted
      * @param _output The address of the token to be converted to
@@ -168,7 +253,12 @@ contract StablesConverter is IConverter {
         address _input,
         address _output,
         uint256 _inputAmount
-    ) external override view returns (uint256) {
+    )
+        external
+        override
+        view
+        returns (uint256)
+    {
         if (_output == address(token3CRV)) { // convert to 3CRV
             uint256[3] memory amounts;
             for (uint8 i = 0; i < 3; i++) {
@@ -190,89 +280,53 @@ contract StablesConverter is IConverter {
     }
 
     /**
-     * @notice Converts stables of the 3Pool to 3CRV
-     * @dev 0: DAI, 1: USDC, 2: USDT
-     * @param amounts Array of token amounts
+     * @notice Returns the expected amount of tokens for a given amount by querying
+     * the latest data from Chainlink
+     * @param _inputAmount The input amount of tokens that are being converted
      */
-    function convert_stables(
-        uint256[3] calldata amounts
-    ) external override onlyAuthorized returns (uint256 _shareAmount) {
-        uint256 _sum;
-        for (uint8 i; i < 3; i++) {
-            _sum = _sum.add(amounts[i].mul(PRECISION_MUL[i]));
+    function getExpected(
+        uint256 _inputAmount
+    )
+        public
+        view
+        returns (uint256 _min, uint256 _max)
+    {
+        ( _min, _max ) = oracle.getPrices();
+        uint256 _eth = oracle.getEthereumPrice();
+        _min = _inputAmount.mul(_eth).mul(_min).div(1e18).div(1e18);
+        uint256 _slippage = minSlippage;
+        if (_slippage > 0) {
+            _slippage = _min.mul(_slippage).div(ONE_HUNDRED_PERCENT);
+            _min = _min.sub(_slippage);
         }
-        ( uint256 _min, uint256 _max ) = getExpected(_sum);
-        uint256 _before = token3CRV.balanceOf(address(this));
-        stableSwap3Pool.add_liquidity(amounts, _min);
-        uint256 _after = token3CRV.balanceOf(address(this));
-        _shareAmount = _after.sub(_before);
-        require(_shareAmount <= _max, ">_max");
-        token3CRV.safeTransfer(msg.sender, _shareAmount);
+        _max = _inputAmount.mul(_eth).mul(_max).div(1e18).div(1e18);
     }
 
     /**
-     * @notice Checks the amount of 3CRV given for the amounts
-     * @dev 0: DAI, 1: USDC, 2: USDT
-     * @param amounts Array of token amounts
-     * @param deposit Flag for depositing LP tokens
+     * @notice Returns the address of the 3CRV token
      */
-    function calc_token_amount(
-        uint256[3] calldata amounts,
-        bool deposit
-    ) external override view returns (uint256 _shareAmount) {
-        _shareAmount = stableSwap3Pool.calc_token_amount(amounts, deposit);
+    function token()
+        external
+        view
+        override
+        returns (address)
+    {
+        return address(token3CRV);
     }
 
     /**
-     * @notice Checks the amount of an output token given for 3CRV
-     * @param _shares The amount of 3CRV
-     * @param _output The address of the output token
+     * MODIFIERS
      */
-    function calc_token_amount_withdraw(
-        uint256 _shares,
-        address _output
-    ) external override view returns (uint256) {
-        for (uint8 i = 0; i < 3; i++) {
-            if (_output == address(tokens[i])) {
-                return stableSwap3Pool.calc_withdraw_one_coin(_shares, i);
-            }
-        }
-        return 0;
-    }
 
     /**
-     * @notice Allows Governance to withdraw tokens from the converter
-     * @dev This contract should never have any tokens in it at the end of a transaction
-     * @param _token The address of the token
-     * @param _amount The amount to withdraw
-     * @param _to The address to receive the tokens
-     */
-    function governanceRecoverUnsupported(
-        IERC20 _token,
-        uint256 _amount,
-        address _to
-    ) external onlyGovernance {
-        _token.safeTransfer(_to, _amount);
-    }
-
-    /**
-     * @dev Throws if not called by a vault, controller, strategy, or governance
+     * @dev Throws if not called by an allowed vault, controller, or strategy
      */
     modifier onlyAuthorized() {
         require(manager.allowedVaults(msg.sender)
             || manager.allowedControllers(msg.sender)
-            || manager.allowedStrategies(msg.sender)
-            || msg.sender == manager.governance(),
+            || manager.allowedStrategies(msg.sender),
             "!authorized"
         );
-        _;
-    }
-
-    /**
-     * @dev Throws if not called by a controller or governance
-     */
-    modifier onlyGovernance() {
-        require(msg.sender == manager.governance(), "!governance");
         _;
     }
 
