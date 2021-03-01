@@ -22,6 +22,8 @@ Low reports include unexpected behaviors of the contract which do not cause harm
 
 ## Program Rules
 
+Vulnerability reports on smart contracts must be accompanied by a POC demonstrating the attack.
+
 The following behavior is forbidden and will cause the reporter to be ineligible:
 
 - Any testing with mainnet or public testnet contracts; all testing should be done on private testnets
@@ -49,7 +51,7 @@ _Special note: flash-loan attacks and oracle manipulation reports are in-scope a
 
 Located at: https://github.com/yaxis-project/metavault
 
-The contracts in the metavault have undergone a complete refactor (with the exception of the yAxisMetaVault contract). As of right now, the refactored contracts are not deployed to mainnet.
+The main branch contains the latest version of the contracts.
 
 ### yAxisMetavault
 
@@ -57,17 +59,11 @@ Deployed at: https://etherscan.io/address/0xbfbec72f2450ef9ab742e4a27441fa06ca79
 
 This contract is considered stable but is the highest valued asset of the bounty program. Critical issues found here would require redeployment and user migration to a new contract.
 
-### StrategyControllerV1
+### Deployed contracts
 
-Deployed at: https://etherscan.io/address/0x2ebe1461d2fc6dabf079882cfc51e5013bba49b6#code
+Deployed at their documented addresses: https://github.com/yaxis-project/metavault#mainnet
 
-This is the current controller for the yAxis Metavault. It will soon be replaced by a V2 controller. Until then, it is considered in-scope.
-
-### StrategyCurve3Crv
-
-Deployed at: https://etherscan.io/address/0xd721d16a685f63a4e8c4e8c5988b76bec6a85c90#code
-
-This is the current strategy of the yAxis Metavault.
+These are the currently-deployed contracts in-use by the protocol.
 
 ### yAxisBar
 
@@ -86,12 +82,6 @@ This is the YAX token contract.
 Deployed at: https://etherscan.io/address/0xc330e7e73717cd13fb6ba068ee871584cf8a194f#code
 
 This is the liquidity provider staking contract that mints YAX to LPs.
-
-### yAxisMetavaultManager
-
-Deployed at: https://etherscan.io/address/0x9cd645330e64b07810dde54dee1240060071f6aa#code
-
-This is a storage reference contract that most contracts related to the vault refer to.
 
 ### Ineligible Reports
 
