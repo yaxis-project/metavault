@@ -110,7 +110,7 @@ contract Controller is IController {
         onlyStrategist
     {
         require(manager.allowedStrategies(_strategy), "!allowedStrategy");
-        require(manager.vaults(_token) != address(0), "!vaults");
+        require(manager.vaults(_token) == _vault, "!_token");
         require(_vaultDetails[_vault].converter != address(0), "!converter");
         // get the index of the newly added strategy
         uint256 index = _vaultDetails[_vault].strategies.length;

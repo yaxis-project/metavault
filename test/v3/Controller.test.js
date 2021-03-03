@@ -45,5 +45,40 @@ describe('Controller', () => {
                 )
             ).to.be.revertedWith('!allowedStrategy');
         });
+
+        context('when the strategy is allowed', () => {
+            beforeEach(async () => {
+                await manager.connect(treasury).setAllowedStrategy(strategyCrv.address, true);
+            });
+
+            it('should revert if there is no vault for the token', async () => {
+                await expect(
+                    controller.addStrategy(
+                        vault.address,
+                        dai.address,
+                        strategyCrv.address,
+                        0,
+                        86400
+                    )
+                ).to.be.revertedWith('!_token');
+            });
+
+            context('when the token is added', () => {
+                beforeEach(async () => {
+                    await manager.connect(treasury).setAllowedToken(dai.address, true);
+                    await manager.addToken(vault.address, dai.address);
+                });
+
+                it('should add the strategy', async () => {
+                    await controller.addStrategy(
+                        vault.address,
+                        dai.address,
+                        strategyCrv.address,
+                        0,
+                        86400
+                    );
+                });
+            });
+        });
     });
 });

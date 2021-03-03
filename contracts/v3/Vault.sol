@@ -111,12 +111,7 @@ contract Vault is ERC20, IVault {
      * USER-FACING FUNCTIONS
      */
 
-    /**
-     * @notice Deposit a single token to the vault
-     * @dev Users must approve the vault to spend their token
-     * @param _token The address of the token being deposited
-     * @param _amount The amount of the token to deposit
-     */
+    // TODO: remove in favor of depositAll
     function deposit(
         address _token,
         uint256 _amount

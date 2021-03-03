@@ -89,7 +89,7 @@ contract Harvester is IHarvester {
     )
         external
         override
-        onlyStrategist
+        onlyController
     {
         strategies[_token].addresses.push(_strategy);
         strategies[_token].timeout = _timeout;
@@ -109,7 +109,7 @@ contract Harvester is IHarvester {
     )
         external
         override
-        onlyStrategist
+        onlyController
     {
         uint256 tail = strategies[_token].addresses.length;
         uint256 index;
@@ -248,6 +248,11 @@ contract Harvester is IHarvester {
     /**
      * MODIFIERS
      */
+
+    modifier onlyController() {
+        require(manager.allowedControllers(msg.sender), "!controller");
+        _;
+    }
 
     modifier onlyHarvester() {
         require(isHarvester[msg.sender], "!harvester");
