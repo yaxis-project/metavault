@@ -115,4 +115,4 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
     }
 };
 
-module.exports.tags = ['metavault', 'governance'];
+module.exports.tags = ['metavault', 'governance', 'token'];

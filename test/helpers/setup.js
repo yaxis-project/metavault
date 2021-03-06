@@ -41,6 +41,19 @@ exports.setupTestGovernance = deployments.createFixture(
     }
 );
 
+exports.setupTestToken = deployments.createFixture(
+    async ({ deployments, getNamedAccounts, ethers }) => {
+        await deployments.fixture('token');
+        const { deployer, user } = await getNamedAccounts();
+        const YAXIS = await deployments.get('YaxisToken');
+        const yaxis = await ethers.getContractAt('YaxisToken', YAXIS.address, deployer);
+        const YAX = await deployments.get('YAX');
+        const yax = await ethers.getContractAt('MockERC20', YAX.address, user);
+
+        return { deployer, user, yax, yaxis };
+    }
+);
+
 exports.setupTestMetavault = deployments.createFixture(
     async ({ deployments, getNamedAccounts, ethers }) => {
         await deployments.fixture('metavault');
