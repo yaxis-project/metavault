@@ -41,6 +41,9 @@ module.exports = {
         CRV: {
             1: '0xD533a949740bb3306d119CC777fa900bA034cd52'
         },
+        converter: {
+            1: '0xA5c16eb6eBD72BC72c70Fca3e4faCf389AD4aBE7'
+        },
         DAI: {
             1: '0x6B175474E89094C44Da98b954EedeAC495271d0F'
         },
