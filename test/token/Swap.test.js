@@ -17,11 +17,8 @@ describe('Swap', () => {
         yaxis = config.yaxis;
         yax = config.yax;
         syax = config.syax;
+        swap = config.swap;
         [deployer, , , user] = await ethers.getSigners();
-
-        const Swap = await ethers.getContractFactory('Swap');
-        swap = await Swap.deploy(yaxis.address, yax.address, syax.address);
-        await swap.deployed();
 
         await yaxis.connect(deployer).transfer(swap.address, ether('1000000'));
         await yax.connect(user).faucet(ether('100000'));
