@@ -49,8 +49,10 @@ exports.setupTestToken = deployments.createFixture(
         const yaxis = await ethers.getContractAt('YaxisToken', YAXIS.address, deployer);
         const YAX = await deployments.get('YAX');
         const yax = await ethers.getContractAt('MockERC20', YAX.address, user);
+        const SYAX = await deployments.get('sYAX');
+        const syax = await ethers.getContractAt('MockYaxisBar', SYAX.address, user);
 
-        return { deployer, user, yax, yaxis };
+        return { deployer, syax, user, yax, yaxis };
     }
 );
 

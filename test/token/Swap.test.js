@@ -16,11 +16,8 @@ describe('Swap', () => {
         const config = await setupTestToken();
         yaxis = config.yaxis;
         yax = config.yax;
+        syax = config.syax;
         [deployer, , , user] = await ethers.getSigners();
-
-        const SYAX = await ethers.getContractFactory('MockYaxisBar');
-        syax = await SYAX.deploy(yax.address);
-        await syax.deployed();
 
         const Swap = await ethers.getContractFactory('Swap');
         swap = await Swap.deploy(yaxis.address, yax.address, syax.address);
