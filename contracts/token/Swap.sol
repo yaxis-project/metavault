@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: MIT
+// solhint-disable var-name-mixedcase
 pragma solidity 0.6.12;
 
 import "@openzeppelin/contracts/math/SafeMath.sol";

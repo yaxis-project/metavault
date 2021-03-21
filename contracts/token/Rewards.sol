@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MIT
-
+// solhint-disable reason-string
+// solhint-disable not-rely-on-time
 /**
  * This contract has been modified with:
  * - generalized for any reward token, staking token, and duration
