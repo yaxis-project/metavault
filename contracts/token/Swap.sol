@@ -27,42 +27,16 @@ contract Swap {
         SYAX = IERC20(_syax);
     }
 
-    function swapAll()
+    function swap()
         external
     {
-        swapAllYAX();
-        swapAllSYAX();
-    }
-
-    function swapAllYAX()
-        public
-    {
-        swapYAX(YAX.balanceOf(msg.sender));
-    }
-
-    function swapYAX(
-        uint256 _amount
-    )
-        public
-    {
-        if (YAX.balanceOf(msg.sender) > 0) {
+        uint256 _amount = YAX.balanceOf(msg.sender);
+        if (_amount > 0) {
             YAX.safeTransferFrom(msg.sender, address(this), _amount);
             YAXIS.safeTransfer(msg.sender, _amount);
         }
-    }
-
-    function swapAllSYAX()
-        public
-    {
-        swapSYAX(SYAX.balanceOf(msg.sender));
-    }
-
-    function swapSYAX(
-        uint256 _amount
-    )
-        public
-    {
-        if (SYAX.balanceOf(msg.sender) > 0) {
+        _amount = SYAX.balanceOf(msg.sender);
+        if (_amount > 0) {
             SYAX.safeTransferFrom(msg.sender, address(this), _amount);
             uint256 _balance = YAX.balanceOf(address(this));
             IsYAX(address(SYAX)).exit();
