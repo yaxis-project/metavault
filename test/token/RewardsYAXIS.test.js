@@ -3,7 +3,7 @@ const { expect } = chai;
 const { solidity } = require('ethereum-waffle');
 chai.use(solidity);
 const hardhat = require('hardhat');
-const { ethers } = hardhat;
+const { deployments, ethers } = hardhat;
 const { parseEther } = ethers.utils;
 const ether = parseEther;
 const { increaseTime, setupTestToken } = require('../helpers/setup');
@@ -23,9 +23,8 @@ describe('Rewards: YAXIS/YAXIS', () => {
 
         await staking.connect(deployer).transfer(user.address, ether('100'));
 
-        const Rewards = await ethers.getContractFactory('Rewards');
-        rewards = await Rewards.deploy(yaxis.address, staking.address, oneYear);
-        await rewards.deployed();
+        const Rewards = await deployments.get('RewardsYaxis');
+        rewards = await ethers.getContractAt('Rewards', Rewards.address, deployer);
     });
 
     it('should deploy with initial state set', async () => {
@@ -85,7 +84,6 @@ describe('Rewards: YAXIS/YAXIS', () => {
 
     describe('integration', () => {
         beforeEach(async () => {
-            await rewards.connect(deployer).setRewardDistribution(deployer.address);
             await yaxis.connect(deployer).transfer(rewards.address, ether('1000'));
             await expect(rewards.connect(deployer).notifyRewardAmount(ether('1000')))
                 .to.emit(rewards, 'RewardAdded')
