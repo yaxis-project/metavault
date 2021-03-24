@@ -2,7 +2,6 @@ require('@nomiclabs/hardhat-waffle');
 require('hardhat-deploy');
 require('hardhat-deploy-ethers');
 require('solidity-coverage');
-// TODO: switch back to @nomiclabs/hardhat-vyper on their next release
 require('@nomiclabs/hardhat-vyper');
 
 // If not set, we only need to default these with something to get hardhat to run
@@ -128,6 +127,9 @@ module.exports = {
         STBZOperator: {
             1: '0xEe9156C93ebB836513968F92B4A67721f3cEa08a'
         },
+        SYAX: {
+            1: '0xeF31Cb88048416E301Fee1eA13e7664b887BA7e8'
+        },
         T3CRV: {
             1: '0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490'
         },
@@ -167,6 +169,12 @@ module.exports = {
         },
         YAX: {
             1: '0xb1dC9124c395c1e97773ab855d66E879f053A289'
+        },
+        YaxEthUniswapV2Pair: {
+            1: '0x1107B6081231d7F256269aD014bF92E041cb08df'
+        },
+        YaxisChef: {
+            1: '0xC330E7e73717cd13fb6bA068Ee871584Cf8A194F'
         },
         yvDAI: {
             1: '0x19D3364A399d251E894aC732651be8B0E4e85001'

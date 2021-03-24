@@ -18,6 +18,29 @@ exports.increaseTime = async (time) => {
     });
 };
 
+exports.setupTestGovernance = deployments.createFixture(
+    async ({ deployments, getNamedAccounts, ethers }) => {
+        await deployments.fixture('governance');
+        const { deployer, user } = await getNamedAccounts();
+        const YAX = await deployments.get('YAX');
+        const yax = await ethers.getContractAt('MockERC20', YAX.address, user);
+        const SYAX = await deployments.get('sYAX');
+        const syax = await ethers.getContractAt('MockYaxisBar', SYAX.address, user);
+        const YaxisChef = await deployments.get('MockYaxisChef');
+        const yaxisChef = await ethers.getContractAt(
+            'MockYaxisChef',
+            YaxisChef.address,
+            deployer
+        );
+        const Pair = await deployments.get('MockUniswapPair');
+        const pair = await ethers.getContractAt('MockUniswapPair', Pair.address, user);
+        const WETH = await deployments.get('WETH');
+        const weth = await ethers.getContractAt('MockERC20', WETH.address, user);
+
+        return { deployer, syax, user, yax, yaxisChef, pair, weth };
+    }
+);
+
 exports.setupTestMetavault = deployments.createFixture(
     async ({ deployments, getNamedAccounts, ethers }) => {
         await deployments.fixture('metavault');
