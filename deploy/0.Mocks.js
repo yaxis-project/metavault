@@ -4,7 +4,7 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
     const chainId = await getChainId();
 
     if (chainId != '1') {
-        await deploy('YAX', {
+        const YAX = await deploy('YAX', {
             from: deployer,
             log: true,
             contract: 'MockERC20',
@@ -31,7 +31,7 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
             args: ['Tether', 'USDT', 6]
         });
         const usdt = await deployments.get('USDT');
-        await deploy('WETH', {
+        const WETH = await deploy('WETH', {
             from: deployer,
             log: true,
             contract: 'MockERC20',
@@ -94,7 +94,25 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
             'transferOwnership',
             stableSwap3Pool.address
         );
+
+        await deploy('sYAX', {
+            contract: 'MockYaxisBar',
+            from: deployer,
+            log: true,
+            args: [YAX.address]
+        });
+
+        await deploy('MockUniswapPair', {
+            from: deployer,
+            log: true,
+            args: [YAX.address, WETH.address]
+        });
+
+        await deploy('MockYaxisChef', {
+            from: deployer,
+            log: true
+        });
     }
 };
 
-module.exports.tags = ['metavault'];
+module.exports.tags = ['metavault', 'governance'];
