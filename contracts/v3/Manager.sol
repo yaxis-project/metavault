@@ -20,7 +20,7 @@ contract Manager is IManager {
     uint256 public constant PENDING_STRATEGIST_TIMELOCK = 24 hours;
     uint256 public constant MAX_TOKENS = 256;
 
-    address public immutable override yax;
+    address public immutable override YAXIS;
 
     address public override governance;
     address public override harvester;
@@ -102,14 +102,14 @@ contract Manager is IManager {
     );
 
     /**
-     * @param _yax The address of the YAX token
+     * @param _yaxis The address of the YAX token
      */
     constructor(
-        address _yax
+        address _yaxis
     )
         public
     {
-        yax = _yax;
+        YAXIS = _yaxis;
         governance = msg.sender;
         strategist = msg.sender;
         harvester = msg.sender;
@@ -512,11 +512,11 @@ contract Manager is IManager {
         )
     {
         return (
-            yax,
+            YAXIS,
             stakingPool,
             stakingPoolShareFee,
             treasury,
-            IERC20(yax).balanceOf(treasury) >= treasuryBalance ? 0 : treasuryFee,
+            IERC20(YAXIS).balanceOf(treasury) >= treasuryBalance ? 0 : treasuryFee,
             insurancePool,
             insurancePoolFee
         );
