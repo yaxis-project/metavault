@@ -31,18 +31,18 @@ contract Swap {
     function swap()
         external
     {
-        uint256 _amount = YAX.balanceOf(msg.sender);
-        if (_amount > 0) {
-            YAX.safeTransferFrom(msg.sender, address(this), _amount);
-            YAXIS.safeTransfer(msg.sender, _amount);
-        }
-        _amount = SYAX.balanceOf(msg.sender);
+        uint256 _amount = SYAX.balanceOf(msg.sender);
         if (_amount > 0) {
             SYAX.safeTransferFrom(msg.sender, address(this), _amount);
-            uint256 _balance = YAX.balanceOf(address(this));
             IsYAX(address(SYAX)).exit();
-            _balance = YAX.balanceOf(address(this)).sub(_balance);
-            YAXIS.safeTransfer(msg.sender, _balance);
+        }
+        _amount = YAX.balanceOf(msg.sender);
+        if (_amount > 0) {
+            YAX.safeTransferFrom(msg.sender, address(this), _amount);
+        }
+        _amount = YAX.balanceOf(address(this));
+        if (_amount > 0) {
+            YAXIS.safeTransfer(msg.sender, _amount);
         }
     }
 }
