@@ -1,5 +1,6 @@
 module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
-    const { deploy } = deployments;
+    const { ethers } = require('hardhat');
+    const { deploy, execute } = deployments;
     const { deployer } = await getNamedAccounts();
     const chainId = await getChainId();
     let { SYAX, YAX } = await getNamedAccounts();
@@ -12,11 +13,19 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
         SYAX = syax.address;
     }
 
-    await deploy('Swap', {
+    const Swap = await deploy('Swap', {
         from: deployer,
         log: true,
         args: [YAXIS.address, YAX, SYAX]
     });
+
+    await execute(
+        'YaxisToken',
+        { from: deployer },
+        'transfer',
+        Swap.address,
+        ethers.utils.parseEther('1000000')
+    );
 };
 
 module.exports.tags = ['token'];

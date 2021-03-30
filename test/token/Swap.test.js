@@ -20,7 +20,6 @@ describe('Swap', () => {
         swap = config.swap;
         [deployer, , , user] = await ethers.getSigners();
 
-        await yaxis.connect(deployer).transfer(swap.address, ether('1000000'));
         await yax.connect(user).faucet(ether('100000'));
         await yax.connect(user).approve(syax.address, ethers.constants.MaxUint256);
         await syax.connect(user).enter(ether('50000'));
