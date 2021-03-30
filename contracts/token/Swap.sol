@@ -8,6 +8,12 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 import "./interfaces/IsYAX.sol";
 
+/**
+ * @title Swap
+ * @notice This contract swaps a user's YAX and sYAX to the YAXIS token
+ * If the user does not have YAX or sYAX, it will not attempt to swap
+ * those assets in order to save gas.
+ */
 contract Swap {
     using SafeERC20 for IERC20;
     using SafeMath for uint256;
@@ -16,6 +22,11 @@ contract Swap {
     IERC20 public immutable YAX;
     IERC20 public immutable SYAX;
 
+    /**
+     * @param _yaxis The YAXIS token address
+     * @param _yax The YAX token address
+     * @param _syax The sYAX token address
+     */
     constructor(
         address _yaxis,
         address _yax,
@@ -28,6 +39,13 @@ contract Swap {
         SYAX = IERC20(_syax);
     }
 
+    /**
+     * @notice Swaps the user's YAX and sYAX for YAXIS
+     * @dev Assumes this contract should never hold YAX directly
+     * because it will send its entire balance to the caller.
+     * @dev This contract must be funded with YAXIS before
+     * users can call swap().
+     */
     function swap()
         external
     {
