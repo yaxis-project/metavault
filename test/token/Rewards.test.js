@@ -176,5 +176,21 @@ describe('Rewards', () => {
                 ether('999.9999683112478931')
             );
         });
+
+        it('should allow topping up', async () => {
+            await staking
+                .connect(user)
+                .transferAndCall(rewards.address, ether('100'), emptyBytes);
+            expect(await rewards.totalSupply()).to.be.equal(ether('100'));
+            await increaseTime(oneYear / 4);
+            await yaxis.connect(deployer).transfer(rewards.address, ether('1000'));
+            await expect(rewards.connect(deployer).notifyRewardAmount(ether('1000')))
+                .to.emit(rewards, 'RewardAdded')
+                .withArgs(ether('1000'));
+            await increaseTime(oneDay);
+            await expect(rewards.connect(user).getReward())
+                .to.emit(rewards, 'RewardPaid')
+                .withArgs(user.address, ether('254.7914558347103703'));
+        });
     });
 });

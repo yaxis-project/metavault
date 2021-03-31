@@ -102,7 +102,8 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
             args: [YAX.address]
         });
 
-        await deploy('MockUniswapPair', {
+        await deploy('YaxEthUniswapV2Pair', {
+            contract: 'MockUniswapPair',
             from: deployer,
             log: true,
             args: [YAX.address, WETH.address]
@@ -115,4 +116,4 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
     }
 };
 
-module.exports.tags = ['metavault', 'governance', 'token'];
+module.exports.tags = ['metavault', 'governance', 'token', 'rewards'];

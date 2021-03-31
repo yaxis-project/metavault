@@ -32,8 +32,8 @@ exports.setupTestGovernance = deployments.createFixture(
             YaxisChef.address,
             deployer
         );
-        const Pair = await deployments.get('MockUniswapPair');
-        const pair = await ethers.getContractAt('MockUniswapPair', Pair.address, user);
+        const Pair = await deployments.get('YaxEthUniswapV2Pair');
+        const pair = await ethers.getContractAt('YaxEthUniswapV2Pair', Pair.address, user);
         const WETH = await deployments.get('WETH');
         const weth = await ethers.getContractAt('MockERC20', WETH.address, user);
 
@@ -43,7 +43,7 @@ exports.setupTestGovernance = deployments.createFixture(
 
 exports.setupTestToken = deployments.createFixture(
     async ({ deployments, getNamedAccounts, ethers }) => {
-        await deployments.fixture('token');
+        await deployments.fixture(['token', 'rewards']);
         const { deployer, user } = await getNamedAccounts();
         const YAXIS = await deployments.get('YaxisToken');
         const yaxis = await ethers.getContractAt('YaxisToken', YAXIS.address, deployer);
