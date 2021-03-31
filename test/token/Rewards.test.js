@@ -177,6 +177,34 @@ describe('Rewards', () => {
             );
         });
 
+        it('should allow extending duration after completion', async () => {
+            await staking
+                .connect(user)
+                .transferAndCall(rewards.address, ether('100'), emptyBytes);
+            expect(await rewards.totalSupply()).to.be.equal(ether('100'));
+            const firstPeriod = await rewards.periodFinish();
+            await increaseTime(oneDay + oneYear);
+            await yaxis.connect(deployer).transfer(rewards.address, ether('1000'));
+            await expect(rewards.connect(deployer).notifyRewardAmount(ether('1000')))
+                .to.emit(rewards, 'RewardAdded')
+                .withArgs(ether('1000'));
+            expect(await rewards.periodFinish()).to.be.above(firstPeriod);
+        });
+
+        it('should allow extending duration before completion', async () => {
+            await staking
+                .connect(user)
+                .transferAndCall(rewards.address, ether('100'), emptyBytes);
+            expect(await rewards.totalSupply()).to.be.equal(ether('100'));
+            const firstPeriod = await rewards.periodFinish();
+            await increaseTime(oneYear / 2);
+            await yaxis.connect(deployer).transfer(rewards.address, ether('1000'));
+            await expect(rewards.connect(deployer).notifyRewardAmount(ether('1000')))
+                .to.emit(rewards, 'RewardAdded')
+                .withArgs(ether('1000'));
+            expect(await rewards.periodFinish()).to.be.above(firstPeriod);
+        });
+
         it('should allow topping up', async () => {
             await staking
                 .connect(user)
