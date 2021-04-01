@@ -7,7 +7,7 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
         contract: 'Rewards',
         from: deployer,
         log: true,
-        args: [YAXIS.address, YAXIS.address, 31556952]
+        args: [YAXIS.address, YAXIS.address, 7776000]
     });
 
     await execute('RewardsYaxis', { from: deployer }, 'setRewardDistribution', deployer);
@@ -16,7 +16,7 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
         { from: deployer },
         'transfer',
         Rewards.address,
-        ethers.utils.parseEther('3000000')
+        ethers.utils.parseEther('750000')
     );
 };
 
