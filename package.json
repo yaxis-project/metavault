@@ -13,11 +13,10 @@
     "lint:contracts": "solhint contracts/**/*.sol",
     "lint:fix": "eslint . --fix",
     "lint:js": "eslint.",
-    "test": "hardhat test test/metavault/*",
+    "test": "./test_pipeline.sh",
     "test:live": "VERBOSE=true LIVE=true hardhat test test/live/*",
     "test:token": "hardhat test test/token/*",
     "test:metavault": "hardhat test test/metavault/*",
-    "test:misc": "VERBOSE=true hardhat test test/misc/*",
     "test:verbose": "VERBOSE=true hardhat test test/metavault/*",
     "verify:kovan": "hardhat --network kovan etherscan-verify --api-key $ETHERSCAN_API_KEY",
     "verify:mainnet": "hardhat --network mainnet etherscan-verify --api-key $ETHERSCAN_API_KEY"
