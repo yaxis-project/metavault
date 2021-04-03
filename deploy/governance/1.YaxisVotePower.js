@@ -10,7 +10,7 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
         SYAX = syax.address;
         const Chef = await deployments.get('MockYaxisChef');
         YaxisChef = Chef.address;
-        const Pair = await deployments.get('MockUniswapPair');
+        const Pair = await deployments.get('YaxEthUniswapV2Pair');
         YaxEthUniswapV2Pair = Pair.address;
         await deploy('YaxisVoteProxy', {
             from: deployer,
