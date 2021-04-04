@@ -9,7 +9,7 @@ const ether = parseEther;
 const { setupTestToken } = require('../helpers/setup');
 
 describe('Swap', () => {
-    let deployer, user;
+    let deployer, treasury, user;
     let yax, yaxis, syax, swap;
 
     beforeEach(async () => {
@@ -18,7 +18,7 @@ describe('Swap', () => {
         yax = config.yax;
         syax = config.syax;
         swap = config.swap;
-        [deployer, , , user] = await ethers.getSigners();
+        [deployer, treasury, , user] = await ethers.getSigners();
 
         await yax.connect(user).faucet(ether('100000'));
         await yax.connect(user).approve(syax.address, ethers.constants.MaxUint256);
@@ -26,6 +26,7 @@ describe('Swap', () => {
         await yax.connect(deployer).mint(syax.address, ether('25000'));
         await yax.connect(user).approve(swap.address, ethers.constants.MaxUint256);
         await syax.connect(user).approve(swap.address, ethers.constants.MaxUint256);
+        await syax.connect(treasury).approve(swap.address, ethers.constants.MaxUint256);
     });
 
     it('should deploy with initial state set', async () => {
@@ -78,6 +79,23 @@ describe('Swap', () => {
             await swap.connect(user).swap();
             expect(await yaxis.balanceOf(user.address)).to.be.equal(0);
             expect(await yaxis.balanceOf(swap.address)).to.be.equal(ether('1000000'));
+        });
+
+        it('should swap multiple users', async () => {
+            await syax.connect(user).transfer(treasury.address, ether('50000'));
+            expect(await syax.balanceOf(user.address)).to.be.equal(0);
+            expect(await syax.balanceOf(treasury.address)).to.be.equal(ether('50000'));
+
+            await swap.connect(user).swap();
+            expect(await yaxis.balanceOf(user.address)).to.be.equal(ether('50000'));
+            expect(await yax.balanceOf(user.address)).to.be.equal(0);
+            expect(await yaxis.balanceOf(swap.address)).to.be.equal(ether('950000'));
+
+            await swap.connect(treasury).swap();
+            expect(await yaxis.balanceOf(treasury.address)).to.be.equal(ether('50000'));
+            expect(await syax.balanceOf(treasury.address)).to.be.equal(0);
+            expect(await yaxis.balanceOf(swap.address)).to.be.equal(ether('900000'));
+            expect(await yax.balanceOf(swap.address)).to.be.equal(ether('100000'));
         });
     });
 });
