@@ -65,6 +65,23 @@ Deployed at their documented addresses: https://github.com/yaxis-project/metavau
 
 These are the currently-deployed contracts in-use by the protocol.
 
+### Ineligible Reports
+
+- Attacks that the reporter has already exploited himself, leading to damage
+- Attacks that rely on social engineering
+- Attacks requiring access to leaked keys/credentials
+- Attacks requiring access to privileged addresses (governance, strategist)
+- Incorrect data supplied by third party oracles
+- Basic economic governance attacks (e.g. 51% attack)
+- Lack of liquidity
+- Best practice critiques
+- Deployment/private keys/secrets in test data
+- Sybil attacks
+
+## In-Scope & Ineligible for Bounty
+
+The following assets are considered in-scope, but will not be rewarded with any bounty for reports.
+
 ### yAxisBar
 
 Deployed at: https://etherscan.io/address/0xeF31Cb88048416E301Fee1eA13e7664b887BA7e8#code
@@ -83,28 +100,11 @@ Deployed at: https://etherscan.io/address/0xc330e7e73717cd13fb6ba068ee871584cf8a
 
 This is the liquidity provider staking contract that mints YAX to LPs.
 
-### Ineligible Reports
-
-- Attacks that the reporter has already exploited himself, leading to damage
-- Attacks that rely on social engineering
-- Attacks requiring access to leaked keys/credentials
-- Attacks requiring access to privileged addresses (governance, strategist)
-- Incorrect data supplied by third party oracles
-- Basic economic governance attacks (e.g. 51% attack)
-- Lack of liquidity
-- Best practice critiques
-- Deployment/private keys/secrets in test data
-- Sybil attacks
-
-## In-Scope & Ineligible for Bounty
-
-The following assets are considered in-scope, but will not be rewarded with any bounty for reports.
-
 ### yAxis Domains & Sites
 
 Located at: https://yaxis.io/
 
-Includes all paths and sub-domains.
+Includes all paths and sub-domains, DNS, and email configuration.
 
 #### Excluding:
 
