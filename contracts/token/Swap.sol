@@ -49,6 +49,7 @@ contract Swap {
     function swap()
         external
     {
+        uint256 _balance = YAX.balanceOf(address(this));
         uint256 _amount = SYAX.balanceOf(msg.sender);
         if (_amount > 0) {
             SYAX.safeTransferFrom(msg.sender, address(this), _amount);
@@ -58,7 +59,7 @@ contract Swap {
         if (_amount > 0) {
             YAX.safeTransferFrom(msg.sender, address(this), _amount);
         }
-        _amount = YAX.balanceOf(address(this));
+        _amount = YAX.balanceOf(address(this)).sub(_balance);
         if (_amount > 0) {
             YAXIS.safeTransfer(msg.sender, _amount);
         }
