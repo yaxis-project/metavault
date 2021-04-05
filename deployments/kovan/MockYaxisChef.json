@@ -1,0 +1,156 @@
+{
+  "address": "0xd75b3d1477F1D1fF28e878E46a8223c1Fa4DDefD",
+  "abi": [
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_user",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_amount",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_pendingAmount",
+          "type": "uint256"
+        }
+      ],
+      "name": "addBalance",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        },
+        {
+          "internalType": "address",
+          "name": "_user",
+          "type": "address"
+        }
+      ],
+      "name": "pendingYaxis",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        },
+        {
+          "internalType": "address",
+          "name": "_user",
+          "type": "address"
+        }
+      ],
+      "name": "userInfo",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    }
+  ],
+  "transactionHash": "0x1cf4b8d0144057be0619609440af16581d51cdd5974bc2003bdeb75ac8eeaaf5",
+  "receipt": {
+    "to": null,
+    "from": "0x36D68d13dD18Fe8076833Ef99245Ef33B00A7259",
+    "contractAddress": "0xd75b3d1477F1D1fF28e878E46a8223c1Fa4DDefD",
+    "transactionIndex": 10,
+    "gasUsed": "144247",
+    "logsBloom": "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+    "blockHash": "0x515bc79659b2668941f5d825d06661158b4daeabc0f1f823801937a8a2ab3626",
+    "transactionHash": "0x1cf4b8d0144057be0619609440af16581d51cdd5974bc2003bdeb75ac8eeaaf5",
+    "logs": [],
+    "blockNumber": 24164753,
+    "cumulativeGasUsed": "675114",
+    "status": 1,
+    "byzantium": true
+  },
+  "args": [],
+  "solcInputHash": "8621a3697bf16e269e6ee6ea33ffa011",
+  "metadata": "{\"compiler\":{\"version\":\"0.6.12+commit.27d51765\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_user\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"_amount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"_pendingAmount\",\"type\":\"uint256\"}],\"name\":\"addBalance\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"_user\",\"type\":\"address\"}],\"name\":\"pendingYaxis\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"_user\",\"type\":\"address\"}],\"name\":\"userInfo\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"}],\"devdoc\":{\"kind\":\"dev\",\"methods\":{},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"contracts/legacy/mock/MockYaxisChef.sol\":\"MockYaxisChef\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\",\"useLiteralContent\":true},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[]},\"sources\":{\"contracts/legacy/mock/MockYaxisChef.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\npragma solidity 0.6.12;\\n\\ncontract MockYaxisChef {\\n    mapping(address => uint256) private _userInfo;\\n    mapping(address => uint256) private _pending;\\n\\n    function addBalance(\\n        address _user,\\n        uint256 _amount,\\n        uint256 _pendingAmount\\n    )\\n        external\\n    {\\n        _userInfo[_user] += _amount;\\n        _pending[_user] += _pendingAmount;\\n    }\\n\\n    function userInfo(\\n        uint256,\\n        address _user\\n    )\\n        external\\n        view\\n        returns (uint256, uint256, uint256)\\n    {\\n        return (_userInfo[_user], 0, 0);\\n    }\\n\\n    function pendingYaxis(\\n        uint256,\\n        address _user\\n    )\\n        external\\n        view\\n        returns (uint256)\\n    {\\n        return _pending[_user];\\n    }\\n}\\n\",\"keccak256\":\"0x9f87c0a3b0637ef001523e89cd58735756eba2e08f638962d255af8249274ce1\",\"license\":\"MIT\"}},\"version\":1}",
+  "bytecode": "0x608060405234801561001057600080fd5b506101a5806100206000396000f3fe608060405234801561001057600080fd5b50600436106100415760003560e01c806361336a311461004657806393f1a40b14610084578063cfad7410146100ce575b600080fd5b6100726004803603604081101561005c57600080fd5b50803590602001356001600160a01b0316610102565b60408051918252519081900360200190f35b6100b06004803603604081101561009a57600080fd5b50803590602001356001600160a01b031661011f565b60408051938452602084019290925282820152519081900360600190f35b610100600480360360608110156100e457600080fd5b506001600160a01b03813516906020810135906040013561013f565b005b6001600160a01b0316600090815260016020526040902054919050565b6001600160a01b0316600090815260208190526040812054929091508190565b6001600160a01b03909216600090815260208181526040808320805490940190935560019052208054909101905556fea2646970667358221220fab4416d6eb52987967fcdfdf8eff2bb5b3dfc5f20e94006c09de85638c23d3a64736f6c634300060c0033",
+  "deployedBytecode": "0x608060405234801561001057600080fd5b50600436106100415760003560e01c806361336a311461004657806393f1a40b14610084578063cfad7410146100ce575b600080fd5b6100726004803603604081101561005c57600080fd5b50803590602001356001600160a01b0316610102565b60408051918252519081900360200190f35b6100b06004803603604081101561009a57600080fd5b50803590602001356001600160a01b031661011f565b60408051938452602084019290925282820152519081900360600190f35b610100600480360360608110156100e457600080fd5b506001600160a01b03813516906020810135906040013561013f565b005b6001600160a01b0316600090815260016020526040902054919050565b6001600160a01b0316600090815260208190526040812054929091508190565b6001600160a01b03909216600090815260208181526040808320805490940190935560019052208054909101905556fea2646970667358221220fab4416d6eb52987967fcdfdf8eff2bb5b3dfc5f20e94006c09de85638c23d3a64736f6c634300060c0033",
+  "devdoc": {
+    "kind": "dev",
+    "methods": {},
+    "version": 1
+  },
+  "userdoc": {
+    "kind": "user",
+    "methods": {},
+    "version": 1
+  },
+  "storageLayout": {
+    "storage": [
+      {
+        "astId": 5,
+        "contract": "contracts/legacy/mock/MockYaxisChef.sol:MockYaxisChef",
+        "label": "_userInfo",
+        "offset": 0,
+        "slot": "0",
+        "type": "t_mapping(t_address,t_uint256)"
+      },
+      {
+        "astId": 9,
+        "contract": "contracts/legacy/mock/MockYaxisChef.sol:MockYaxisChef",
+        "label": "_pending",
+        "offset": 0,
+        "slot": "1",
+        "type": "t_mapping(t_address,t_uint256)"
+      }
+    ],
+    "types": {
+      "t_address": {
+        "encoding": "inplace",
+        "label": "address",
+        "numberOfBytes": "20"
+      },
+      "t_mapping(t_address,t_uint256)": {
+        "encoding": "mapping",
+        "key": "t_address",
+        "label": "mapping(address => uint256)",
+        "numberOfBytes": "32",
+        "value": "t_uint256"
+      },
+      "t_uint256": {
+        "encoding": "inplace",
+        "label": "uint256",
+        "numberOfBytes": "32"
+      }
+    }
+  }
+}

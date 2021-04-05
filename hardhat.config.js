@@ -114,7 +114,8 @@ module.exports = {
             1: '0x1BB74b5DdC1f4fC91D6f9E7906cf68bc93538e33'
         },
         stableSwap3Pool: {
-            1: '0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7'
+            1: '0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7',
+            42: '0xE2C2a45850375c0A8B92b853fcd0a110463ed5Ab'
         },
         stakingPool: {
             default: 2,

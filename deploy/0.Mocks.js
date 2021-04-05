@@ -1,6 +1,6 @@
 module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
     const { deploy, execute } = deployments;
-    const { deployer } = await getNamedAccounts();
+    let { deployer, stableSwap3Pool } = await getNamedAccounts();
     const chainId = await getChainId();
 
     if (chainId != '1') {
@@ -10,40 +10,36 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
             contract: 'MockERC20',
             args: ['yAxis', 'YAX', 18]
         });
-        await deploy('DAI', {
+        const dai = await deploy('DAI', {
             from: deployer,
             log: true,
             contract: 'MockERC20',
             args: ['Dai Stablecoin', 'DAI', 18]
         });
-        const dai = await deployments.get('DAI');
-        await deploy('USDC', {
+        const usdc = await deploy('USDC', {
             from: deployer,
             log: true,
             contract: 'MockERC20',
             args: ['USD Coin', 'USDC', 6]
         });
-        const usdc = await deployments.get('USDC');
-        await deploy('USDT', {
+        const usdt = await deploy('USDT', {
             from: deployer,
             log: true,
             contract: 'MockERC20NonStandard',
             args: ['Tether', 'USDT', 6]
         });
-        const usdt = await deployments.get('USDT');
         const WETH = await deploy('WETH', {
             from: deployer,
             log: true,
             contract: 'MockERC20',
             args: ['Wrapped ETH', 'WETH', 18]
         });
-        await deploy('T3CRV', {
+        const t3crv = await deploy('T3CRV', {
             from: deployer,
             log: true,
             contract: 'MockERC20',
             args: ['Curve.fi DAI/USDC/USDT', '3CRV', 18]
         });
-        const t3crv = await deployments.get('T3CRV');
 
         await deploy('ETHUSD', {
             from: deployer,
@@ -75,25 +71,24 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
             log: true,
             args: ['0x0000000000000000000000000000000000000000']
         });
-        await deploy('MockStableSwap3Pool', {
-            from: deployer,
-            log: true,
-            args: [
-                deployer,
-                [dai.address, usdc.address, usdt.address],
-                t3crv.address,
-                200,
-                4000000,
-                5000000000
-            ]
-        });
-        const stableSwap3Pool = await deployments.get('MockStableSwap3Pool');
-        await execute(
-            'T3CRV',
-            { from: deployer },
-            'transferOwnership',
-            stableSwap3Pool.address
-        );
+
+        // Special case since Hardhat won't deploy Vyper to Kovan
+        if (chainId != '42') {
+            stableSwap3Pool = await deploy('MockStableSwap3Pool', {
+                from: deployer,
+                log: true,
+                args: [
+                    deployer,
+                    [dai.address, usdc.address, usdt.address],
+                    t3crv.address,
+                    200,
+                    4000000,
+                    5000000000
+                ]
+            });
+            stableSwap3Pool = stableSwap3Pool.address;
+        }
+        await execute('T3CRV', { from: deployer }, 'transferOwnership', stableSwap3Pool);
 
         await deploy('sYAX', {
             contract: 'MockYaxisBar',
