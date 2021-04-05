@@ -1,0 +1,35 @@
+{
+  "language": "Solidity",
+  "sources": {
+    "contracts/legacy/mock/MockYaxisChef.sol": {
+      "content": "// SPDX-License-Identifier: MIT\npragma solidity 0.6.12;\n\ncontract MockYaxisChef {\n    mapping(address => uint256) private _userInfo;\n    mapping(address => uint256) private _pending;\n\n    function addBalance(\n        address _user,\n        uint256 _amount,\n        uint256 _pendingAmount\n    )\n        external\n    {\n        _userInfo[_user] += _amount;\n        _pending[_user] += _pendingAmount;\n    }\n\n    function userInfo(\n        uint256,\n        address _user\n    )\n        external\n        view\n        returns (uint256, uint256, uint256)\n    {\n        return (_userInfo[_user], 0, 0);\n    }\n\n    function pendingYaxis(\n        uint256,\n        address _user\n    )\n        external\n        view\n        returns (uint256)\n    {\n        return _pending[_user];\n    }\n}\n"
+    }
+  },
+  "settings": {
+    "optimizer": {
+      "enabled": true,
+      "runs": 200
+    },
+    "outputSelection": {
+      "*": {
+        "*": [
+          "abi",
+          "evm.bytecode",
+          "evm.deployedBytecode",
+          "evm.methodIdentifiers",
+          "metadata",
+          "devdoc",
+          "userdoc",
+          "storageLayout",
+          "evm.gasEstimates"
+        ],
+        "": [
+          "ast"
+        ]
+      }
+    },
+    "metadata": {
+      "useLiteralContent": true
+    }
+  }
+}

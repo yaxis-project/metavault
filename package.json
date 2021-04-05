@@ -7,6 +7,7 @@
     "compile": "hardhat compile",
     "coverage": "hardhat coverage --testfiles 'test/metavault/*.js'",
     "deploy:metavault:kovan": "hardhat deploy --network kovan --tags metavault --gasprice 1000000000",
+    "deploy:token:kovan": "hardhat deploy --network kovan --tags token,rewards --gasprice 1000000000",
     "deploy:metavault:mainnet": "LIVE=true hardhat deploy --network mainnet --tags live",
     "fork": "LIVE=true hardhat node --no-deploy --fork https://mainnet.infura.io/v3/$INFURA_PROJECT_ID",
     "lint": "eslint . && solhint contracts/**/*.sol",
