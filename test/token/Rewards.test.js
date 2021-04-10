@@ -6,7 +6,7 @@ const hardhat = require('hardhat');
 const { ethers } = hardhat;
 const { parseEther } = ethers.utils;
 const ether = parseEther;
-const { increaseTime, setupTestToken } = require('../helpers/setup');
+const { increaseTime } = require('../helpers/setup');
 
 describe('Rewards', () => {
     const emptyBytes = '0x00';
@@ -16,9 +16,11 @@ describe('Rewards', () => {
     let yaxis, staking, rewards;
 
     beforeEach(async () => {
-        const config = await setupTestToken();
-        yaxis = config.yaxis;
         [deployer, , , user] = await ethers.getSigners();
+
+        const YaxisToken = await ethers.getContractFactory('YaxisToken');
+        yaxis = await YaxisToken.deploy();
+        await yaxis.deployed();
 
         const Staking = await ethers.getContractFactory('MockERC677');
         staking = await Staking.deploy('Staking Contract', 'ST');
