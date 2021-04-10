@@ -10,19 +10,21 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
         args: [YAXIS.address, YAXIS.address, 7776000]
     });
 
-    await execute(
-        'RewardsYaxis',
-        { from: deployer, log: true },
-        'setRewardDistribution',
-        treasury
-    );
-    await execute(
-        'YaxisToken',
-        { from: deployer, log: true },
-        'transfer',
-        Rewards.address,
-        ethers.utils.parseEther('750000')
-    );
+    if (Rewards.newlyDeployed) {
+        await execute(
+            'RewardsYaxis',
+            { from: deployer, log: true },
+            'setRewardDistribution',
+            treasury
+        );
+        await execute(
+            'YaxisToken',
+            { from: deployer, log: true },
+            'transfer',
+            Rewards.address,
+            ethers.utils.parseEther('750000')
+        );
+    }
 };
 
 module.exports.tags = ['token'];

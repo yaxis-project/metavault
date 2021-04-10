@@ -22,19 +22,21 @@ module.exports = async ({ getChainId, getNamedAccounts, deployments }) => {
         args: [YAXIS.address, YaxisEthUniswapV2Pair, 6480000]
     });
 
-    await execute(
-        'RewardsYaxisEth',
-        { from: deployer, log: true },
-        'setRewardDistribution',
-        treasury
-    );
-    await execute(
-        'YaxisToken',
-        { from: deployer, log: true },
-        'transfer',
-        Rewards.address,
-        ethers.utils.parseEther('250000')
-    );
+    if (Rewards.newlyDeployed) {
+        await execute(
+            'RewardsYaxisEth',
+            { from: deployer, log: true },
+            'setRewardDistribution',
+            treasury
+        );
+        await execute(
+            'YaxisToken',
+            { from: deployer, log: true },
+            'transfer',
+            Rewards.address,
+            ethers.utils.parseEther('250000')
+        );
+    }
 };
 
 module.exports.tags = ['token'];
