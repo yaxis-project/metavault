@@ -9,6 +9,7 @@ const kovanRpcUrl = process.env.KOVAN_RPC_URL || 'http://localhost:8545';
 const mainnetRpcUrl = process.env.MAINNET_RPC_URL || 'http://localhost:8545';
 const kovanPrivateKey = process.env.KOVAN_PRIVATE_KEY || '0x00';
 const mainnetPrivateKey = process.env.MAINNET_PRIVATE_KEY || '0x00';
+const mainnetAccounts = process.env.FORK ? undefined : [mainnetPrivateKey];
 const chainId = process.env.LIVE ? 1 : 31337;
 
 task('contracts', 'Prints the contract addresses for a network').setAction(async () => {
@@ -31,7 +32,7 @@ module.exports = {
         },
         mainnet: {
             url: mainnetRpcUrl,
-            accounts: [mainnetPrivateKey]
+            accounts: mainnetAccounts
         }
     },
     namedAccounts: {

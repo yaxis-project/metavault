@@ -8,15 +8,13 @@ const { parseEther } = ethers.utils;
 const ether = parseEther;
 
 describe('StrategyYearnV2: live', () => {
-    let t3crv, vault, controller, strategyYearnV2, converterAddr;
-
     before(async () => {
         let {
-            converter,
             DAI,
             deployer,
             T3CRV,
             timelock,
+            treasury,
             unirouter,
             user,
             vault3crv,
@@ -25,60 +23,88 @@ describe('StrategyYearnV2: live', () => {
         } = await getNamedAccounts();
         await network.provider.request({
             method: 'hardhat_impersonateAccount',
-            params: [user]
-        });
-        await network.provider.request({
-            method: 'hardhat_impersonateAccount',
             params: [deployer]
         });
         await network.provider.request({
             method: 'hardhat_impersonateAccount',
             params: [timelock]
         });
-        const vaultManager = await deployments.get('yAxisMetaVaultManager');
+        await network.provider.request({
+            method: 'hardhat_impersonateAccount',
+            params: [treasury]
+        });
+        await network.provider.request({
+            method: 'hardhat_impersonateAccount',
+            params: [user]
+        });
+        const Manager = await deployments.get('yAxisMetaVaultManager');
         const Converter = await deployments.get('StableSwap3PoolConverter');
         const Controller = await deployments.get('StrategyControllerV2');
-        deployer = await ethers.provider.getSigner(deployer);
-        timelock = await ethers.provider.getSigner(timelock);
-        user = await ethers.provider.getSigner(user);
-        converterAddr = converter;
-        t3crv = T3CRV;
-        vault = await ethers.getContractAt('yAxisMetaVault', vault3crv);
-
-        controller = await ethers.getContractAt(
+        const Strategy = await ethers.getContractFactory('StrategyYearnV2', deployer);
+        this.deployer = await ethers.provider.getSigner(deployer);
+        this.timelock = await ethers.provider.getSigner(timelock);
+        this.treasury = await ethers.provider.getSigner(treasury);
+        this.user = await ethers.provider.getSigner(user);
+        this.converter = await ethers.getContractAt(
+            'StableSwap3PoolConverter',
+            Converter.address
+        );
+        this.vault = await ethers.getContractAt('yAxisMetaVault', vault3crv);
+        this.controller = await ethers.getContractAt(
             'StrategyControllerV2',
             Controller.address,
             timelock
         );
+        this.t3crv = T3CRV;
+        this.dai = DAI;
+        await this.user.sendTransaction({
+            to: this.deployer._address,
+            value: ether('10')
+        });
+        await this.user.sendTransaction({
+            to: this.timelock._address,
+            value: ether('10')
+        });
+        await this.user.sendTransaction({
+            to: this.treasury._address,
+            value: ether('10')
+        });
 
-        const StrategyYearnV2 = await ethers.getContractFactory('StrategyYearnV2', deployer);
-        strategyYearnV2 = await StrategyYearnV2.deploy(
+        this.strategy = await Strategy.deploy(
             'YearnV2: DAI',
             yvDAI,
             DAI,
             Converter.address,
-            controller.address,
-            vaultManager.address,
+            this.controller.address,
+            Manager.address,
             WETH,
             unirouter
         );
-        await strategyYearnV2.deployed();
+        await this.strategy.deployed();
+    });
+
+    it('should set the converter for 3CRV/DAI', async () => {
+        await this.controller
+            .connect(this.treasury)
+            .setConverter(this.t3crv, this.dai, this.converter.address);
     });
 
     it('should add the strategy to the controller', async () => {
-        await controller.addStrategy(
-            t3crv,
-            strategyYearnV2.address,
-            ether('5000000'),
-            converterAddr,
-            false,
-            84600
-        );
+        await this.controller
+            .connect(this.timelock)
+            .addStrategy(
+                this.t3crv,
+                this.strategy.address,
+                ether('5000000'),
+                this.converter.address,
+                false,
+                84600
+            );
     });
 
     it('should earn to the new strategy', async () => {
-        await vault.connect(deployer).earn();
-        const balance = await strategyYearnV2.balanceOf();
+        await this.vault.connect(this.deployer).earn();
+        const balance = await this.strategy.balanceOf();
         expect(balance).to.be.above(1);
     });
 });
