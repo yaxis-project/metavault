@@ -30,7 +30,7 @@ module.exports = async ({ getChainId, getNamedAccounts, deployments }) => {
         contract: 'Rewards',
         from: deployer,
         log: true,
-        args: [YAXIS.address, vault3crv, 7776000]
+        args: [YAXIS.address, vault3crv, 7257600]
     });
 
     await execute(

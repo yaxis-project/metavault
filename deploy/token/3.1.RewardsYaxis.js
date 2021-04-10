@@ -21,7 +21,7 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
         { from: deployer, log: true },
         'transfer',
         Rewards.address,
-        ethers.utils.parseEther('750000')
+        ethers.utils.parseEther('650000')
     );
 };
 
