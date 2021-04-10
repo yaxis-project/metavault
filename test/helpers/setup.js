@@ -43,7 +43,7 @@ exports.setupTestGovernance = deployments.createFixture(
 
 exports.setupTestToken = deployments.createFixture(
     async ({ deployments, getNamedAccounts, ethers }) => {
-        await deployments.fixture(['token', 'rewards']);
+        await deployments.fixture(['token']);
         const { deployer, user } = await getNamedAccounts();
         const YAXIS = await deployments.get('YaxisToken');
         const yaxis = await ethers.getContractAt('YaxisToken', YAXIS.address, deployer);

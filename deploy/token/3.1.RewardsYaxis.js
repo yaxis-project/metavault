@@ -1,6 +1,6 @@
 module.exports = async ({ getNamedAccounts, deployments }) => {
     const { deploy, execute } = deployments;
-    const { deployer } = await getNamedAccounts();
+    const { deployer, treasury } = await getNamedAccounts();
     const YAXIS = await deployments.get('YaxisToken');
 
     const Rewards = await deploy('RewardsYaxis', {
@@ -14,15 +14,15 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
         'RewardsYaxis',
         { from: deployer, log: true },
         'setRewardDistribution',
-        deployer
+        treasury
     );
     await execute(
         'YaxisToken',
         { from: deployer, log: true },
         'transfer',
         Rewards.address,
-        ethers.utils.parseEther('650000')
+        ethers.utils.parseEther('750000')
     );
 };
 
-module.exports.tags = ['rewards'];
+module.exports.tags = ['token'];

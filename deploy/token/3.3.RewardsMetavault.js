@@ -1,6 +1,6 @@
 module.exports = async ({ getChainId, getNamedAccounts, deployments }) => {
     const { deploy, execute } = deployments;
-    let { deployer, vault3crv } = await getNamedAccounts();
+    let { deployer, treasury, vault3crv } = await getNamedAccounts();
     const chainId = await getChainId();
     const YAXIS = await deployments.get('YaxisToken');
 
@@ -37,7 +37,7 @@ module.exports = async ({ getChainId, getNamedAccounts, deployments }) => {
         'RewardsMetavault',
         { from: deployer, log: true },
         'setRewardDistribution',
-        deployer
+        treasury
     );
     await execute(
         'YaxisToken',
@@ -48,4 +48,4 @@ module.exports = async ({ getChainId, getNamedAccounts, deployments }) => {
     );
 };
 
-module.exports.tags = ['rewards'];
+module.exports.tags = ['token'];
