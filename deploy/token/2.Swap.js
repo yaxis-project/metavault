@@ -21,7 +21,7 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
 
     await execute(
         'YaxisToken',
-        { from: deployer },
+        { from: deployer, log: true },
         'transfer',
         Swap.address,
         ethers.utils.parseEther('1000000')
