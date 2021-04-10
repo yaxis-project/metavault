@@ -67,6 +67,10 @@ module.exports = {
             1: '0x65F84A48e640a908d0DF7B6f00B871352F77022D',
             42: '0x36D68d13dD18Fe8076833Ef99245Ef33B00A7259'
         },
+        developFund: {
+            default: 5,
+            1: '0x5118Df9210e1b97a4de0df15FBbf438499d6b446'
+        },
         ETHUSD: {
             1: '0x5f4eC3Df9cbd43714FE2740f5E3616155c5b8419'
         },
@@ -133,6 +137,10 @@ module.exports = {
         },
         T3CRV: {
             1: '0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490'
+        },
+        teamFund: {
+            default: 6,
+            1: '0xEcD3aD054199ced282F0608C4f0cea4eb0B139bb'
         },
         timelock: {
             1: '0x66C5c16d13a38461648c1D097f219762D374B412',

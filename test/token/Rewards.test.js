@@ -6,7 +6,7 @@ const hardhat = require('hardhat');
 const { ethers } = hardhat;
 const { parseEther } = ethers.utils;
 const ether = parseEther;
-const { increaseTime, setupTestToken } = require('../helpers/setup');
+const { increaseTime } = require('../helpers/setup');
 
 describe('Rewards', () => {
     const emptyBytes = '0x00';
@@ -16,9 +16,11 @@ describe('Rewards', () => {
     let yaxis, staking, rewards;
 
     beforeEach(async () => {
-        const config = await setupTestToken();
-        yaxis = config.yaxis;
         [deployer, , , user] = await ethers.getSigners();
+
+        const YaxisToken = await ethers.getContractFactory('YaxisToken');
+        yaxis = await YaxisToken.deploy();
+        await yaxis.deployed();
 
         const Staking = await ethers.getContractFactory('MockERC677');
         staking = await Staking.deploy('Staking Contract', 'ST');
@@ -82,6 +84,41 @@ describe('Rewards', () => {
             await expect(
                 fake.connect(user).transferAndCall(rewards.address, 1, emptyBytes)
             ).to.be.revertedWith('!stakingToken');
+        });
+    });
+
+    describe('over funding', () => {
+        it('should allow over funding', async () => {
+            await rewards.connect(deployer).setRewardDistribution(deployer.address);
+            await yaxis.connect(deployer).transfer(rewards.address, ether('10000'));
+            await expect(rewards.connect(deployer).notifyRewardAmount(ether('1000')))
+                .to.emit(rewards, 'RewardAdded')
+                .withArgs(ether('1000'));
+            await staking.connect(user).approve(rewards.address, ethers.constants.MaxUint256);
+            await rewards.connect(user).stake(ether('100'));
+            expect(await rewards.totalSupply()).to.be.equal(ether('100'));
+            let earnedA = await rewards.earned(user.address);
+            await increaseTime(oneYear / 4);
+            let earnedB = await rewards.earned(user.address);
+            expect(earnedB).to.be.above(earnedA);
+            await increaseTime(oneYear / 4);
+            earnedA = await rewards.earned(user.address);
+            expect(earnedA).to.be.above(earnedB);
+            await increaseTime(oneYear / 4);
+            earnedB = await rewards.earned(user.address);
+            expect(earnedB).to.be.above(earnedA);
+            await increaseTime(oneYear / 4);
+            earnedA = await rewards.earned(user.address);
+            expect(earnedA).to.be.above(earnedB);
+            // go over duration just in case
+            await increaseTime(oneDay);
+            earnedB = await rewards.earned(user.address);
+            expect(earnedB).to.be.equal(earnedA);
+            const balance = await yaxis.balanceOf(user.address);
+            await expect(rewards.connect(user).exit()).to.emit(rewards, 'RewardPaid');
+            expect(await staking.balanceOf(user.address)).to.be.equal(ether('100'));
+            expect(await yaxis.balanceOf(user.address)).to.be.above(balance);
+            expect(await yaxis.balanceOf(user.address)).to.be.below(ether('1000'));
         });
     });
 
@@ -203,10 +240,12 @@ describe('Rewards', () => {
                 .transferAndCall(rewards.address, ether('100'), emptyBytes);
             expect(await rewards.totalSupply()).to.be.equal(ether('100'));
             await increaseTime(oneYear / 4);
+            const startRewardPerToken = await rewards.rewardPerToken();
             await yaxis.connect(deployer).transfer(rewards.address, ether('1000'));
             await expect(rewards.connect(deployer).notifyRewardAmount(ether('1000')))
                 .to.emit(rewards, 'RewardAdded')
                 .withArgs(ether('1000'));
+            expect(await rewards.rewardPerToken()).to.be.above(startRewardPerToken);
             await increaseTime(oneDay);
             await expect(rewards.connect(user).getReward()).to.emit(rewards, 'RewardPaid');
         });
