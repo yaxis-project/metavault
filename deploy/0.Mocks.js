@@ -88,7 +88,9 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
             });
             stableSwap3Pool = stableSwap3Pool.address;
         }
-        await execute('T3CRV', { from: deployer }, 'transferOwnership', stableSwap3Pool);
+        if (t3crv.newlyDeployed) {
+            await execute('T3CRV', { from: deployer }, 'transferOwnership', stableSwap3Pool);
+        }
 
         await deploy('sYAX', {
             contract: 'MockYaxisBar',

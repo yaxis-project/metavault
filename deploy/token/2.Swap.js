@@ -19,13 +19,15 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
         args: [YAXIS.address, YAX, SYAX]
     });
 
-    await execute(
-        'YaxisToken',
-        { from: deployer, log: true },
-        'transfer',
-        Swap.address,
-        ethers.utils.parseEther('1000000')
-    );
+    if (Swap.newlyDeployed) {
+        await execute(
+            'YaxisToken',
+            { from: deployer, log: true },
+            'transfer',
+            Swap.address,
+            ethers.utils.parseEther('1000000')
+        );
+    }
 };
 
 module.exports.tags = ['token'];
