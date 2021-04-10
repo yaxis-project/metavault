@@ -36,7 +36,7 @@ describe('StrategyYearnV2', () => {
         controller = config.controller;
         router = config.router;
 
-        const Strategy = await deployments.get('StrategyYearnV2');
+        const Strategy = await deployments.get('StrategyYearnV2-DAI');
         strategy = await ethers.getContractAt('StrategyYearnV2', Strategy.address, deployer);
 
         await controller.addStrategy(

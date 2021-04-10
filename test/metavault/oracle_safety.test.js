@@ -35,7 +35,7 @@ describe('oracle_safety', () => {
         nonConverter = config.nonConverter;
         pool = config.pool;
 
-        const Strategy = await deployments.get('StrategyYearnV2');
+        const Strategy = await deployments.get('StrategyYearnV2-DAI');
 
         await vault.connect(deployer).setConverter(nonConverter.address);
         await controller
