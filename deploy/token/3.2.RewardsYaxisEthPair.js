@@ -19,16 +19,21 @@ module.exports = async ({ getChainId, getNamedAccounts, deployments }) => {
         contract: 'Rewards',
         from: deployer,
         log: true,
-        args: [YAXIS.address, YaxisEthUniswapV2Pair, 7776000]
+        args: [YAXIS.address, YaxisEthUniswapV2Pair, 6480000]
     });
 
-    await execute('RewardsYaxisEth', { from: deployer }, 'setRewardDistribution', deployer);
+    await execute(
+        'RewardsYaxisEth',
+        { from: deployer, log: true },
+        'setRewardDistribution',
+        deployer
+    );
     await execute(
         'YaxisToken',
-        { from: deployer },
+        { from: deployer, log: true },
         'transfer',
         Rewards.address,
-        ethers.utils.parseEther('200000')
+        ethers.utils.parseEther('250000')
     );
 };
 
