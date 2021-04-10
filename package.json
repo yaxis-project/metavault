@@ -9,7 +9,7 @@
     "deploy:metavault:kovan": "hardhat deploy --network kovan --tags metavault --gasprice 1000000000",
     "deploy:token:kovan": "hardhat deploy --network kovan --tags token --gasprice 1000000000",
     "deploy:metavault:mainnet": "LIVE=true hardhat deploy --network mainnet --tags live",
-    "fork": "LIVE=true hardhat node --no-deploy --fork https://mainnet.infura.io/v3/$INFURA_PROJECT_ID",
+    "fork": "LIVE=true FORK=true hardhat node --no-deploy --fork https://mainnet.infura.io/v3/$INFURA_PROJECT_ID",
     "lint": "eslint . && solhint contracts/**/*.sol",
     "lint:contracts": "solhint contracts/**/*.sol",
     "lint:fix": "eslint . --fix",
@@ -34,7 +34,7 @@
     "@openzeppelin/contracts": "^3.1.0"
   },
   "devDependencies": {
-    "@nomiclabs/hardhat-ethers": "^2.0.1",
+    "@nomiclabs/hardhat-ethers": "^2.0.2",
     "@nomiclabs/hardhat-vyper": "^2.0.1",
     "@nomiclabs/hardhat-waffle": "^2.0.1",
     "chai": "^4.2.0",
@@ -43,7 +43,7 @@
     "eslint-plugin-prettier": "^3.3.0",
     "ethereum-waffle": "^3.2.1",
     "ethers": "^5.0.24",
-    "hardhat": "^2.0.6",
+    "hardhat": "^2.1.2",
     "hardhat-deploy": "^0.7.0-beta.44",
     "hardhat-deploy-ethers": "^0.3.0-beta.7",
     "prettier": "^2.2.1",
