@@ -9,7 +9,17 @@ const ether = parseEther;
 const { setupTestMetavault } = require('../helpers/setup');
 
 describe('oracle_safety', () => {
-    let deployer, user, dai, usdc, usdt, t3crv, vault, controller, converter, pool;
+    let deployer,
+        user,
+        dai,
+        usdc,
+        usdt,
+        t3crv,
+        vault,
+        controller,
+        converter,
+        nonConverter,
+        pool;
 
     beforeEach(async () => {
         const config = await setupTestMetavault();
@@ -22,10 +32,12 @@ describe('oracle_safety', () => {
         vault = config.vault;
         controller = config.controller;
         converter = config.converter;
+        nonConverter = config.nonConverter;
         pool = config.pool;
 
         const Strategy = await deployments.get('StrategyYearnV2');
 
+        await vault.connect(deployer).setConverter(nonConverter.address);
         await controller
             .connect(deployer)
             .addStrategy(t3crv.address, Strategy.address, 0, converter.address, true, 0);
@@ -74,7 +86,7 @@ describe('oracle_safety', () => {
         await pool.remove_liquidity_imbalance([0, 0, removeUsdtValue], max);
         // step 3: try to deposit
         await expect(vault.deposit(earnValue, dai.address, 0, false)).to.be.revertedWith(
-            '>_max'
+            'Only 3CRV allowed'
         );
     });
 });
