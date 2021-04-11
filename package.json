@@ -44,7 +44,7 @@
     "ethereum-waffle": "^3.2.1",
     "ethers": "^5.0.24",
     "hardhat": "^2.1.2",
-    "hardhat-deploy": "^0.7.0-beta.44",
+    "hardhat-deploy": "^0.7.4",
     "hardhat-deploy-ethers": "^0.3.0-beta.7",
     "prettier": "^2.2.1",
     "solhint": "^3.3.2",
