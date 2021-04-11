@@ -1,17 +1,20 @@
-module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
+module.exports = async ({ getNamedAccounts, deployments }) => {
     const { deploy } = deployments;
-    const chainId = await getChainId();
-    let { deployer, YAX } = await getNamedAccounts();
+    let { deployer } = await getNamedAccounts();
 
-    if (chainId != '1') {
-        const yax = await deployments.get('YAX');
-        YAX = yax.address;
+    let yaxis;
+    try {
+        yaxis = await deployments.get('YaxisToken');
+    } catch {
+        yaxis = await deploy('YaxisToken', {
+            from: deployer
+        });
     }
 
     await deploy('Manager', {
         from: deployer,
         log: true,
-        args: [YAX]
+        args: [yaxis.address]
     });
 };
 
