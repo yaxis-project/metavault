@@ -50,7 +50,7 @@ module.exports = async ({ getChainId, getNamedAccounts, deployments }) => {
             { from: deployer, log: true },
             'transfer',
             Rewards.address,
-            ethers.utils.parseEther('1000000')
+            ethers.utils.parseEther('500000')
         );
     }
 };
