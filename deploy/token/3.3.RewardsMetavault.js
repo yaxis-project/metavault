@@ -55,4 +55,4 @@ module.exports = async ({ getChainId, getNamedAccounts, deployments }) => {
     }
 };
 
-module.exports.tags = ['token'];
+module.exports.tags = ['rewards'];
