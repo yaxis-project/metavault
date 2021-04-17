@@ -187,7 +187,7 @@ module.exports = {
             1: '0x1107B6081231d7F256269aD014bF92E041cb08df'
         },
         YaxisEthUniswapV2Pair: {
-            1: '0x0000000000000000000000000000000000000000'
+            1: '0xF0E3FdF48661CD10d56692f60BD4eCcd01E9CF64'
         },
         YaxisChef: {
             1: '0xC330E7e73717cd13fb6bA068Ee871584Cf8A194F'
