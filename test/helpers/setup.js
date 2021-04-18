@@ -92,7 +92,7 @@ exports.setupTestV3 = deployments.createFixture(
         const StableVault = await deployments.get('VaultStables');
         const stableVault = await ethers.getContractAt('Vault', StableVault.address, user);
 
-        await dai.faucet(ethers.utils.parseEther('100000000'));
+        await dai.faucet(ethers.utils.parseEther('100000001'));
         await usdc.faucet('100000000000000');
         await usdt.faucet('100000000000000');
         await t3crv.faucet(ethers.utils.parseEther('100000000'));

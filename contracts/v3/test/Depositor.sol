@@ -21,17 +21,6 @@ contract Depositor {
     }
 
     function depositVault(
-        address _token,
-        uint256 _amount
-    )
-        external
-    {
-        IERC20(_token).safeApprove(address(vault), 0);
-        IERC20(_token).safeApprove(address(vault), _amount);
-        vault.deposit(_token, _amount);
-    }
-
-    function depositAllVault(
         address[] calldata _tokens,
         uint256[] calldata _amounts
     )
@@ -41,7 +30,7 @@ contract Depositor {
             IERC20(_tokens[i]).safeApprove(address(vault), 0);
             IERC20(_tokens[i]).safeApprove(address(vault), _amounts[i]);
         }
-        vault.depositAll(_tokens, _amounts);
+        vault.deposit(_tokens, _amounts);
     }
 
     function withdrawVault(

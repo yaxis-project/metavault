@@ -111,38 +111,13 @@ contract Vault is ERC20, IVault {
      * USER-FACING FUNCTIONS
      */
 
-    // TODO: remove in favor of depositAll
-    function deposit(
-        address _token,
-        uint256 _amount
-    )
-        external
-        override
-        checkContract
-        checkToken(_token)
-        checkVault
-    {
-        require(_amount > 0, "!_amount");
-        uint256 _balance = balance();
-        uint256 _before = IERC20(_token).balanceOf(address(this));
-
-        IERC20(_token).safeTransferFrom(msg.sender, address(this), _amount);
-
-        uint256 _after = IERC20(_token).balanceOf(address(this));
-        require(totalDepositCap == 0 || _after <= totalDepositCap, ">totalDepositCap");
-        _amount = _after.sub(_before); // Additional check for deflationary tokens
-        if (_amount > 0) {
-            _deposit(msg.sender, _token, _balance, _amount);
-        }
-    }
-
     /**
      * @notice Deposits multiple tokens simultaneously to the vault
      * @dev Users must approve the vault to spend their stablecoin
      * @param _tokens The addresses of each token being deposited
      * @param _amounts The amounts of each token being deposited
      */
-    function depositAll(
+    function deposit(
         address[] calldata _tokens,
         uint256[] calldata _amounts
     )
@@ -152,21 +127,34 @@ contract Vault is ERC20, IVault {
         checkVault
     {
         require(_tokens.length == _amounts.length, "!length");
+
+        uint256 _balance = balance();
+        uint256 _shares;
+
         for (uint8 i; i < _amounts.length; i++) {
             if (_amounts[i] > 0) {
                 require(_checkToken(_tokens[i]), "!_tokens");
-                uint256 _balance = balance();
+
                 uint256 _before = IERC20(_tokens[i]).balanceOf(address(this));
-
                 IERC20(_tokens[i]).safeTransferFrom(msg.sender, address(this), _amounts[i]);
+                uint256 _amount = IERC20(_tokens[i]).balanceOf(address(this)).sub(_before);
 
-                uint256 _after = IERC20(_tokens[i]).balanceOf(address(this));
-                require(totalDepositCap == 0 || _after <= totalDepositCap, ">totalDepositCap");
-                uint256 _amount = _after.sub(_before); // Additional check for deflationary tokens
                 if (_amount > 0) {
-                    _deposit(msg.sender, _tokens[i], _balance, _amount);
+                    _amount = _normalizeDecimals(_tokens[i], _amount);
+
+                    if (totalSupply() > 0) {
+                        _amount = (_amount.mul(totalSupply())).div(_balance);
+                    }
+
+                    _shares = _shares.add(_amount);
                 }
             }
+        }
+
+        if (_shares > 0) {
+            _mint(msg.sender, _shares);
+            require(totalSupply() <= totalDepositCap, ">totalDepositCap");
+            emit Deposit(msg.sender, _shares);
         }
     }
 
@@ -227,34 +215,6 @@ contract Vault is ERC20, IVault {
         checkContract
     {
         withdraw(balanceOf(msg.sender), _output);
-    }
-
-    /**
-     * INTERNAL FUNCTIONS
-     */
-
-    function _deposit(
-        address _account,
-        address _token,
-        uint256 _balance,
-        uint256 _amount
-    )
-        internal
-        returns (uint256 _shares)
-    {
-        _amount = _normalizeDecimals(_token, _amount);
-
-        if (totalSupply() == 0) {
-            _shares = _amount;
-        } else {
-            _shares = (_amount.mul(totalSupply())).div(_balance);
-        }
-
-        if (_shares > 0) {
-            _mint(_account, _shares);
-        }
-
-        emit Deposit(_account, _shares);
     }
 
     /**

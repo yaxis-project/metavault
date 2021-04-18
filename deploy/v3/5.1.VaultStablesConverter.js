@@ -1,18 +1,7 @@
 module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
     const { ethers } = require('hardhat');
     const { deploy, execute } = deployments;
-    let {
-        DAI,
-        USDC,
-        USDT,
-        T3CRV,
-        ETHUSD,
-        DAIETH,
-        USDCETH,
-        USDTETH,
-        deployer,
-        stableSwap3Pool
-    } = await getNamedAccounts();
+    let { DAI, USDC, USDT, T3CRV, deployer, stableSwap3Pool } = await getNamedAccounts();
     const chainId = await getChainId();
     const Manager = await deployments.get('Manager');
     const Vault = await deployments.get('VaultStables');
@@ -26,28 +15,14 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
         USDT = usdt.address;
         const t3crv = await deployments.get('T3CRV');
         T3CRV = t3crv.address;
-        const ethUsd = await deployments.get('ETHUSD');
-        ETHUSD = ethUsd.address;
-        const daiEth = await deployments.get('DAIETH');
-        DAIETH = daiEth.address;
-        const usdcEth = await deployments.get('USDCETH');
-        USDCETH = usdcEth.address;
-        const usdtEth = await deployments.get('USDTETH');
-        USDTETH = usdtEth.address;
         const mockStableSwap3Pool = await deployments.get('MockStableSwap3Pool');
         stableSwap3Pool = mockStableSwap3Pool.address;
     }
 
-    const oracle = await deploy('StableSwap3PoolOracle', {
-        from: deployer,
-        log: true,
-        args: [ETHUSD, DAIETH, USDCETH, USDTETH]
-    });
-
     const converter = await deploy('StableSwap3PoolConverter', {
         from: deployer,
         log: true,
-        args: [DAI, USDC, USDT, T3CRV, stableSwap3Pool, Manager.address, oracle.address]
+        args: [DAI, USDC, USDT, T3CRV, stableSwap3Pool, Manager.address]
     });
 
     if (converter.newlyDeployed) {

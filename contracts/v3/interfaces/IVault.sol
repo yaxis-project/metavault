@@ -7,8 +7,7 @@ import "./IManager.sol";
 interface IVault {
     function available(address _token) external view returns (uint256);
     function balance() external view returns (uint256);
-    function deposit(address _token, uint256 _amount) external;
-    function depositAll(address[] calldata _tokens, uint256[] calldata _amount) external;
+    function deposit(address[] calldata _tokens, uint256[] calldata _amount) external;
     function earn(address _token) external;
     function getPricePerFullShare() external view returns (uint256);
     function getTokens() external view returns (address[] memory);
