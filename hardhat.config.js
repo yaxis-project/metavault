@@ -107,7 +107,7 @@ module.exports = {
             1: '0x2ebE1461D2Fc6dabF079882CFc51e5013BbA49B6'
         },
         oldStrategyCrv: {
-            1: '0xd721d16a685f63A4e8C4e8c5988b76Bec6A85c90'
+            1: '0xED93BeCebaB166AbEeAC1C5FA3b5a0cAA0d34891'
         },
         p3crv: {
             1: '0x1BB74b5DdC1f4fC91D6f9E7906cf68bc93538e33'
