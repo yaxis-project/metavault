@@ -12,12 +12,10 @@ describe('StrategyYearnV2: live', () => {
         let {
             DAI,
             deployer,
-            stableSwap3Pool,
             T3CRV,
             timelock,
             treasury,
             USDC,
-            USDT,
             unirouter,
             user,
             vault3crv,
@@ -42,14 +40,7 @@ describe('StrategyYearnV2: live', () => {
         });
         const Manager = await deployments.get('yAxisMetaVaultManager');
         const Controller = await deployments.get('StrategyControllerV2');
-        const Converter = await ethers.getContractFactory(
-            'StableSwap3PoolConverter',
-            deployer
-        );
-        const NonConverter = await ethers.getContractFactory(
-            'StableSwap3PoolNonConverter',
-            deployer
-        );
+        const Converter = await deployments.get('StableSwap3PoolConverter');
         const Strategy = await ethers.getContractFactory('StrategyYearnV2', deployer);
         this.deployer = await ethers.provider.getSigner(deployer);
         this.timelock = await ethers.provider.getSigner(timelock);
@@ -61,8 +52,10 @@ describe('StrategyYearnV2: live', () => {
             Controller.address,
             timelock
         );
+        this.converter = Converter.address;
         this.t3crv = T3CRV;
         this.dai = DAI;
+        this.usdc = USDC;
         await this.user.sendTransaction({
             to: this.deployer._address,
             value: ether('10')
@@ -76,40 +69,17 @@ describe('StrategyYearnV2: live', () => {
             value: ether('10')
         });
 
-        this.converter = await Converter.deploy(
-            DAI,
-            USDC,
-            USDT,
-            T3CRV,
-            stableSwap3Pool,
-            Manager.address
-        );
-        await this.converter.deployed();
-
-        this.nonConverter = await NonConverter.deploy(T3CRV, Manager.address);
-        await this.nonConverter.deployed();
-
         this.strategy = await Strategy.deploy(
             'YearnV2: DAI',
             yvDAI,
             DAI,
-            this.converter.address,
+            Converter.address,
             this.controller.address,
             Manager.address,
             WETH,
             unirouter
         );
         await this.strategy.deployed();
-    });
-
-    it('should set the converter on the vault', async () => {
-        await this.vault.connect(this.timelock).setConverter(this.nonConverter.address);
-    });
-
-    it('should set the converter for 3CRV/DAI', async () => {
-        await this.controller
-            .connect(this.treasury)
-            .setConverter(this.t3crv, this.dai, this.converter.address);
     });
 
     it('should add the strategy to the controller', async () => {
@@ -119,7 +89,7 @@ describe('StrategyYearnV2: live', () => {
                 this.t3crv,
                 this.strategy.address,
                 ether('5000000'),
-                this.converter.address,
+                this.converter,
                 false,
                 84600
             );
