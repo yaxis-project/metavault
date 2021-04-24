@@ -7,20 +7,18 @@ const { ethers, deployments, getNamedAccounts } = hardhat;
 const { parseEther } = ethers.utils;
 const ether = parseEther;
 
-describe('StrategyYearnV2: live', () => {
+describe('Update Strategies: live', () => {
     before(async () => {
         let {
             DAI,
             deployer,
+            oldStrategyCrv,
             T3CRV,
             timelock,
             treasury,
             USDC,
-            unirouter,
             user,
-            vault3crv,
-            WETH,
-            yvDAI
+            vault3crv
         } = await getNamedAccounts();
         await network.provider.request({
             method: 'hardhat_impersonateAccount',
@@ -38,10 +36,10 @@ describe('StrategyYearnV2: live', () => {
             method: 'hardhat_impersonateAccount',
             params: [user]
         });
-        const Manager = await deployments.get('yAxisMetaVaultManager');
         const Controller = await deployments.get('StrategyControllerV2');
         const Converter = await deployments.get('StableSwap3PoolConverter');
-        const Strategy = await ethers.getContractFactory('StrategyYearnV2', deployer);
+        const StrategyCurve = await deployments.get('StrategyCurve3Crv');
+        const StrategyYearn = await deployments.get('StrategyYearnV2-DAI');
         this.deployer = await ethers.provider.getSigner(deployer);
         this.timelock = await ethers.provider.getSigner(timelock);
         this.treasury = await ethers.provider.getSigner(treasury);
@@ -52,10 +50,19 @@ describe('StrategyYearnV2: live', () => {
             Controller.address,
             timelock
         );
+        this.strategyCurve = await ethers.getContractAt(
+            'StrategyCurve3Crv',
+            StrategyCurve.address
+        );
+        this.strategyYearn = await ethers.getContractAt(
+            'StrategyYearnV2',
+            StrategyYearn.address
+        );
         this.converter = Converter.address;
         this.t3crv = T3CRV;
         this.dai = DAI;
         this.usdc = USDC;
+        this.oldStrategyCrv = oldStrategyCrv;
         await this.user.sendTransaction({
             to: this.deployer._address,
             value: ether('10')
@@ -68,42 +75,49 @@ describe('StrategyYearnV2: live', () => {
             to: this.treasury._address,
             value: ether('10')
         });
-
-        this.strategy = await Strategy.deploy(
-            'YearnV2: DAI',
-            yvDAI,
-            DAI,
-            Converter.address,
-            this.controller.address,
-            Manager.address,
-            WETH,
-            unirouter
-        );
-        await this.strategy.deployed();
     });
 
-    it('should add the strategy to the controller', async () => {
+    it('should remove the old strategy', async () => {
+        await this.controller
+            .connect(this.treasury)
+            .removeStrategy(this.t3crv, this.oldStrategyCrv, 86400);
+        expect((await this.controller.strategies(this.t3crv)).length).to.be.equal(0);
+    });
+
+    it('should add the new strategies to the controller', async () => {
         await this.controller
             .connect(this.timelock)
             .addStrategy(
                 this.t3crv,
-                this.strategy.address,
-                ether('5000000'),
+                this.strategyCurve.address,
+                0,
+                ethers.constants.AddressZero,
+                true,
+                86400
+            );
+        expect((await this.controller.strategies(this.t3crv)).length).to.be.equal(1);
+        await this.controller
+            .connect(this.timelock)
+            .addStrategy(
+                this.t3crv,
+                this.strategyYearn.address,
+                ether('100000000'),
                 this.converter,
                 false,
-                84600
+                86400
             );
+        expect((await this.controller.strategies(this.t3crv)).length).to.be.equal(2);
     });
 
-    it('should earn to the new strategy', async () => {
+    it('should earn to the Yearn strategy', async () => {
+        expect(await this.strategyYearn.balanceOf()).to.be.equal(0);
         await this.vault.connect(this.deployer).earn();
-        const balance = await this.strategy.balanceOf();
-        expect(balance).to.be.above(1);
+        expect(await this.strategyCurve.balanceOf()).to.be.equal(0);
+        expect(await this.strategyYearn.balanceOf()).to.be.above(1);
     });
 
     it('should withdrawAll from strategy', async () => {
-        await this.controller.connect(this.treasury).withdrawAll(this.strategy.address);
-        const balance = await this.strategy.balanceOf();
-        expect(balance).to.be.equal(0);
+        await this.controller.connect(this.treasury).withdrawAll(this.strategyYearn.address);
+        expect(await this.strategyYearn.balanceOf()).to.be.equal(0);
     });
 });
