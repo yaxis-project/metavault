@@ -5,9 +5,10 @@ pragma solidity 0.6.12;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import "@openzeppelin/contracts/GSN/Context.sol";
+
+import "./VaultToken.sol";
 
 import "./interfaces/IManager.sol";
 import "./interfaces/IController.sol";
@@ -20,7 +21,7 @@ import "./interfaces/ExtendedIERC20.sol";
  * @notice The vault is where users deposit and withdraw
  * like-kind assets that have been added by governance.
  */
-contract Vault is ERC20, IVault {
+contract Vault is VaultToken, IVault {
     using Address for address;
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
@@ -48,7 +49,7 @@ contract Vault is ERC20, IVault {
         address _manager
     )
         public
-        ERC20(_name, _symbol)
+        VaultToken(_name, _symbol)
     {
         manager = IManager(_manager);
         min = 9500;

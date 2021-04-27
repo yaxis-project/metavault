@@ -41,7 +41,6 @@ describe('Vault', () => {
         await usdc.connect(user).approve(Vault.address, ethers.utils.parseEther('1000'));
         await usdt.connect(user).approve(Vault.address, ethers.utils.parseEther('1000'));
         await t3crv.connect(user).approve(Vault.address, ethers.utils.parseEther('1000'));
-        await vault.connect(user).approve(Vault.address, ethers.utils.parseEther('1000'));
     });
 
     it('should deploy with expected state', async () => {
