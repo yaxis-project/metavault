@@ -166,7 +166,9 @@ describe('Vault', () => {
             it('should deposit multiple tokens', async () => {
                 expect(await vault.balanceOf(user.address)).to.equal(0);
                 await expect(
-                    vault.connect(user).deposit([dai.address, usdc.address], [ether('1000'), '1000000000'])
+                    vault
+                        .connect(user)
+                        .deposit([dai.address, usdc.address], [ether('1000'), '1000000000'])
                 )
                     // Deposit is actually emitted multiple times
                     .to.emit(vault, 'Deposit')
@@ -179,10 +181,12 @@ describe('Vault', () => {
                 beforeEach(async () => {
                     expect(await vault.balanceOf(user.address)).to.equal(0);
                     await expect(
-                        vault.connect(user).deposit(
-                            [dai.address, usdc.address],
-                            [ether('1000'), '1000000000']
-                        )
+                        vault
+                            .connect(user)
+                            .deposit(
+                                [dai.address, usdc.address],
+                                [ether('1000'), '1000000000']
+                            )
                     )
                         .to.emit(vault, 'Deposit')
                         .withArgs(user.address, ether('2000'));
@@ -194,10 +198,12 @@ describe('Vault', () => {
                     await dai.connect(user).approve(vault.address, ether('1000'));
                     await usdc.connect(user).approve(vault.address, '1000000000');
                     await expect(
-                        vault.connect(user).deposit(
-                            [dai.address, usdc.address],
-                            [ether('1000'), '1000000000']
-                        )
+                        vault
+                            .connect(user)
+                            .deposit(
+                                [dai.address, usdc.address],
+                                [ether('1000'), '1000000000']
+                            )
                     )
                         .to.emit(vault, 'Deposit')
                         .withArgs(user.address, ether('2000'));
