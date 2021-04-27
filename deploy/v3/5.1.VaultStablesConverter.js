@@ -4,7 +4,6 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
     let { DAI, USDC, USDT, T3CRV, deployer, stableSwap3Pool } = await getNamedAccounts();
     const chainId = await getChainId();
     const Manager = await deployments.get('Manager');
-    const Vault = await deployments.get('VaultStables');
 
     if (chainId != '1') {
         const dai = await deployments.get('DAI');
@@ -19,7 +18,7 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
         stableSwap3Pool = mockStableSwap3Pool.address;
     }
 
-    const converter = await deploy('StableSwap3PoolConverter', {
+    const converter = await deploy('StablesConverter', {
         from: deployer,
         log: true,
         args: [DAI, USDC, USDT, T3CRV, stableSwap3Pool, Manager.address]
@@ -34,14 +33,6 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
                 'setAllowedConverter',
                 converter.address,
                 true
-            );
-
-            await execute(
-                'Controller',
-                { from: deployer, log: true },
-                'setConverter',
-                Vault.address,
-                converter.address
             );
         }
     }

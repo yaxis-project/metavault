@@ -1,6 +1,4 @@
 // SPDX-License-Identifier: MIT
-// solhint-disable func-name-mixedcase
-// solhint-disable var-name-mixedcase
 
 pragma solidity 0.6.12;
 
@@ -12,29 +10,21 @@ import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import "../interfaces/IConverter.sol";
 import "../interfaces/IManager.sol";
 import "../interfaces/ICurve3Pool.sol";
-import "../interfaces/IStablesOracle.sol";
 
 /**
  * @title StablesConverter
- * @notice The StablesConverter is used to convert funds on Curve's 3Pool.
- * It is backed by Chainlink's price feeds to be secure against attackers.
  */
 contract StablesConverter is IConverter {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
 
-    uint256 public constant ONE_HUNDRED_PERCENT = 10000;
-
-    IManager public immutable manager;
-    IStablesOracle public immutable oracle;
+    IManager public immutable override manager;
     ICurve3Pool public immutable stableSwap3Pool;
     IERC20 public immutable token3CRV; // 3Crv
 
-    uint256[3] public PRECISION_MUL = [1, 1e12, 1e12];
     IERC20[3] public tokens; // DAI, USDC, USDT
-    uint256 public minSlippage;
 
-    mapping(address => bool) public strategies;
+    mapping(address => int128) internal indices;
 
     /**
      * @param _tokenDAI The address of the DAI token
@@ -43,7 +33,6 @@ contract StablesConverter is IConverter {
      * @param _token3CRV The address of the 3CRV token
      * @param _stableSwap3Pool The address of 3Pool
      * @param _manager The address of the Vault Manager
-     * @param _oracle The address of the StableSwap3PoolOracle
      */
     constructor(
         IERC20 _tokenDAI,
@@ -51,12 +40,14 @@ contract StablesConverter is IConverter {
         IERC20 _tokenUSDT,
         IERC20 _token3CRV,
         ICurve3Pool _stableSwap3Pool,
-        IManager _manager,
-        IStablesOracle _oracle
+        IManager _manager
     ) public {
         tokens[0] = _tokenDAI;
         tokens[1] = _tokenUSDC;
         tokens[2] = _tokenUSDT;
+        indices[address(_tokenDAI)] = 0;
+        indices[address(_tokenUSDC)] = 1;
+        indices[address(_tokenUSDT)] = 2;
         token3CRV = _token3CRV;
         stableSwap3Pool = _stableSwap3Pool;
         tokens[0].safeApprove(address(_stableSwap3Pool), type(uint256).max);
@@ -64,27 +55,11 @@ contract StablesConverter is IConverter {
         tokens[2].safeApprove(address(_stableSwap3Pool), type(uint256).max);
         _token3CRV.safeApprove(address(_stableSwap3Pool), type(uint256).max);
         manager = _manager;
-        oracle = _oracle;
-        minSlippage = 100;
     }
 
     /**
      * STRATEGIST-ONLY FUNCTIONS
      */
-
-    /**
-     * @notice Called by the strategist to set the slippage allowed on the minimum tokens received
-     * @param _slippage The slippage percentage
-     */
-    function setMinSlippage(
-        uint256 _slippage
-    )
-        external
-        onlyStrategist
-    {
-        require(_slippage < ONE_HUNDRED_PERCENT, "!_slippage");
-        minSlippage = _slippage;
-    }
 
     /**
      * @notice Called by the strategist to approve a token address to be spent by an address
@@ -130,11 +105,13 @@ contract StablesConverter is IConverter {
      * @param _input The address of the token being converted
      * @param _output The address of the token to be converted to
      * @param _inputAmount The input amount of tokens that are being converted
+     * @param _estimatedOutput The estimated output tokens after converting
      */
     function convert(
         address _input,
         address _output,
-        uint256 _inputAmount
+        uint256 _inputAmount,
+        uint256 _estimatedOutput
     )
         external
         override
@@ -145,100 +122,40 @@ contract StablesConverter is IConverter {
             uint256[3] memory amounts;
             for (uint8 i = 0; i < 3; i++) {
                 if (_input == address(tokens[i])) {
-                    ( uint256 _min, uint256 _max ) = getExpected(_inputAmount.mul(PRECISION_MUL[i]));
                     amounts[i] = _inputAmount;
                     uint256 _before = token3CRV.balanceOf(address(this));
-                    stableSwap3Pool.add_liquidity(amounts, _min);
+                    stableSwap3Pool.add_liquidity(amounts, _estimatedOutput);
                     uint256 _after = token3CRV.balanceOf(address(this));
                     _outputAmount = _after.sub(_before);
-                    require(_outputAmount <= _max, ">_max");
                     token3CRV.safeTransfer(msg.sender, _outputAmount);
                     return _outputAmount;
                 }
             }
         } else if (_input == address(token3CRV)) { // convert from 3CRV
-            ( uint256 _min, uint256 _max ) = getExpected(_inputAmount);
             for (uint8 i = 0; i < 3; i++) {
                 if (_output == address(tokens[i])) {
                     uint256 _before = tokens[i].balanceOf(address(this));
-                    stableSwap3Pool.remove_liquidity_one_coin(_inputAmount, i, _min.div(PRECISION_MUL[i]));
+                    stableSwap3Pool.remove_liquidity_one_coin(
+                        _inputAmount,
+                        i,
+                        _estimatedOutput
+                    );
                     uint256 _after = tokens[i].balanceOf(address(this));
                     _outputAmount = _after.sub(_before);
-                    require(_outputAmount <= _max, ">_max");
                     tokens[i].safeTransfer(msg.sender, _outputAmount);
                     return _outputAmount;
                 }
             }
-        }
-        return 0;
-    }
-
-    /**
-     * @notice Converts stables of the 3Pool to 3CRV
-     * @dev 0: DAI, 1: USDC, 2: USDT
-     * @param amounts Array of token amounts
-     */
-    function convert_stables(
-        uint256[3] calldata amounts
-    )
-        external
-        override
-        onlyAuthorized
-        returns (uint256 _shareAmount)
-    {
-        uint256 _sum;
-        for (uint8 i; i < 3; i++) {
-            _sum = _sum.add(amounts[i].mul(PRECISION_MUL[i]));
-        }
-        ( uint256 _min, uint256 _max ) = getExpected(_sum);
-        uint256 _before = token3CRV.balanceOf(address(this));
-        stableSwap3Pool.add_liquidity(amounts, _min);
-        uint256 _after = token3CRV.balanceOf(address(this));
-        _shareAmount = _after.sub(_before);
-        require(_shareAmount <= _max, ">_max");
-        token3CRV.safeTransfer(msg.sender, _shareAmount);
-    }
-
-    /**
-     * VIEWS
-     */
-
-    /**
-     * @notice Checks the amount of 3CRV given for the amounts
-     * @dev 0: DAI, 1: USDC, 2: USDT
-     * @param amounts Array of token amounts
-     * @param deposit Flag for depositing LP tokens
-     */
-    function calc_token_amount(
-        uint256[3] calldata amounts,
-        bool deposit
-    )
-        external
-        override
-        view
-        returns (uint256 _shareAmount)
-    {
-        _shareAmount = stableSwap3Pool.calc_token_amount(amounts, deposit);
-    }
-
-    /**
-     * @notice Checks the amount of an output token given for 3CRV
-     * @param _shares The amount of 3CRV
-     * @param _output The address of the output token
-     */
-    function calc_token_amount_withdraw(
-        uint256 _shares,
-        address _output
-    )
-        external
-        override
-        view
-        returns (uint256)
-    {
-        for (uint8 i = 0; i < 3; i++) {
-            if (_output == address(tokens[i])) {
-                return stableSwap3Pool.calc_withdraw_one_coin(_shares, i);
-            }
+        } else {
+            stableSwap3Pool.exchange(
+                indices[_input],
+                indices[_output],
+                _inputAmount,
+                _estimatedOutput
+            );
+            _outputAmount = IERC20(_output).balanceOf(address(this));
+            IERC20(_output).safeTransfer(msg.sender, _outputAmount);
+            return _outputAmount;
         }
         return 0;
     }
@@ -249,7 +166,7 @@ contract StablesConverter is IConverter {
      * @param _output The address of the token to be converted to
      * @param _inputAmount The input amount of tokens that are being converted
      */
-    function convert_rate(
+    function expected(
         address _input,
         address _output,
         uint256 _inputAmount
@@ -275,43 +192,10 @@ contract StablesConverter is IConverter {
                     return stableSwap3Pool.calc_withdraw_one_coin(_inputAmount, i);
                 }
             }
+        } else {
+            return stableSwap3Pool.get_dy(indices[_input], indices[_output], _inputAmount);
         }
         return 0;
-    }
-
-    /**
-     * @notice Returns the expected amount of tokens for a given amount by querying
-     * the latest data from Chainlink
-     * @param _inputAmount The input amount of tokens that are being converted
-     */
-    function getExpected(
-        uint256 _inputAmount
-    )
-        public
-        view
-        returns (uint256 _min, uint256 _max)
-    {
-        ( _min, _max ) = oracle.getPrices();
-        uint256 _eth = oracle.getEthereumPrice();
-        _min = _inputAmount.mul(_eth).mul(_min).div(1e18).div(1e18);
-        uint256 _slippage = minSlippage;
-        if (_slippage > 0) {
-            _slippage = _min.mul(_slippage).div(ONE_HUNDRED_PERCENT);
-            _min = _min.sub(_slippage);
-        }
-        _max = _inputAmount.mul(_eth).mul(_max).div(1e18).div(1e18);
-    }
-
-    /**
-     * @notice Returns the address of the 3CRV token
-     */
-    function token()
-        external
-        view
-        override
-        returns (address)
-    {
-        return address(token3CRV);
     }
 
     /**

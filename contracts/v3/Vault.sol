@@ -40,12 +40,16 @@ contract Vault is ERC20, IVault {
     /**
      * @param _name The name of the vault token for depositors
      * @param _symbol The symbol of the vault token for depositors
+     * @param _manager The address of the vault manager contract
      */
     constructor(
         string memory _name,
         string memory _symbol,
         address _manager
-    ) public ERC20(_name, _symbol) {
+    )
+        public
+        ERC20(_name, _symbol)
+    {
         manager = IManager(_manager);
         min = 9500;
         totalDepositCap = 10000000 ether;
@@ -123,7 +127,6 @@ contract Vault is ERC20, IVault {
     )
         external
         override
-        checkContract
         checkVault
     {
         require(_tokens.length == _amounts.length, "!length");
@@ -169,7 +172,6 @@ contract Vault is ERC20, IVault {
     )
         public
         override
-        checkContract
         checkToken(_output)
     {
         uint256 _amount = (balance().mul(_shares)).div(totalSupply());
@@ -183,10 +185,6 @@ contract Vault is ERC20, IVault {
 
         uint256 _balance = IERC20(_output).balanceOf(address(this));
         if (_balance < _amount) {
-            uint256 _conversionFee = manager.conversionFee();
-            if (_conversionFee > 0) {
-                _amount = _amount.mul(_conversionFee).div(MAX);
-            }
             IController _controller = IController(manager.controllers(address(this)));
             uint256 _toWithdraw = _amount.sub(_balance);
             if (_controller.strategies() > 0) {
@@ -212,7 +210,6 @@ contract Vault is ERC20, IVault {
     )
         external
         override
-        checkContract
     {
         withdraw(balanceOf(msg.sender), _output);
     }
@@ -312,22 +309,6 @@ contract Vault is ERC20, IVault {
     /**
      * MODIFIERS
      */
-
-    /**
-     * @dev Throws if called by a contract and we are not allowing.
-     */
-    modifier checkContract() {
-        address _sender = msg.sender;
-        if (address(_sender).isContract()) {
-            bytes32 _hash;
-            // solhint-disable-next-line no-inline-assembly
-            assembly { _hash := extcodehash(_sender) }
-            require(manager.allowedContracts(_sender)
-                || manager.allowedCodeHash(_hash),
-                "!allowedContracts");
-        }
-        _;
-    }
 
     modifier checkToken(address _token) {
         require(_checkToken(_token), "!_token");

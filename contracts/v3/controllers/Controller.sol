@@ -21,7 +21,7 @@ contract Controller is IController {
     using SafeERC20 for IERC20;
     using SafeMath for uint256;
 
-    IManager public immutable manager;
+    IManager public immutable override manager;
 
     bool public globalInvestEnabled;
     uint256 public maxStrategies;
@@ -377,7 +377,8 @@ contract Controller is IController {
             if (_want != _token) {
                 IConverter _converter = IConverter(_vaultDetails[_vault].converter);
                 IERC20(_token).safeTransfer(address(_converter), _amount);
-                _amount = _converter.convert(_token, _want, _amount);
+                // TODO: do estimation for received
+                _amount = _converter.convert(_token, _want, _amount, 1);
                 IERC20(_want).safeTransfer(_strategy, _amount);
             } else {
                 IERC20(_token).safeTransfer(_strategy, _amount);
@@ -420,7 +421,9 @@ contract Controller is IController {
             updateBalance(msg.sender, _strategies[i]);
             address _want = IStrategy(_strategies[i]).want();
             if (_want != _token) {
-                IConverter(_vaultDetails[msg.sender].converter).convert(_want, _token, _amounts[i]);
+                // TODO: do estimation for received
+                IConverter(_vaultDetails[msg.sender].converter)
+                    .convert(_want, _token, _amounts[i], 1);
             }
         }
         _amount = IERC20(_token).balanceOf(address(this));

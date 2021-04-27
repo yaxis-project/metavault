@@ -8,15 +8,23 @@ const { setupTestV3 } = require('../helpers/setup');
 
 describe('Controller', () => {
     let deployer, treasury;
-    let manager, controller, vault, dai, strategyCrv;
+    let manager, controller, converter, vault, dai, strategyCrv;
 
     beforeEach(async () => {
         const config = await setupTestV3(['NativeStrategyCurve3Crv']);
         [deployer, treasury, ,] = await ethers.getSigners();
         manager = config.manager;
         controller = config.controller;
-        vault = config.stableVault;
         dai = config.dai;
+        converter = await deployments.get('StablesConverter');
+
+        const Vault = await deployments.deploy('Vault', {
+            from: deployer.address,
+            args: ['Vault: Stables', 'MV:S', manager.address]
+        });
+        vault = await ethers.getContractAt('Vault', Vault.address);
+
+        await manager.setAllowedVault(vault.address, true);
         await manager.setGovernance(treasury.address);
 
         const StrategyCrv = await deployments.get('NativeStrategyCurve3Crv');
@@ -34,6 +42,10 @@ describe('Controller', () => {
     });
 
     describe('addStrategy', () => {
+        beforeEach(async () => {
+            await controller.connect(deployer).setConverter(vault.address, converter.address);
+        });
+
         it('should revert if the strategy is not allowed', async () => {
             await expect(
                 controller.addStrategy(

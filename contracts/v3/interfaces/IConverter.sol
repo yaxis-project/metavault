@@ -1,30 +1,20 @@
 // SPDX-License-Identifier: MIT
-// solhint-disable func-name-mixedcase
-// solhint-disable var-name-mixedcase
 
 pragma solidity 0.6.12;
 
+import "./IManager.sol";
+
 interface IConverter {
-    function token() external view returns (address);
+    function manager() external view returns (IManager);
     function convert(
         address _input,
         address _output,
-        uint _inputAmount
-    ) external returns (uint _outputAmount);
-    function convert_rate(
+        uint256 _inputAmount,
+        uint256 _estimatedOutput
+    ) external returns (uint256 _outputAmount);
+    function expected(
         address _input,
         address _output,
-        uint _inputAmount
-    ) external view returns (uint _outputAmount);
-    function convert_stables(
-        uint[3] calldata amounts
-    ) external returns (uint _shareAmount); // 0: DAI, 1: USDC, 2: USDT
-    function calc_token_amount(
-        uint[3] calldata amounts,
-        bool deposit
-    ) external view returns (uint _shareAmount);
-    function calc_token_amount_withdraw(
-        uint _shares,
-        address _output
-    ) external view returns (uint _outputAmount);
+        uint256 _inputAmount
+    ) external view returns (uint256 _outputAmount);
 }

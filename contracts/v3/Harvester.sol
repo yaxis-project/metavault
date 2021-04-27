@@ -18,7 +18,7 @@ import "./interfaces/IManager.sol";
 contract Harvester is IHarvester {
     using SafeMath for uint256;
 
-    IManager public immutable manager;
+    IManager public immutable override manager;
     IController public immutable controller;
 
     struct Strategy {

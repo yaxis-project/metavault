@@ -2,12 +2,15 @@
 
 pragma solidity 0.6.12;
 
+import "./IManager.sol";
+
 interface IStrategy {
     function balanceOf() external view returns (uint256);
     function balanceOfPool() external view returns (uint256);
     function balanceOfWant() external view returns (uint256);
     function deposit() external;
     function harvest() external;
+    function manager() external view returns (IManager);
     function name() external view returns (string memory);
     function skim() external;
     function want() external view returns (address);

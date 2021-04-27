@@ -6,7 +6,13 @@ pragma solidity 0.6.12;
 import "@openzeppelin/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
+import "./interfaces/IController.sol";
+import "./interfaces/IConverter.sol";
+import "./interfaces/IHarvester.sol";
 import "./interfaces/IManager.sol";
+import "./interfaces/IStrategy.sol";
+import "./interfaces/IVault.sol";
+import "./interfaces/IVaultFactory.sol";
 
 /**
  * @title Manager
@@ -30,11 +36,8 @@ contract Manager is IManager {
     address public override pendingStrategist;
     address public override treasury;
 
-    /**
-     *  The following fees are all mutable.
-     *  They are updated by governance (community vote).
-     */
-    uint256 public override conversionFee;
+    // The following fees are all mutable.
+    // They are updated by governance (community vote).
     uint256 public override insuranceFee;
     uint256 public override insurancePoolFee;
     uint256 public override stakingPoolShareFee;
@@ -46,12 +49,11 @@ contract Manager is IManager {
 
     // Governance must first allow the following properties before
     // the strategist can make use of them
-    mapping(bytes32 => bool) public override allowedCodeHash;
-    mapping(address => bool) public override allowedContracts;
     mapping(address => bool) public override allowedControllers;
     mapping(address => bool) public override allowedConverters;
     mapping(address => bool) public override allowedStrategies;
     mapping(address => bool) public override allowedTokens;
+    mapping(address => bool) public override allowedVaultFactories;
     mapping(address => bool) public override allowedVaults;
 
     // vault => controller
@@ -61,14 +63,6 @@ contract Manager is IManager {
     // token => vault
     mapping(address => address) public override vaults;
 
-    event AllowedCodeHash(
-        bytes32 indexed _codeHash,
-        bool _allowed
-    );
-    event AllowedContract(
-        address indexed _contract,
-        bool _allowed
-    );
     event AllowedController(
         address indexed _controller,
         bool _allowed
@@ -89,8 +83,22 @@ contract Manager is IManager {
         address indexed _vault,
         bool _allowed
     );
+    event AllowedVaultFactory(
+        address indexed _vaultFactory,
+        bool _allowed
+    );
+    event SetController(
+        address indexed _vault,
+        address indexed _controller
+    );
     event SetGovernance(
         address indexed _governance
+    );
+    event SetPendingStrategist(
+        address indexed _strategist
+    );
+    event SetStrategist(
+        address indexed _strategist
     );
     event TokenAdded(
         address indexed _vault,
@@ -113,7 +121,6 @@ contract Manager is IManager {
         governance = msg.sender;
         strategist = msg.sender;
         harvester = msg.sender;
-        conversionFee = 200;
         stakingPoolShareFee = 2000;
         treasuryBalance = 20000e18;
         treasuryFee = 500;
@@ -131,6 +138,7 @@ contract Manager is IManager {
         external
         onlyGovernance
     {
+        require(address(IController(_controller).manager()) == address(this), "!manager");
         allowedControllers[_controller] = _allowed;
         emit AllowedController(_controller, _allowed);
     }
@@ -142,6 +150,7 @@ contract Manager is IManager {
         external
         onlyGovernance
     {
+        require(address(IConverter(_converter).manager()) == address(this), "!manager");
         allowedConverters[_converter] = _allowed;
         emit AllowedConverter(_converter, _allowed);
     }
@@ -153,6 +162,7 @@ contract Manager is IManager {
         external
         onlyGovernance
     {
+        require(address(IStrategy(_strategy).manager()) == address(this), "!manager");
         allowedStrategies[_strategy] = _allowed;
         emit AllowedStrategy(_strategy, _allowed);
     }
@@ -168,28 +178,6 @@ contract Manager is IManager {
         emit AllowedToken(_token, _allowed);
     }
 
-    function setAllowedCodeHash(
-        bytes32 _hash,
-        bool _allowed
-    )
-        external
-        onlyGovernance
-    {
-        allowedCodeHash[_hash] = _allowed;
-        emit AllowedCodeHash(_hash, _allowed);
-    }
-
-    function setAllowedContract(
-        address _contract,
-        bool _allowed
-    )
-        external
-        onlyGovernance
-    {
-        allowedContracts[_contract] = _allowed;
-        emit AllowedContract(_contract, _allowed);
-    }
-
     function setAllowedVault(
         address _vault,
         bool _allowed
@@ -197,18 +185,21 @@ contract Manager is IManager {
         external
         onlyGovernance
     {
+        require(address(IVault(_vault).manager()) == address(this), "!manager");
         allowedVaults[_vault] = _allowed;
         emit AllowedVault(_vault, _allowed);
     }
 
-    function setConversionFee(
-        uint256 _conversionFee
+    function setAllowedVaultFactory(
+        address _vaultFactory,
+        bool _allowed
     )
         external
         onlyGovernance
     {
-        require(_conversionFee <= 2000, "_conversionFee over 20%");
-        conversionFee = _conversionFee;
+        require(address(IVaultFactory(_vaultFactory).manager()) == address(this), "!manager");
+        allowedVaults[_vaultFactory] = _allowed;
+        emit AllowedVaultFactory(_vaultFactory, _allowed);
     }
 
     /**
@@ -235,6 +226,7 @@ contract Manager is IManager {
         external
         onlyGovernance
     {
+        require(address(IHarvester(_harvester).manager()) == address(this), "!manager");
         harvester = _harvester;
     }
 
@@ -323,6 +315,7 @@ contract Manager is IManager {
         pendingStrategist = _strategist;
         // solhint-disable-next-line not-rely-on-time
         setPendingStrategistTime = block.timestamp;
+        emit SetPendingStrategist(_strategist);
     }
 
     /**
@@ -396,6 +389,7 @@ contract Manager is IManager {
         delete pendingStrategist;
         delete setPendingStrategistTime;
         strategist = msg.sender;
+        emit SetStrategist(msg.sender);
     }
 
     function addToken(
@@ -471,6 +465,7 @@ contract Manager is IManager {
         require(allowedVaults[_vault], "!_vault");
         require(allowedControllers[_controller], "!_controller");
         controllers[_vault] = _controller;
+        emit SetController(_vault, _controller);
     }
 
     /**

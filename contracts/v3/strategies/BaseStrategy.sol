@@ -39,7 +39,7 @@ abstract contract BaseStrategy is IStrategy {
     address public immutable override want;
     address public immutable weth;
     address public immutable controller;
-    IManager public immutable manager;
+    IManager public immutable override manager;
     string public override name;
     ISwap public router;
 

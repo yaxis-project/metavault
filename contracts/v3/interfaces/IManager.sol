@@ -4,15 +4,13 @@ pragma solidity 0.6.12;
 
 interface IManager {
     function addToken(address, address) external;
-    function allowedCodeHash(bytes32) external view returns (bool);
-    function allowedContracts(address) external view returns (bool);
     function allowedControllers(address) external view returns (bool);
     function allowedConverters(address) external view returns (bool);
     function allowedStrategies(address) external view returns (bool);
     function allowedTokens(address) external view returns (bool);
     function allowedVaults(address) external view returns (bool);
+    function allowedVaultFactories(address) external view returns (bool);
     function controllers(address) external view returns (address);
-    function conversionFee() external view returns (uint256);
     function getHarvestFeeInfo() external view returns (address, address, uint256, address, uint256, address, uint256);
     function getTokens(address) external view returns (address[] memory);
     function governance() external view returns (address);
