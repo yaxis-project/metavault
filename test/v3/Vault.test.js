@@ -6,22 +6,28 @@ const hardhat = require('hardhat');
 const { deployments, ethers } = hardhat;
 const { parseEther } = ethers.utils;
 const ether = parseEther;
-const { setupTestV3 } = require('../helpers/setup');
 
 describe('Vault', () => {
     let deployer, treasury, user;
     let dai, t3crv, usdc, usdt, vault, manager, controller, harvester, depositor;
 
     beforeEach(async () => {
-        const config = await setupTestV3();
+        await deployments.fixture('v3');
         [deployer, treasury, , user] = await ethers.getSigners();
-        dai = config.dai;
-        usdc = config.usdc;
-        usdt = config.usdt;
-        t3crv = config.t3crv;
-        manager = config.manager;
-        controller = config.controller;
-        harvester = config.harvester;
+        const DAI = await deployments.get('DAI');
+        dai = await ethers.getContractAt('MockERC20', DAI.address);
+        const USDC = await deployments.get('USDC');
+        usdc = await ethers.getContractAt('MockERC20', USDC.address);
+        const USDT = await deployments.get('USDT');
+        usdt = await ethers.getContractAt('MockERC20', USDT.address);
+        const T3CRV = await deployments.get('T3CRV');
+        t3crv = await ethers.getContractAt('MockERC20', T3CRV.address);
+        const Manager = await deployments.get('Manager');
+        manager = await ethers.getContractAt('Manager', Manager.address);
+        const Harvester = await deployments.get('Harvester');
+        harvester = await ethers.getContractAt('Harvester', Harvester.address);
+        const Controller = await deployments.get('Controller');
+        controller = await ethers.getContractAt('Controller', Controller.address);
 
         const Vault = await deployments.deploy('Vault', {
             from: deployer.address,
@@ -37,6 +43,9 @@ describe('Vault', () => {
 
         await manager.setAllowedVault(vault.address, true);
         await manager.setGovernance(treasury.address);
+        await dai.connect(user).faucet(ethers.utils.parseEther('100000001'));
+        await usdc.connect(user).faucet('100000000000000');
+        await usdt.connect(user).faucet('100000000000000');
         await dai.connect(user).approve(Vault.address, ethers.utils.parseEther('1000'));
         await usdc.connect(user).approve(Vault.address, ethers.utils.parseEther('1000'));
         await usdt.connect(user).approve(Vault.address, ethers.utils.parseEther('1000'));

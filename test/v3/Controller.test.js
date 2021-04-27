@@ -4,18 +4,20 @@ const { solidity } = require('ethereum-waffle');
 chai.use(solidity);
 const hardhat = require('hardhat');
 const { deployments, ethers } = hardhat;
-const { setupTestV3 } = require('../helpers/setup');
 
 describe('Controller', () => {
     let deployer, treasury;
     let manager, controller, converter, vault, dai, strategyCrv;
 
     beforeEach(async () => {
-        const config = await setupTestV3(['NativeStrategyCurve3Crv']);
-        [deployer, treasury, ,] = await ethers.getSigners();
-        manager = config.manager;
-        controller = config.controller;
-        dai = config.dai;
+        await deployments.fixture(['v3', 'NativeStrategyCurve3Crv']);
+        [deployer, treasury] = await ethers.getSigners();
+        const Manager = await deployments.get('Manager');
+        manager = await ethers.getContractAt('Manager', Manager.address);
+        const Controller = await deployments.get('Controller');
+        controller = await ethers.getContractAt('Controller', Controller.address);
+        const DAI = await deployments.get('DAI');
+        dai = await ethers.getContractAt('MockERC20', DAI.address);
         converter = await deployments.get('StablesConverter');
 
         const Vault = await deployments.deploy('Vault', {
