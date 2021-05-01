@@ -97,17 +97,21 @@ contract Vault is VaultToken, IVault {
     /**
      * @notice Sends accrued 3CRV tokens on the metavault to the controller to be deposited to strategies
      */
-    function earn(address _token)
-        public
+    function earn(
+        address _token,
+        address _strategy
+    )
+        external
         override
         onlyHarvester
         checkToken(_token)
     {
+        require(manager.allowedStrategies(_strategy), "!_strategy");
         IController _controller = IController(manager.controllers(address(this)));
         if (_controller.investEnabled()) {
             uint256 _balance = available(_token);
             IERC20(_token).safeTransfer(address(_controller), _balance);
-            _controller.earn(_token, _balance);
+            _controller.earn(_strategy, _token, _balance);
             emit Earn(_token, _balance);
         }
     }

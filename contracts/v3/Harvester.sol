@@ -151,13 +151,14 @@ contract Harvester is IHarvester {
      */
 
     function earn(
+        address _strategy,
         IVault _vault,
         address _token
     )
         external
         onlyHarvester
     {
-        _vault.earn(_token);
+        _vault.earn(_token, _strategy);
     }
 
     /**

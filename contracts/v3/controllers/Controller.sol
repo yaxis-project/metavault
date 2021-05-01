@@ -357,10 +357,12 @@ contract Controller is IController {
 
     /**
      * @notice Invests funds into a strategy
+     * @param _strategy The address of the strategy
      * @param _token The address of the token
      * @param _amount The amount that will be invested
      */
     function earn(
+        address _strategy,
         address _token,
         uint256 _amount
     )
@@ -368,27 +370,22 @@ contract Controller is IController {
         override
         onlyVault(_token)
     {
-        // get the first strategy that will accept the deposit
-        address _strategy = getBestStrategyEarn(msg.sender, _amount);
-        if (_strategy != address(0)) {
-            address _vault = manager.vaults(_token);
-            // get the want token of the strategy
-            address _want = IStrategy(_strategy).want();
-            if (_want != _token) {
-                IConverter _converter = IConverter(_vaultDetails[_vault].converter);
-                IERC20(_token).safeTransfer(address(_converter), _amount);
-                // TODO: do estimation for received
-                _amount = _converter.convert(_token, _want, _amount, 1);
-                IERC20(_want).safeTransfer(_strategy, _amount);
-            } else {
-                IERC20(_token).safeTransfer(_strategy, _amount);
-            }
-            _vaultDetails[_vault].balance = _vaultDetails[_vault].balance.add(_amount);
-            // call the strategy deposit function
-            IStrategy(_strategy).deposit();
-            updateBalance(msg.sender, _strategy);
-            emit Earn(_token, _strategy);
+        // get the want token of the strategy
+        address _want = IStrategy(_strategy).want();
+        if (_want != _token) {
+            IConverter _converter = IConverter(_vaultDetails[msg.sender].converter);
+            IERC20(_token).safeTransfer(address(_converter), _amount);
+            // TODO: do estimation for received
+            _amount = _converter.convert(_token, _want, _amount, 1);
+            IERC20(_want).safeTransfer(_strategy, _amount);
+        } else {
+            IERC20(_token).safeTransfer(_strategy, _amount);
         }
+        _vaultDetails[msg.sender].balance = _vaultDetails[msg.sender].balance.add(_amount);
+        // call the strategy deposit function
+        IStrategy(_strategy).deposit();
+        updateBalance(msg.sender, _strategy);
+        emit Earn(_token, _strategy);
     }
 
     /**
@@ -507,38 +504,6 @@ contract Controller is IController {
     /**
      * INTERNAL FUNCTIONS
      */
-
-    /**
-     * @notice Returns the best (optimistic) strategy for funds to be sent to with earn
-     * @param _vault The address of the vault
-     * @param _amount The amount that will be invested
-     */
-    function getBestStrategyEarn(
-        address _vault,
-        uint256 _amount
-    )
-        internal
-        view
-        returns (address _strategy)
-    {
-        uint256 k = _vaultDetails[_vault].strategies.length;
-        if (k > 0) {
-            // scan backwards from the index to the beginning of strategies
-            for (uint i = k; i > 0; i--) {
-                _strategy = _vaultDetails[_vault].strategies[i - 1];
-                // get the new balance if the _amount were added to the strategy
-                uint256 _balance = _vaultDetails[_vault].balances[_strategy].add(_amount);
-                uint256 _cap = _vaultDetails[_vault].caps[_strategy];
-                // stop scanning if the deposit wouldn't go over the cap
-                if (_balance <= _cap || _cap == 0) {
-                    break;
-                }
-            }
-            // if never broken from the loop, use the last scanned strategy
-            // this could cause it to go over cap if (for some reason) no strategies
-            // were added with 0 cap
-        }
-    }
 
     /**
      * @notice Returns the best (optimistic) strategy for funds to be withdrawn from
