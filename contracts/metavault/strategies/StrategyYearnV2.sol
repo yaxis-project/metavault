@@ -62,6 +62,7 @@ contract StrategyYearnV2 is BaseStrategy {
     function _withdraw(uint256 _amount) internal override {
         IYearnV2Vault vaultToken = IYearnV2Vault(yvToken);
         _amount = _amount.mul(1e18).div(vaultToken.pricePerShare());
+        _amount = converter.convert_rate(_vaultWant(), want, _amount);
         vaultToken.withdraw(_amount);
         _amount = balanceOfWant();
         if (_amount > 0) {
