@@ -43,13 +43,13 @@ describe('Vault', () => {
 
         await manager.setAllowedVault(vault.address, true);
         await manager.setGovernance(treasury.address);
-        await dai.connect(user).faucet(ethers.utils.parseEther('100000001'));
+        await dai.connect(user).faucet(ether('100000001'));
         await usdc.connect(user).faucet('100000000000000');
         await usdt.connect(user).faucet('100000000000000');
-        await dai.connect(user).approve(Vault.address, ethers.utils.parseEther('1000'));
-        await usdc.connect(user).approve(Vault.address, ethers.utils.parseEther('1000'));
-        await usdt.connect(user).approve(Vault.address, ethers.utils.parseEther('1000'));
-        await t3crv.connect(user).approve(Vault.address, ethers.utils.parseEther('1000'));
+        await dai.connect(user).approve(Vault.address, ethers.constants.MaxUint256);
+        await usdc.connect(user).approve(Vault.address, ethers.constants.MaxUint256);
+        await usdt.connect(user).approve(Vault.address, ethers.constants.MaxUint256);
+        await t3crv.connect(user).approve(Vault.address, ethers.constants.MaxUint256);
     });
 
     it('should deploy with expected state', async () => {
@@ -92,13 +92,21 @@ describe('Vault', () => {
     describe('earn', () => {
         it('should revert when called by an address other than the harvester', async () => {
             await expect(
-                vault.connect(user).earn(ethers.constants.AddressZero)
+                vault
+                    .connect(user)
+                    .earn(ethers.constants.AddressZero, ethers.constants.AddressZero)
             ).to.be.revertedWith('!harvester');
         });
 
         it('should revert when the token is not added', async () => {
             await expect(
-                harvester.connect(deployer).earn(vault.address, ethers.constants.AddressZero)
+                harvester
+                    .connect(deployer)
+                    .earn(
+                        ethers.constants.AddressZero,
+                        vault.address,
+                        ethers.constants.AddressZero
+                    )
             ).to.be.revertedWith('!_token');
         });
     });
@@ -141,16 +149,13 @@ describe('Vault', () => {
             });
 
             it('should revert if the deposit amount is greater than the total deposit cap', async () => {
-                await dai.connect(user).approve(vault.address, ether('100000001'));
-                await expect(
-                    vault.connect(user).deposit([dai.address], [ether('100000001')])
-                ).to.be.revertedWith('>totalDepositCap');
+                await expect(vault.connect(user).deposit([dai.address], [ether('10000001')]))
+                    .to.be.reverted;
             });
 
             it('should revert if the input lengths do not match', async () => {
-                await dai.connect(user).approve(vault.address, ether('100000000'));
                 await expect(
-                    vault.connect(user).deposit([dai.address], [ether('100000000'), 1])
+                    vault.connect(user).deposit([dai.address], [ether('1000'), 1])
                 ).to.be.revertedWith('!length');
             });
 
@@ -195,8 +200,6 @@ describe('Vault', () => {
                 });
 
                 it('should grant additional shares', async () => {
-                    await dai.connect(user).approve(vault.address, ether('1000'));
-                    await usdc.connect(user).approve(vault.address, '1000000000');
                     await expect(
                         vault
                             .connect(user)

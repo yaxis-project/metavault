@@ -7,6 +7,7 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 
 import "../interfaces/IController.sol";
+import "../interfaces/IConverter.sol";
 import "../interfaces/ILegacyVault.sol";
 import "../interfaces/IManager.sol";
 import "../interfaces/IVault.sol";
@@ -19,11 +20,15 @@ contract LegacyController {
 
     IManager public immutable manager;
     IERC20 public immutable token;
-    IVault public immutable vault;
     address public immutable metavault;
+
+    IVault public vault;
+    IConverter public converter;
 
     address[] public tokens;
     uint256[] public amounts;
+
+    event Earn();
 
     /**
      * @param _manager The vault manager contract
@@ -38,12 +43,29 @@ contract LegacyController {
         manager = IManager(_manager);
         metavault = _metavault;
         address _token = ILegacyVault(_metavault).want();
-        address _vault = IManager(_manager).vaults(_token);
         token = IERC20(_token);
+    }
+
+    function setVault(
+        address _vault
+    )
+        external
+        onlyStrategist
+    {
+        if (address(vault) != address(0)) {
+            vault.withdrawAll(address(token));
+            token.safeTransfer(metavault, token.balanceOf(address(this)));
+        }
         vault = IVault(_vault);
-        tokens.push(_token);
-        IERC20(_token).safeApprove(_vault, type(uint256).max);
-        IERC20(_vault).safeApprove(_vault, type(uint256).max);
+    }
+
+    function setConverter(
+        address _converter
+    )
+        external
+        onlyStrategist
+    {
+        converter = IConverter(_converter);
     }
 
     function balanceOf(
@@ -88,25 +110,55 @@ contract LegacyController {
         uint256 _amount
     )
         external
+        onlyEnabledVault
         onlyMetaVault
     {
         vault.withdraw(_amount, _token);
     }
 
     function earn(
-        address _token,
-        uint256 _amount
+        address,
+        uint256
     )
         external
-        onlyMetaVault
-        onlyToken(_token)
     {
-        amounts[0] = _amount;
+        emit Earn();
+    }
+
+    function convertAndDeposit(
+        address _toToken,
+        uint256 _expected
+    )
+        external
+        onlyHarvester
+    {
+        uint256 _amount = token.balanceOf(address(this));
+        token.safeTransfer(address(converter), _amount);
+        converter.convert(address(token), _toToken, _amount, _expected);
+        IERC20(_toToken).safeApprove(address(vault), 0);
+        IERC20(_toToken).safeApprove(address(vault), type(uint256).max);
+        tokens[0] = _toToken;
+        amounts[0] = IERC20(_toToken).balanceOf(address(this));
         vault.deposit(tokens, amounts);
+    }
+
+    modifier onlyEnabledVault() {
+        require(address(vault) != address(0), "!vault");
+        _;
+    }
+
+    modifier onlyHarvester() {
+        require(msg.sender == manager.harvester(), "!harvester");
+        _;
     }
 
     modifier onlyMetaVault() {
         require(msg.sender == metavault, "!metavault");
+        _;
+    }
+
+    modifier onlyStrategist() {
+        require(msg.sender == manager.strategist(), "!strategist");
         _;
     }
 

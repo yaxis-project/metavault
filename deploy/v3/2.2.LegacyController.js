@@ -1,5 +1,5 @@
 module.exports = async ({ getChainId, getNamedAccounts, deployments }) => {
-    const { deploy } = deployments;
+    const { deploy, execute } = deployments;
     const chainId = await getChainId();
     let { deployer, vault3crv } = await getNamedAccounts();
     const Manager = await deployments.get('Manager');
@@ -10,7 +10,7 @@ module.exports = async ({ getChainId, getNamedAccounts, deployments }) => {
         const usdc = await deployments.get('USDC');
         const usdt = await deployments.get('USDT');
         const t3crv = await deployments.get('T3CRV');
-        const MetaVault = await deploy('yAxisMetaVault', {
+        const MetaVault = await deploy('MetaVault', {
             from: deployer,
             log: true,
             args: [
@@ -24,6 +24,14 @@ module.exports = async ({ getChainId, getNamedAccounts, deployments }) => {
             ]
         });
         vault3crv = MetaVault.address;
+
+        const NonConverter = await deploy('MetaVaultNonConverter', {
+            from: deployer,
+            log: true,
+            args: [t3crv.address, Manager.address]
+        });
+
+        await execute('MetaVault', { from: deployer }, 'setConverter', NonConverter.address);
     }
 
     await deploy('LegacyController', {
