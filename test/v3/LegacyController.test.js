@@ -8,27 +8,12 @@ const { parseEther } = ethers.utils;
 const ether = parseEther;
 
 describe('LegacyController', () => {
-    let deployer, treasury, user;
-    let dai,
-        t3crv,
-        usdc,
-        usdt,
-        vault,
-        manager,
-        metavault,
-        converter,
-        legacyController,
-        harvester;
+    let deployer, user;
+    let t3crv, vault, manager, metavault, controller, converter, legacyController, harvester;
 
     beforeEach(async () => {
         await deployments.fixture('v3');
-        [deployer, treasury, , user] = await ethers.getSigners();
-        const DAI = await deployments.get('DAI');
-        dai = await ethers.getContractAt('MockERC20', DAI.address);
-        const USDC = await deployments.get('USDC');
-        usdc = await ethers.getContractAt('MockERC20', USDC.address);
-        const USDT = await deployments.get('USDT');
-        usdt = await ethers.getContractAt('MockERC20', USDT.address);
+        [deployer, , , user] = await ethers.getSigners();
         const T3CRV = await deployments.get('T3CRV');
         t3crv = await ethers.getContractAt('MockERC20', T3CRV.address);
         const Manager = await deployments.get('Manager');
@@ -48,25 +33,25 @@ describe('LegacyController', () => {
         const MetaVault = await deployments.get('MetaVault');
         metavault = await ethers.getContractAt('MetaVault', MetaVault.address);
 
+        const Controller = await deployments.get('Controller');
+        controller = await ethers.getContractAt('Controller', Controller.address);
+
         const Vault = await deployments.deploy('Vault', {
             from: deployer.address,
             args: ['Vault: Stables', 'MV:S', manager.address]
         });
         vault = await ethers.getContractAt('Vault', Vault.address);
 
-        await manager.setAllowedVault(vault.address, true);
-        await manager.setGovernance(treasury.address);
-        await dai.connect(user).faucet(ethers.utils.parseEther('100000001'));
-        await usdc.connect(user).faucet('100000000000000');
-        await usdt.connect(user).faucet('100000000000000');
-        await dai.connect(user).approve(Vault.address, ethers.utils.parseEther('1000'));
-        await usdc.connect(user).approve(Vault.address, ethers.utils.parseEther('1000'));
-        await usdt.connect(user).approve(Vault.address, ethers.utils.parseEther('1000'));
-        await t3crv.connect(user).approve(Vault.address, ethers.utils.parseEther('1000'));
+        await manager.connect(deployer).setAllowedVault(vault.address, true);
+        await manager.connect(deployer).setHarvester(harvester.address);
+        await manager.connect(deployer).setController(vault.address, controller.address);
+        await t3crv.connect(user).faucet(ether('100000'));
+        await t3crv.connect(user).approve(metavault.address, ethers.constants.MaxUint256);
+        await metavault.connect(deployer).setController(legacyController.address);
     });
 
     describe('setVault', () => {
-        it('should revert if not called by the strategist', async () => {
+        it('should revert if called by an address other than the strategist', async () => {
             await expect(
                 legacyController.connect(user).setVault(vault.address)
             ).to.be.revertedWith('!strategist');
@@ -80,7 +65,7 @@ describe('LegacyController', () => {
     });
 
     describe('setConverter', () => {
-        it('should revert if not called by the strategist', async () => {
+        it('should revert if called by an address other than the strategist', async () => {
             await expect(
                 legacyController.connect(user).setConverter(converter.address)
             ).to.be.revertedWith('!strategist');
@@ -92,6 +77,72 @@ describe('LegacyController', () => {
             );
             await legacyController.connect(deployer).setConverter(converter.address);
             expect(await legacyController.converter()).to.be.equal(converter.address);
+        });
+    });
+
+    describe('setInvestEnabled', () => {
+        it('should revert if called by an address other than the strategist', async () => {
+            await expect(
+                legacyController.connect(user).setInvestEnabled(true)
+            ).to.be.revertedWith('!strategist');
+        });
+
+        it('should set investEnabled if called by the strategist', async () => {
+            expect(await legacyController.investEnabled()).to.be.equal(false);
+            await legacyController.connect(deployer).setInvestEnabled(true);
+            expect(await legacyController.investEnabled()).to.be.equal(true);
+        });
+    });
+
+    describe('withdrawFee', () => {
+        it('should return the value from the manager', async () => {
+            expect(
+                await legacyController.withdrawFee(t3crv.address, ether('1000'))
+            ).to.be.equal(ether('1'));
+        });
+
+        it('should revert if given token is not 3CRV', async () => {
+            await expect(
+                legacyController.withdrawFee(ethers.constants.AddressZero, 1)
+            ).to.be.revertedWith('!_token');
+        });
+    });
+
+    describe('earn', () => {
+        beforeEach(async () => {
+            await legacyController.connect(deployer).setConverter(converter.address);
+            await legacyController.connect(deployer).setVault(vault.address);
+            await legacyController.connect(deployer).setInvestEnabled(true);
+        });
+
+        it('should revert if called by an address other than the metavault', async () => {
+            await expect(
+                legacyController.connect(user).earn(ethers.constants.AddressZero, 0)
+            ).to.be.revertedWith('!metavault');
+        });
+
+        it('should be called on deposit to metavault', async () => {
+            await expect(
+                metavault.connect(user).deposit(ether('1000'), t3crv.address, 1, false)
+            ).to.emit(legacyController, 'Earn');
+            expect(await legacyController.balanceOf(t3crv.address)).to.be.equal(ether('950'));
+        });
+    });
+
+    describe('withdraw', () => {
+        beforeEach(async () => {
+            await legacyController.connect(deployer).setConverter(converter.address);
+            await legacyController.connect(deployer).setVault(vault.address);
+            await legacyController.connect(deployer).setInvestEnabled(true);
+            await metavault.connect(user).deposit(ether('1000'), t3crv.address, 1, false);
+        });
+
+        it('should withdraw the balance from the legacy controller if possible', async () => {
+            expect(await t3crv.balanceOf(user.address)).to.be.equal(ether('99000'));
+            await expect(
+                metavault.connect(user).withdraw(ether('1000'), t3crv.address)
+            ).to.emit(legacyController, 'Withdraw');
+            expect(await t3crv.balanceOf(user.address)).to.be.equal(ether('100000'));
         });
     });
 });

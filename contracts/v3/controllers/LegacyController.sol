@@ -22,13 +22,15 @@ contract LegacyController {
     IERC20 public immutable token;
     address public immutable metavault;
 
+    bool public investEnabled;
     IVault public vault;
     IConverter public converter;
 
     address[] public tokens;
     uint256[] public amounts;
 
-    event Earn();
+    event Earn(uint256 amount);
+    event Withdraw(uint256 amount);
 
     /**
      * @param _manager The vault manager contract
@@ -68,6 +70,26 @@ contract LegacyController {
         converter = IConverter(_converter);
     }
 
+    function setInvestEnabled(
+        bool _investEnabled
+    )
+        external
+        onlyStrategist
+    {
+        investEnabled = _investEnabled;
+    }
+
+    function recoverUnsupportedToken(
+        address _token,
+        address _receiver
+    )
+        external
+        onlyStrategist
+    {
+        require(_token != address(token), "!_token");
+        IERC20(_token).safeTransfer(_receiver, IERC20(_token).balanceOf(address(this)));
+    }
+
     function balanceOf(
         address _token
     )
@@ -88,21 +110,7 @@ contract LegacyController {
         onlyToken(_token)
         returns (uint256)
     {
-        uint256 _withdrawalProtectionFee = manager.withdrawalProtectionFee();
-        if (_withdrawalProtectionFee > 0) {
-            uint256 _withdrawalProtection = _amount.mul(_withdrawalProtectionFee).div(MAX);
-            return _amount.sub(_withdrawalProtection);
-        }
-        return 0;
-    }
-
-    function investEnabled()
-        external
-        view
-        returns (bool)
-    {
-        IController _controller = IController(manager.controllers(address(vault)));
-        return _controller.investEnabled();
+        return manager.withdrawalProtectionFee().mul(_amount).div(MAX);
     }
 
     function withdraw(
@@ -112,17 +120,55 @@ contract LegacyController {
         external
         onlyEnabledVault
         onlyMetaVault
+        onlyToken(_token)
     {
-        vault.withdraw(_amount, _token);
+        uint256 _balance = token.balanceOf(address(this));
+        // happy path exits without calling back to the vault
+        if (_balance <= _amount) {
+            token.safeTransfer(metavault, _amount);
+        } else {
+            // convert to vault shares
+            address[] memory _tokens = vault.getTokens();
+            require(_tokens.length > 0, "!_tokens");
+            bool _exit;
+            uint256 _expected;
+            uint256 _shares;
+            for (uint8 i; i < _tokens.length; i++) {
+                // convert the amount of 3CRV to the expected amount of stablecoin
+                _expected = converter.expected(address(token), _tokens[i], _amount);
+                _shares = _expected.mul(1e18).div(vault.getPricePerFullShare());
+                // another happy path is if the vault has enough balance of the token
+                if (IERC20(_tokens[i]).balanceOf(address(vault)) >= _expected) {
+                    vault.withdraw(_shares, _tokens[i]);
+                    _balance = IERC20(_tokens[i]).balanceOf(address(this));
+                    IERC20(_tokens[i]).safeTransfer(address(converter), _balance);
+                    converter.convert(_tokens[i], address(token), _balance, 1);
+                    _exit = true;
+                    break;
+                }
+            }
+            // worst-case scenario nothing had enough balance so we'll have to do an
+            // expensive withdraw from a strategy using the last token of the vault
+            if (!_exit) {
+                _token = _tokens[_tokens.length - 1];
+                vault.withdraw(_shares, _token);
+                _balance = IERC20(_token).balanceOf(address(this));
+                IERC20(_token).safeTransfer(address(converter), _balance);
+                converter.convert(_token, address(token), _balance, 1);
+            }
+            token.safeTransfer(metavault, _amount);
+        }
+        emit Withdraw(_amount);
     }
 
     function earn(
         address,
-        uint256
+        uint256 _amount
     )
         external
+        onlyMetaVault
     {
-        emit Earn();
+        emit Earn(_amount);
     }
 
     function convertAndDeposit(
@@ -130,6 +176,7 @@ contract LegacyController {
         uint256 _expected
     )
         external
+        onlyEnabledConverter
         onlyHarvester
     {
         uint256 _amount = token.balanceOf(address(this));
@@ -140,6 +187,11 @@ contract LegacyController {
         tokens[0] = _toToken;
         amounts[0] = IERC20(_toToken).balanceOf(address(this));
         vault.deposit(tokens, amounts);
+    }
+
+    modifier onlyEnabledConverter() {
+        require(address(converter) != address(0), "!converter");
+        _;
     }
 
     modifier onlyEnabledVault() {
