@@ -120,49 +120,57 @@ contract Vault is VaultToken, IVault {
      * USER-FACING FUNCTIONS
      */
 
-    /**
-     * @notice Deposits multiple tokens simultaneously to the vault
-     * @dev Users must approve the vault to spend their stablecoin
-     * @param _tokens The addresses of each token being deposited
-     * @param _amounts The amounts of each token being deposited
-     */
-    function deposit(
-        address[] calldata _tokens,
-        uint256[] calldata _amounts
-    )
-        external
+     function deposit(
+        address _token,
+        uint256 _amount
+     )
+        public
         override
-        checkVault
+        checkToken(_token)
     {
-        require(_tokens.length == _amounts.length, "!length");
+        require(_amount > 0, "!_amount");
 
         uint256 _balance = balance();
         uint256 _shares;
 
-        for (uint8 i; i < _amounts.length; i++) {
-            if (_amounts[i] > 0) {
-                require(_checkToken(_tokens[i]), "!_tokens");
+        uint256 _before = IERC20(_token).balanceOf(address(this));
+        IERC20(_token).safeTransferFrom(msg.sender, address(this), _amount);
+        _amount = IERC20(_token).balanceOf(address(this)).sub(_before);
 
-                uint256 _before = IERC20(_tokens[i]).balanceOf(address(this));
-                IERC20(_tokens[i]).safeTransferFrom(msg.sender, address(this), _amounts[i]);
-                uint256 _amount = IERC20(_tokens[i]).balanceOf(address(this)).sub(_before);
+        if (_amount > 0) {
+            _amount = _normalizeDecimals(_token, _amount);
 
-                if (_amount > 0) {
-                    _amount = _normalizeDecimals(_tokens[i], _amount);
-
-                    if (totalSupply() > 0) {
-                        _amount = (_amount.mul(totalSupply())).div(_balance);
-                    }
-
-                    _shares = _shares.add(_amount);
-                }
+            if (totalSupply() > 0) {
+                _amount = (_amount.mul(totalSupply())).div(_balance);
             }
+
+            _shares = _shares.add(_amount);
         }
 
         if (_shares > 0) {
             _mint(msg.sender, _shares);
             require(totalSupply() <= totalDepositCap, ">totalDepositCap");
             emit Deposit(msg.sender, _shares);
+        }
+    }
+
+    /**
+     * @notice Deposits multiple tokens simultaneously to the vault
+     * @dev Users must approve the vault to spend their stablecoin
+     * @param _tokens The addresses of each token being deposited
+     * @param _amounts The amounts of each token being deposited
+     */
+    function depositMultiple(
+        address[] calldata _tokens,
+        uint256[] calldata _amounts
+    )
+        external
+        override
+    {
+        require(_tokens.length == _amounts.length, "!length");
+
+        for (uint8 i; i < _amounts.length; i++) {
+            deposit(_tokens[i], _amounts[i]);
         }
     }
 
@@ -317,11 +325,6 @@ contract Vault is VaultToken, IVault {
 
     modifier checkToken(address _token) {
         require(_checkToken(_token), "!_token");
-        _;
-    }
-
-    modifier checkVault() {
-        require(manager.allowedVaults(address(this)), "!vault");
         _;
     }
 

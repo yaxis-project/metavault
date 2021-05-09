@@ -4,11 +4,12 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
     const { deployer } = await getNamedAccounts();
     const Manager = await deployments.get('Manager');
     const Controller = await deployments.get('Controller');
+    const LegacyController = await deployments.get('LegacyController');
 
     const harvester = await deploy('Harvester', {
         from: deployer,
         log: true,
-        args: [Manager.address, Controller.address]
+        args: [Manager.address, Controller.address, LegacyController.address]
     });
 
     if (harvester.newlyDeployed) {

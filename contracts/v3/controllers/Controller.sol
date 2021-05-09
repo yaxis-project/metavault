@@ -15,7 +15,7 @@ import "../interfaces/IManager.sol";
 /**
  * @title Controller
  * @notice This controller allows multiple strategies to be used
- * for a single token, and multiple tokens are supported.
+ * for a single vault supporting multiple tokens.
  */
 contract Controller is IController {
     using SafeERC20 for IERC20;
@@ -56,20 +56,20 @@ contract Controller is IController {
     event InsuranceClaimed(address indexed vault);
 
     /**
-     * @notice Logged when a strategy is added for a token
+     * @notice Logged when a strategy is added for a vault
      */
-    event StrategyAdded(address indexed token, address indexed strategy, uint256 cap);
+    event StrategyAdded(address indexed vault, address indexed strategy, uint256 cap);
 
     /**
-     * @notice Logged when a strategy is removed for a token
+     * @notice Logged when a strategy is removed for a vault
      */
-    event StrategyRemoved(address indexed token, address indexed strategy);
+    event StrategyRemoved(address indexed vault, address indexed strategy);
 
     /**
-     * @notice Logged when strategies are reordered for a token
+     * @notice Logged when strategies are reordered for a vault
      */
     event StrategiesReordered(
-        address indexed token,
+        address indexed vault,
         address indexed strategy1,
         address indexed strategy2
     );
@@ -92,16 +92,14 @@ contract Controller is IController {
      */
 
     /**
-     * @notice Adds a strategy for a given token
+     * @notice Adds a strategy for a given vault
      * @param _vault The address of the vault
-     * @param _token The address of the token
      * @param _strategy The address of the strategy
      * @param _cap The cap of the strategy
      * @param _timeout The timeout between harvests
      */
     function addStrategy(
         address _vault,
-        address _token,
         address _strategy,
         uint256 _cap,
         uint256 _timeout
@@ -110,7 +108,6 @@ contract Controller is IController {
         onlyStrategist
     {
         require(manager.allowedStrategies(_strategy), "!allowedStrategy");
-        require(manager.vaults(_token) == _vault, "!_token");
         require(_vaultDetails[_vault].converter != address(0), "!converter");
         // get the index of the newly added strategy
         uint256 index = _vaultDetails[_vault].strategies.length;
@@ -125,8 +122,8 @@ contract Controller is IController {
         // store the mapping of strategy to the vault
         _vaultStrategies[_strategy] = _vault;
         // add it to the harvester
-        IHarvester(manager.harvester()).addStrategy(_token, _strategy, _timeout);
-        emit StrategyAdded(_token, _strategy, _cap);
+        IHarvester(manager.harvester()).addStrategy(_vault, _strategy, _timeout);
+        emit StrategyAdded(_vault, _strategy, _cap);
     }
 
     /**
@@ -206,7 +203,7 @@ contract Controller is IController {
     }
 
     /**
-     * @notice Reorders two strategies for a given token
+     * @notice Reorders two strategies for a given vault
      * @param _vault The address of the vault
      * @param _strategy1 The address of the first strategy
      * @param _strategy2 The address of the second strategy
@@ -233,7 +230,7 @@ contract Controller is IController {
     }
 
     /**
-     * @notice Sets/updates the cap of a strategy for a token
+     * @notice Sets/updates the cap of a strategy for a vault
      * @dev If the balance of the strategy is greater than the new cap (except if
      * the cap is 0), then withdraw the difference from the strategy to the vault.
      * @param _vault The address of the vault
@@ -288,7 +285,7 @@ contract Controller is IController {
     }
 
     /**
-     * @notice Sets/updates the maximum number of strategies for a token
+     * @notice Sets/updates the maximum number of strategies for a vault
      * @param _maxStrategies The new value of the maximum strategies
      */
     function setMaxStrategies(
@@ -418,9 +415,10 @@ contract Controller is IController {
             updateBalance(msg.sender, _strategies[i]);
             address _want = IStrategy(_strategies[i]).want();
             if (_want != _token) {
+                address _converter = _vaultDetails[msg.sender].converter;
+                IERC20(_want).safeTransfer(_converter, _amounts[i]);
                 // TODO: do estimation for received
-                IConverter(_vaultDetails[msg.sender].converter)
-                    .convert(_want, _token, _amounts[i], 1);
+                IConverter(_converter).convert(_want, _token, _amounts[i], 1);
             }
         }
         _amount = IERC20(_token).balanceOf(address(this));
@@ -433,7 +431,7 @@ contract Controller is IController {
      */
 
     /**
-     * @notice Returns the rough balance of the sum of all strategies for a given token
+     * @notice Returns the rough balance of the sum of all strategies for a given vault
      * @dev This function is optimized to prevent looping over all strategy balances,
      * and instead the controller tracks the earn, withdraw, and harvest amounts.
      */
@@ -447,7 +445,7 @@ contract Controller is IController {
     }
 
     /**
-     * @notice Returns the cap of a strategy for a given token
+     * @notice Returns the cap of a strategy for a given vault
      * @param _vault The address of the vault
      * @param _strategy The address of the strategy
      */
@@ -479,17 +477,17 @@ contract Controller is IController {
     }
 
     /**
-     * @notice Returns all the strategies for a given token
-     * @param _token The address of the token
+     * @notice Returns all the strategies for a given vault
+     * @param _vault The address of the vault
      */
     function strategies(
-        address _token
+        address _vault
     )
         external
         view
         returns (address[] memory)
     {
-        return _vaultDetails[manager.vaults(_token)].strategies;
+        return _vaultDetails[_vault].strategies;
     }
 
     function strategies()

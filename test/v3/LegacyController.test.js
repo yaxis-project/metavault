@@ -9,13 +9,24 @@ const ether = parseEther;
 
 describe('LegacyController', () => {
     let deployer, user;
-    let t3crv, vault, manager, metavault, controller, converter, legacyController, harvester;
+    let dai,
+        t3crv,
+        vault,
+        manager,
+        metavault,
+        controller,
+        converter,
+        legacyController,
+        harvester,
+        strategy;
 
     beforeEach(async () => {
-        await deployments.fixture('v3');
+        await deployments.fixture(['v3', 'NativeStrategyCurve3Crv']);
         [deployer, , , user] = await ethers.getSigners();
         const T3CRV = await deployments.get('T3CRV');
         t3crv = await ethers.getContractAt('MockERC20', T3CRV.address);
+        const DAI = await deployments.get('DAI');
+        dai = await ethers.getContractAt('MockERC20', DAI.address);
         const Manager = await deployments.get('Manager');
         manager = await ethers.getContractAt('Manager', Manager.address);
         const Harvester = await deployments.get('Harvester');
@@ -36,6 +47,9 @@ describe('LegacyController', () => {
         const Controller = await deployments.get('Controller');
         controller = await ethers.getContractAt('Controller', Controller.address);
 
+        const Strategy = await deployments.get('NativeStrategyCurve3Crv');
+        strategy = await ethers.getContractAt('NativeStrategyCurve3Crv', Strategy.address);
+
         const Vault = await deployments.deploy('Vault', {
             from: deployer.address,
             args: ['Vault: Stables', 'MV:S', manager.address]
@@ -43,8 +57,15 @@ describe('LegacyController', () => {
         vault = await ethers.getContractAt('Vault', Vault.address);
 
         await manager.connect(deployer).setAllowedVault(vault.address, true);
+        await manager.connect(deployer).setAllowedStrategy(Strategy.address, true);
+        await manager.connect(deployer).setAllowedToken(dai.address, true);
+        await manager.connect(deployer).setAllowedConverter(converter.address, true);
+        await manager.connect(deployer).setAllowedController(legacyController.address, true);
+        await manager.connect(deployer).addToken(vault.address, dai.address);
         await manager.connect(deployer).setHarvester(harvester.address);
         await manager.connect(deployer).setController(vault.address, controller.address);
+        await controller.connect(deployer).setConverter(vault.address, converter.address);
+        await controller.connect(deployer).addStrategy(vault.address, Strategy.address, 0, 0);
         await t3crv.connect(user).faucet(ether('100000'));
         await t3crv.connect(user).approve(metavault.address, ethers.constants.MaxUint256);
         await metavault.connect(deployer).setController(legacyController.address);
@@ -143,6 +164,27 @@ describe('LegacyController', () => {
                 metavault.connect(user).withdraw(ether('1000'), t3crv.address)
             ).to.emit(legacyController, 'Withdraw');
             expect(await t3crv.balanceOf(user.address)).to.be.equal(ether('100000'));
+        });
+
+        describe('when withdrawing from a strategy', () => {
+            beforeEach(async () => {
+                expect(await strategy.balanceOf()).to.be.equal(0);
+                await harvester.connect(deployer).legacyEarn(dai.address, 1);
+                await expect(
+                    harvester
+                        .connect(deployer)
+                        .earn(strategy.address, vault.address, dai.address)
+                ).to.emit(vault, 'Earn');
+                expect(await strategy.balanceOf()).to.be.above(ether('900'));
+            });
+
+            it('should withdraw', async () => {
+                const startingBalance = await t3crv.balanceOf(user.address);
+                await metavault.connect(user).withdrawAll(t3crv.address);
+                const endingBalance = await t3crv.balanceOf(user.address);
+                expect(endingBalance).to.be.above(startingBalance);
+                expect(await strategy.balanceOf()).to.be.below(ether('2'));
+            });
         });
     });
 });

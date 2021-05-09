@@ -119,9 +119,9 @@ describe('Vault', () => {
             });
             const newVault = await ethers.getContractAt('Vault', NewVault.address);
             await dai.connect(user).approve(NewVault.address, ethers.utils.parseEther('1000'));
-            await expect(
-                newVault.connect(user).deposit([dai.address], [1])
-            ).to.be.revertedWith('!vault');
+            await expect(newVault.connect(user).deposit(dai.address, 1)).to.be.revertedWith(
+                '!_token'
+            );
         });
 
         context('when the vault is set up', () => {
@@ -144,24 +144,24 @@ describe('Vault', () => {
 
             it('should revert when a token is not added', async () => {
                 await expect(
-                    vault.connect(user).deposit([dai.address, usdt.address], [1, 1])
-                ).to.be.revertedWith('!_tokens');
+                    vault.connect(user).depositMultiple([dai.address, usdt.address], [1, 1])
+                ).to.be.revertedWith('!_token');
             });
 
             it('should revert if the deposit amount is greater than the total deposit cap', async () => {
-                await expect(vault.connect(user).deposit([dai.address], [ether('10000001')]))
-                    .to.be.reverted;
+                await expect(vault.connect(user).deposit(dai.address, ether('10000001'))).to.be
+                    .reverted;
             });
 
             it('should revert if the input lengths do not match', async () => {
                 await expect(
-                    vault.connect(user).deposit([dai.address], [ether('1000'), 1])
+                    vault.connect(user).depositMultiple([dai.address], [ether('1000'), 1])
                 ).to.be.revertedWith('!length');
             });
 
             it('should deposit single token', async () => {
                 expect(await vault.balanceOf(user.address)).to.equal(0);
-                await expect(vault.connect(user).deposit([dai.address], [ether('1000')]))
+                await expect(vault.connect(user).deposit(dai.address, ether('1000')))
                     .to.emit(vault, 'Deposit')
                     .withArgs(user.address, ether('1000'));
                 expect(await vault.balanceOf(user.address)).to.equal(ether('1000'));
@@ -173,11 +173,13 @@ describe('Vault', () => {
                 await expect(
                     vault
                         .connect(user)
-                        .deposit([dai.address, usdc.address], [ether('1000'), '1000000000'])
+                        .depositMultiple(
+                            [dai.address, usdc.address],
+                            [ether('1000'), '1000000000']
+                        )
                 )
                     // Deposit is actually emitted multiple times
-                    .to.emit(vault, 'Deposit')
-                    .withArgs(user.address, ether('2000'));
+                    .to.emit(vault, 'Deposit');
                 expect(await vault.balanceOf(user.address)).to.equal(ether('2000'));
                 expect(await vault.totalSupply()).to.equal(ether('2000'));
             });
@@ -188,13 +190,11 @@ describe('Vault', () => {
                     await expect(
                         vault
                             .connect(user)
-                            .deposit(
+                            .depositMultiple(
                                 [dai.address, usdc.address],
                                 [ether('1000'), '1000000000']
                             )
-                    )
-                        .to.emit(vault, 'Deposit')
-                        .withArgs(user.address, ether('2000'));
+                    ).to.emit(vault, 'Deposit');
                     expect(await vault.balanceOf(user.address)).to.equal(ether('2000'));
                     expect(await vault.totalSupply()).to.equal(ether('2000'));
                 });
@@ -203,13 +203,11 @@ describe('Vault', () => {
                     await expect(
                         vault
                             .connect(user)
-                            .deposit(
+                            .depositMultiple(
                                 [dai.address, usdc.address],
                                 [ether('1000'), '1000000000']
                             )
-                    )
-                        .to.emit(vault, 'Deposit')
-                        .withArgs(user.address, ether('2000'));
+                    ).to.emit(vault, 'Deposit');
                     expect(await vault.balanceOf(user.address)).to.equal(ether('4000'));
                     expect(await vault.totalSupply()).to.equal(ether('4000'));
                 });
@@ -227,9 +225,7 @@ describe('Vault', () => {
                             [dai.address, usdc.address],
                             [ether('1000'), '1000000000']
                         )
-                    )
-                        .to.emit(vault, 'Deposit')
-                        .withArgs(depositor.address, ether('2000'));
+                    ).to.emit(vault, 'Deposit');
                     expect(await vault.balanceOf(depositor.address)).to.equal(ether('2000'));
                     expect(await vault.totalSupply()).to.equal(ether('2000'));
                 });
@@ -261,7 +257,7 @@ describe('Vault', () => {
 
         context('when users have deposited', () => {
             beforeEach(async () => {
-                await expect(vault.connect(user).deposit([dai.address], [ether('1000')]))
+                await expect(vault.connect(user).deposit(dai.address, ether('1000')))
                     .to.emit(vault, 'Deposit')
                     .withArgs(user.address, ether('1000'));
             });
@@ -312,7 +308,7 @@ describe('Vault', () => {
 
         context('when users have deposited', () => {
             beforeEach(async () => {
-                await expect(vault.connect(user).deposit([dai.address], [ether('1000')]))
+                await expect(vault.connect(user).deposit(dai.address, ether('1000')))
                     .to.emit(vault, 'Deposit')
                     .withArgs(user.address, ether('1000'));
             });

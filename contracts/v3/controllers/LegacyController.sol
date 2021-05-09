@@ -8,11 +8,12 @@ import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 
 import "../interfaces/IController.sol";
 import "../interfaces/IConverter.sol";
+import "../interfaces/ILegacyController.sol";
 import "../interfaces/ILegacyVault.sol";
 import "../interfaces/IManager.sol";
 import "../interfaces/IVault.sol";
 
-contract LegacyController {
+contract LegacyController is ILegacyController {
     using SafeERC20 for IERC20;
     using SafeMath for uint256;
 
@@ -98,7 +99,7 @@ contract LegacyController {
         onlyToken(_token)
         returns (uint256)
     {
-        return token.balanceOf(address(this));
+        return token.balanceOf(address(this)).add(IERC20(address(vault)).balanceOf(address(this)));
     }
 
     function withdrawFee(
@@ -114,49 +115,31 @@ contract LegacyController {
     }
 
     function withdraw(
-        address _token,
+        address,
         uint256 _amount
     )
         external
         onlyEnabledVault
         onlyMetaVault
-        onlyToken(_token)
     {
         uint256 _balance = token.balanceOf(address(this));
         // happy path exits without calling back to the vault
-        if (_balance <= _amount) {
+        if (_balance >= _amount) {
             token.safeTransfer(metavault, _amount);
         } else {
+            uint256 _toWithdraw = _amount.sub(_balance);
             // convert to vault shares
             address[] memory _tokens = vault.getTokens();
             require(_tokens.length > 0, "!_tokens");
-            bool _exit;
-            uint256 _expected;
-            uint256 _shares;
-            for (uint8 i; i < _tokens.length; i++) {
-                // convert the amount of 3CRV to the expected amount of stablecoin
-                _expected = converter.expected(address(token), _tokens[i], _amount);
-                _shares = _expected.mul(1e18).div(vault.getPricePerFullShare());
-                // another happy path is if the vault has enough balance of the token
-                if (IERC20(_tokens[i]).balanceOf(address(vault)) >= _expected) {
-                    vault.withdraw(_shares, _tokens[i]);
-                    _balance = IERC20(_tokens[i]).balanceOf(address(this));
-                    IERC20(_tokens[i]).safeTransfer(address(converter), _balance);
-                    converter.convert(_tokens[i], address(token), _balance, 1);
-                    _exit = true;
-                    break;
-                }
-            }
-            // worst-case scenario nothing had enough balance so we'll have to do an
-            // expensive withdraw from a strategy using the last token of the vault
-            if (!_exit) {
-                _token = _tokens[_tokens.length - 1];
-                vault.withdraw(_shares, _token);
-                _balance = IERC20(_token).balanceOf(address(this));
-                IERC20(_token).safeTransfer(address(converter), _balance);
-                converter.convert(_token, address(token), _balance, 1);
-            }
-            token.safeTransfer(metavault, _amount);
+            // get the amount of the token that we would be withdrawing
+            uint256 _expected = converter.expected(address(token), _tokens[0], _toWithdraw);
+            uint256 _shares = _expected.mul(1e18).div(vault.getPricePerFullShare());
+            vault.withdraw(_shares, _tokens[0]);
+            _balance = IERC20(_tokens[0]).balanceOf(address(this));
+            IERC20(_tokens[0]).safeTransfer(address(converter), _balance);
+            // TODO: calculate expected
+            converter.convert(_tokens[0], address(token), _balance, 1);
+            token.safeTransfer(metavault, token.balanceOf(address(this)));
         }
         emit Withdraw(_amount);
     }
@@ -171,22 +154,23 @@ contract LegacyController {
         emit Earn(_amount);
     }
 
-    function convertAndDeposit(
+    function legacyDeposit(
         address _toToken,
         uint256 _expected
     )
         external
+        override
         onlyEnabledConverter
         onlyHarvester
     {
-        uint256 _amount = token.balanceOf(address(this));
-        token.safeTransfer(address(converter), _amount);
-        converter.convert(address(token), _toToken, _amount, _expected);
+        if (_toToken != address(token)) {
+            uint256 _amount = token.balanceOf(address(this));
+            token.safeTransfer(address(converter), _amount);
+            converter.convert(address(token), _toToken, _amount, _expected);
+        }
         IERC20(_toToken).safeApprove(address(vault), 0);
         IERC20(_toToken).safeApprove(address(vault), type(uint256).max);
-        tokens[0] = _toToken;
-        amounts[0] = IERC20(_toToken).balanceOf(address(this));
-        vault.deposit(tokens, amounts);
+        vault.deposit(_toToken, IERC20(_toToken).balanceOf(address(this)));
     }
 
     modifier onlyEnabledConverter() {

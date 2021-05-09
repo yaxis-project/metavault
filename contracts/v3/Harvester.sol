@@ -7,12 +7,13 @@ import "@openzeppelin/contracts/math/SafeMath.sol";
 import "./interfaces/IVault.sol";
 import "./interfaces/IController.sol";
 import "./interfaces/IHarvester.sol";
+import "./interfaces/ILegacyController.sol";
 import "./interfaces/IManager.sol";
 
 /**
  * @title Harvester
  * @notice This contract is to be used as a central point to call
- * harvest on all strategies for any given token. It has its own
+ * harvest on all strategies for any given vault. It has its own
  * permissions for harvesters (set by the strategist or governance).
  */
 contract Harvester is IHarvester {
@@ -20,6 +21,7 @@ contract Harvester is IHarvester {
 
     IManager public immutable override manager;
     IController public immutable controller;
+    ILegacyController public immutable legacyController;
 
     struct Strategy {
         uint256 timeout;
@@ -49,14 +51,14 @@ contract Harvester is IHarvester {
     event HarvesterSet(address indexed harvester, bool status);
 
     /**
-     * @notice Logged when a strategy is added for a token
+     * @notice Logged when a strategy is added for a vault
      */
-    event StrategyAdded(address indexed token, address indexed strategy, uint256 timeout);
+    event StrategyAdded(address indexed vault, address indexed strategy, uint256 timeout);
 
     /**
-     * @notice Logged when a strategy is removed for a token
+     * @notice Logged when a strategy is removed for a vault
      */
-    event StrategyRemoved(address indexed token, address indexed strategy, uint256 timeout);
+    event StrategyRemoved(address indexed vault, address indexed strategy, uint256 timeout);
 
     /**
      * @notice Logged when a vault manger is set
@@ -67,9 +69,16 @@ contract Harvester is IHarvester {
      * @param _manager The address of the yAxisMetaVaultManager contract
      * @param _controller The address of the controller
      */
-    constructor(address _manager, address _controller) public {
+    constructor(
+        address _manager,
+        address _controller,
+        address _legacyController
+    )
+        public
+    {
         manager = IManager(_manager);
         controller = IController(_controller);
+        legacyController = ILegacyController(_legacyController);
     }
 
     /**
@@ -77,13 +86,13 @@ contract Harvester is IHarvester {
      */
 
     /**
-     * @notice Adds a strategy to the rotation for a given token and sets a timeout
-     * @param _token The address of the token
+     * @notice Adds a strategy to the rotation for a given vault and sets a timeout
+     * @param _vault The address of the vault
      * @param _strategy The address of the strategy
      * @param _timeout The timeout between harvests
      */
     function addStrategy(
-        address _token,
+        address _vault,
         address _strategy,
         uint256 _timeout
     )
@@ -91,19 +100,19 @@ contract Harvester is IHarvester {
         override
         onlyController
     {
-        strategies[_token].addresses.push(_strategy);
-        strategies[_token].timeout = _timeout;
-        emit StrategyAdded(_token, _strategy, _timeout);
+        strategies[_vault].addresses.push(_strategy);
+        strategies[_vault].timeout = _timeout;
+        emit StrategyAdded(_vault, _strategy, _timeout);
     }
 
     /**
-     * @notice Removes a strategy from the rotation for a given token and sets a timeout
-     * @param _token The address of the token
+     * @notice Removes a strategy from the rotation for a given vault and sets a timeout
+     * @param _vault The address of the vault
      * @param _strategy The address of the strategy
      * @param _timeout The timeout between harvests
      */
     function removeStrategy(
-        address _token,
+        address _vault,
         address _strategy,
         uint256 _timeout
     )
@@ -111,11 +120,11 @@ contract Harvester is IHarvester {
         override
         onlyController
     {
-        uint256 tail = strategies[_token].addresses.length;
+        uint256 tail = strategies[_vault].addresses.length;
         uint256 index;
         bool found;
         for (uint i; i < tail; i++) {
-            if (strategies[_token].addresses[i] == _strategy) {
+            if (strategies[_vault].addresses[i] == _strategy) {
                 index = i;
                 found = true;
                 break;
@@ -123,10 +132,10 @@ contract Harvester is IHarvester {
         }
 
         if (found) {
-            strategies[_token].addresses[index] = strategies[_token].addresses[tail.sub(1)];
-            strategies[_token].addresses.pop();
-            strategies[_token].timeout = _timeout;
-            emit StrategyRemoved(_token, _strategy, _timeout);
+            strategies[_vault].addresses[index] = strategies[_vault].addresses[tail.sub(1)];
+            strategies[_vault].addresses.pop();
+            strategies[_vault].timeout = _timeout;
+            emit StrategyRemoved(_vault, _strategy, _timeout);
         }
     }
 
@@ -179,29 +188,39 @@ contract Harvester is IHarvester {
     }
 
     /**
-     * @notice Harvests the next available strategy for a given token and
+     * @notice Harvests the next available strategy for a given vault and
      * rotates the strategies
-     * @param _token The address of the token
+     * @param _vault The address of the vault
      */
     function harvestNextStrategy(
-        address _token
+        address _vault
     )
         external
     {
-        require(canHarvest(_token), "!canHarvest");
-        address strategy = strategies[_token].addresses[0];
+        require(canHarvest(_vault), "!canHarvest");
+        address strategy = strategies[_vault].addresses[0];
         harvest(controller, strategy);
-        uint256 k = strategies[_token].addresses.length;
+        uint256 k = strategies[_vault].addresses.length;
         if (k > 1) {
             address[] memory _strategies = new address[](k);
             for (uint i; i < k-1; i++) {
-                _strategies[i] = strategies[_token].addresses[i+1];
+                _strategies[i] = strategies[_vault].addresses[i+1];
             }
             _strategies[k-1] = strategy;
-            strategies[_token].addresses = _strategies;
+            strategies[_vault].addresses = _strategies;
         }
         // solhint-disable-next-line not-rely-on-time
-        strategies[_token].lastCalled = block.timestamp;
+        strategies[_vault].lastCalled = block.timestamp;
+    }
+
+    function legacyEarn(
+        address _token,
+        uint256 _expected
+    )
+        external
+        onlyHarvester
+    {
+        legacyController.legacyDeposit(_token, _expected);
     }
 
     /**
@@ -209,17 +228,17 @@ contract Harvester is IHarvester {
      */
 
     /**
-     * @notice Returns the addresses of the strategies for a given token
-     * @param _token The address of the token
+     * @notice Returns the addresses of the strategies for a given vault
+     * @param _vault The address of the vault
      */
     function strategyAddresses(
-        address _token
+        address _vault
     )
         external
         view
         returns (address[] memory)
     {
-        return strategies[_token].addresses;
+        return strategies[_vault].addresses;
     }
 
     /**
@@ -227,17 +246,17 @@ contract Harvester is IHarvester {
      */
 
     /**
-     * @notice Returns the availability of a token's strategy to be harvested
-     * @param _token The address of the token
+     * @notice Returns the availability of a vault's strategy to be harvested
+     * @param _vault The address of the vault
      */
     function canHarvest(
-        address _token
+        address _vault
     )
         public
         view
         returns (bool)
     {
-        Strategy storage strategy = strategies[_token];
+        Strategy storage strategy = strategies[_vault];
         if (strategy.addresses.length == 0 ||
             // solhint-disable-next-line not-rely-on-time
             strategy.lastCalled > block.timestamp.sub(strategy.timeout)) {

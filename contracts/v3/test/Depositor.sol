@@ -30,7 +30,7 @@ contract Depositor {
             IERC20(_tokens[i]).safeApprove(address(vault), 0);
             IERC20(_tokens[i]).safeApprove(address(vault), _amounts[i]);
         }
-        vault.deposit(_tokens, _amounts);
+        vault.depositMultiple(_tokens, _amounts);
     }
 
     function withdrawVault(
