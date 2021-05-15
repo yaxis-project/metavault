@@ -105,9 +105,10 @@ contract Controller is IController {
         uint256 _timeout
     )
         external
+        notHalted
         onlyStrategist
+        onlyStrategy(_strategy)
     {
-        require(manager.allowedStrategies(_strategy), "!allowedStrategy");
         require(_vaultDetails[_vault].converter != address(0), "!converter");
         // get the index of the newly added strategy
         uint256 index = _vaultDetails[_vault].strategies.length;
@@ -172,6 +173,7 @@ contract Controller is IController {
         uint256 _timeout
     )
         external
+        notHalted
         onlyStrategist
     {
         VaultDetail storage vaultDetail = _vaultDetails[_vault];
@@ -214,8 +216,11 @@ contract Controller is IController {
         address _strategy2
     )
         external
+        notHalted
         onlyStrategist
     {
+        require(manager.allowedStrategies(_strategy1), "!_strategy1");
+        require(manager.allowedStrategies(_strategy2), "!_strategy2");
         VaultDetail storage vaultDetail = _vaultDetails[_vault];
         // get the indexes of the strategies
         uint256 index1 = vaultDetail.index[_strategy1];
@@ -243,7 +248,9 @@ contract Controller is IController {
         uint256 _cap
     )
         external
+        notHalted
         onlyStrategist
+        onlyStrategy(_strategy)
     {
         _vaultDetails[_vault].caps[_strategy] = _cap;
         uint256 _balance = IStrategy(_strategy).balanceOf();
@@ -265,6 +272,7 @@ contract Controller is IController {
         address _converter
     )
         external
+        notHalted
         onlyStrategist
     {
         require(manager.allowedConverters(_converter), "!allowedConverters");
@@ -279,6 +287,7 @@ contract Controller is IController {
         bool _investEnabled
     )
         external
+        notHalted
         onlyStrategist
     {
         globalInvestEnabled = _investEnabled;
@@ -292,6 +301,7 @@ contract Controller is IController {
         uint256 _maxStrategies
     )
         external
+        notHalted
         onlyStrategist
     {
         maxStrategies = _maxStrategies;
@@ -302,6 +312,7 @@ contract Controller is IController {
     )
         external
         onlyStrategist
+        onlyStrategy(_strategy)
     {
         address _want = IStrategy(_strategy).want();
         IStrategy(_strategy).skim();
@@ -318,6 +329,7 @@ contract Controller is IController {
         external
         override
         onlyStrategist
+        onlyStrategy(_strategy)
     {
         // WithdrawAll sends 'want' to 'vault'
         IStrategy(_strategy).withdrawAll();
@@ -338,6 +350,7 @@ contract Controller is IController {
         external
         override
         onlyHarvester
+        onlyStrategy(_strategy)
     {
         uint256 _before = IStrategy(_strategy).balanceOf();
         IStrategy(_strategy).harvest();
@@ -365,6 +378,7 @@ contract Controller is IController {
     )
         external
         override
+        onlyStrategy(_strategy)
         onlyVault(_token)
     {
         // get the want token of the strategy
@@ -563,6 +577,11 @@ contract Controller is IController {
      * MODIFIERS
      */
 
+    modifier notHalted() {
+        require(!manager.halted(), "halted");
+        _;
+    }
+
     modifier onlyGovernance() {
         require(msg.sender == manager.governance(), "!governance");
         _;
@@ -570,6 +589,11 @@ contract Controller is IController {
 
     modifier onlyStrategist() {
         require(msg.sender == manager.strategist(), "!strategist");
+        _;
+    }
+
+    modifier onlyStrategy(address _strategy) {
+        require(manager.allowedStrategies(_strategy), "!allowedStrategy");
         _;
     }
 

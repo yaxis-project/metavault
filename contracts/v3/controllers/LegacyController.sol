@@ -27,9 +27,6 @@ contract LegacyController is ILegacyController {
     IVault public vault;
     IConverter public converter;
 
-    address[] public tokens;
-    uint256[] public amounts;
-
     event Earn(uint256 amount);
     event Withdraw(uint256 amount);
 
@@ -99,7 +96,8 @@ contract LegacyController is ILegacyController {
         onlyToken(_token)
         returns (uint256)
     {
-        return token.balanceOf(address(this)).add(IERC20(address(vault)).balanceOf(address(this)));
+        return token.balanceOf(address(this))
+                    .add(IERC20(address(vault)).balanceOf(address(this)));
     }
 
     function withdrawFee(

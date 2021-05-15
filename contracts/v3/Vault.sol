@@ -69,6 +69,7 @@ contract Vault is VaultToken, IVault {
         uint256 _min
     )
         external
+        notHalted
         onlyStrategist
     {
         require(_min <= MAX, "!_min");
@@ -85,6 +86,7 @@ contract Vault is VaultToken, IVault {
         uint256 _totalDepositCap
     )
         external
+        notHalted
         onlyStrategist
     {
         totalDepositCap = _totalDepositCap;
@@ -103,8 +105,9 @@ contract Vault is VaultToken, IVault {
     )
         external
         override
-        onlyHarvester
         checkToken(_token)
+        notHalted
+        onlyHarvester
     {
         require(manager.allowedStrategies(_strategy), "!_strategy");
         IController _controller = IController(manager.controllers(address(this)));
@@ -127,6 +130,7 @@ contract Vault is VaultToken, IVault {
         public
         override
         checkToken(_token)
+        notHalted
     {
         require(_amount > 0, "!_amount");
 
@@ -166,6 +170,7 @@ contract Vault is VaultToken, IVault {
     )
         external
         override
+        notHalted
     {
         require(_tokens.length == _amounts.length, "!length");
 
@@ -325,6 +330,11 @@ contract Vault is VaultToken, IVault {
 
     modifier checkToken(address _token) {
         require(_checkToken(_token), "!_token");
+        _;
+    }
+
+    modifier notHalted() {
+        require(!manager.halted(), "halted");
         _;
     }
 

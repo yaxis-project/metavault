@@ -45,6 +45,8 @@ contract Manager is IManager {
     uint256 public override treasuryFee;
     uint256 public override withdrawalProtectionFee;
 
+    bool public override halted;
+
     uint256 private setPendingStrategistTime;
 
     // Governance must first allow the following properties before
@@ -87,6 +89,7 @@ contract Manager is IManager {
         address indexed _vaultFactory,
         bool _allowed
     );
+    event Halted();
     event SetController(
         address indexed _vault,
         address indexed _controller
@@ -136,6 +139,7 @@ contract Manager is IManager {
         bool _allowed
     )
         external
+        notHalted
         onlyGovernance
     {
         require(address(IController(_controller).manager()) == address(this), "!manager");
@@ -148,6 +152,7 @@ contract Manager is IManager {
         bool _allowed
     )
         external
+        notHalted
         onlyGovernance
     {
         require(address(IConverter(_converter).manager()) == address(this), "!manager");
@@ -160,6 +165,7 @@ contract Manager is IManager {
         bool _allowed
     )
         external
+        notHalted
         onlyGovernance
     {
         require(address(IStrategy(_strategy).manager()) == address(this), "!manager");
@@ -172,6 +178,7 @@ contract Manager is IManager {
         bool _allowed
     )
         external
+        notHalted
         onlyGovernance
     {
         allowedTokens[_token] = _allowed;
@@ -183,6 +190,7 @@ contract Manager is IManager {
         bool _allowed
     )
         external
+        notHalted
         onlyGovernance
     {
         require(address(IVault(_vault).manager()) == address(this), "!manager");
@@ -195,6 +203,7 @@ contract Manager is IManager {
         bool _allowed
     )
         external
+        notHalted
         onlyGovernance
     {
         require(address(IVaultFactory(_vaultFactory).manager()) == address(this), "!manager");
@@ -210,6 +219,7 @@ contract Manager is IManager {
         address _governance
     )
         external
+        notHalted
         onlyGovernance
     {
         governance = _governance;
@@ -224,6 +234,7 @@ contract Manager is IManager {
         address _harvester
     )
         external
+        notHalted
         onlyGovernance
     {
         require(address(IHarvester(_harvester).manager()) == address(this), "!manager");
@@ -239,6 +250,7 @@ contract Manager is IManager {
         uint256 _insuranceFee
     )
         external
+        notHalted
         onlyGovernance
     {
         require(_insuranceFee <= 100, "_insuranceFee over 1%");
@@ -253,6 +265,7 @@ contract Manager is IManager {
         address _insurancePool
     )
         external
+        notHalted
         onlyGovernance
     {
         insurancePool = _insurancePool;
@@ -267,6 +280,7 @@ contract Manager is IManager {
         uint256 _insurancePoolFee
     )
         external
+        notHalted
         onlyGovernance
     {
         require(_insurancePoolFee <= 2000, "_insurancePoolFee over 20%");
@@ -281,6 +295,7 @@ contract Manager is IManager {
         address _stakingPool
     )
         external
+        notHalted
         onlyGovernance
     {
         stakingPool = _stakingPool;
@@ -295,6 +310,7 @@ contract Manager is IManager {
         uint256 _stakingPoolShareFee
     )
         external
+        notHalted
         onlyGovernance
     {
         require(_stakingPoolShareFee <= 5000, "_stakingPoolShareFee over 50%");
@@ -309,6 +325,7 @@ contract Manager is IManager {
         address _strategist
     )
         external
+        notHalted
         onlyGovernance
     {
         require(_strategist != address(0), "!_strategist");
@@ -326,6 +343,7 @@ contract Manager is IManager {
         address _treasury
     )
         external
+        notHalted
         onlyGovernance
     {
         treasury = _treasury;
@@ -341,6 +359,7 @@ contract Manager is IManager {
         uint256 _treasuryBalance
     )
         external
+        notHalted
         onlyGovernance
     {
         treasuryBalance = _treasuryBalance;
@@ -355,6 +374,7 @@ contract Manager is IManager {
         uint256 _treasuryFee
     )
         external
+        notHalted
         onlyGovernance
     {
         require(_treasuryFee <= 2000, "_treasuryFee over 20%");
@@ -370,6 +390,7 @@ contract Manager is IManager {
         uint256 _withdrawalProtectionFee
     )
         external
+        notHalted
         onlyGovernance
     {
         require(_withdrawalProtectionFee <= 100, "_withdrawalProtectionFee over 1%");
@@ -382,6 +403,7 @@ contract Manager is IManager {
 
     function acceptStrategist()
         external
+        notHalted
     {
         require(msg.sender == pendingStrategist, "!pendingStrategist");
         // solhint-disable-next-line not-rely-on-time
@@ -398,6 +420,7 @@ contract Manager is IManager {
     )
         external
         override
+        notHalted
         onlyStrategist
     {
         require(allowedTokens[_token], "!allowedTokens");
@@ -421,6 +444,7 @@ contract Manager is IManager {
         address _to
     )
         external
+        notHalted
         onlyStrategist
     {
         _token.transfer(_to, _amount);
@@ -432,6 +456,7 @@ contract Manager is IManager {
     )
         external
         override
+        notHalted
         onlyStrategist
     {
         uint256 k = tokens[_vault].length;
@@ -460,12 +485,22 @@ contract Manager is IManager {
         address _controller
     )
         external
+        notHalted
         onlyStrategist
     {
         require(allowedVaults[_vault], "!_vault");
         require(allowedControllers[_controller], "!_controller");
         controllers[_vault] = _controller;
         emit SetController(_vault, _controller);
+    }
+
+    function setHalted()
+        external
+        notHalted
+        onlyStrategist
+    {
+        halted = true;
+        emit Halted();
     }
 
     /**
@@ -515,6 +550,11 @@ contract Manager is IManager {
             insurancePool,
             insurancePoolFee
         );
+    }
+
+    modifier notHalted() {
+        require(!halted, "halted");
+        _;
     }
 
     modifier onlyGovernance() {

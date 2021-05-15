@@ -14,6 +14,7 @@ interface IManager {
     function getHarvestFeeInfo() external view returns (address, address, uint256, address, uint256, address, uint256);
     function getTokens(address) external view returns (address[] memory);
     function governance() external view returns (address);
+    function halted() external view returns (bool);
     function harvester() external view returns (address);
     function insuranceFee() external view returns (uint256);
     function insurancePool() external view returns (address);

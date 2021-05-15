@@ -91,10 +91,12 @@ describe('Vault', () => {
 
     describe('earn', () => {
         it('should revert when called by an address other than the harvester', async () => {
+            await manager.connect(treasury).setAllowedToken(dai.address, true);
+            await expect(manager.addToken(vault.address, dai.address))
+                .to.emit(manager, 'TokenAdded')
+                .withArgs(vault.address, dai.address);
             await expect(
-                vault
-                    .connect(user)
-                    .earn(ethers.constants.AddressZero, ethers.constants.AddressZero)
+                vault.connect(user).earn(dai.address, ethers.constants.AddressZero)
             ).to.be.revertedWith('!harvester');
         });
 
