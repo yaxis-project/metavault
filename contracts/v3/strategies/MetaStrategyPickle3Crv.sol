@@ -115,15 +115,18 @@ contract MetaStrategyPickle3Crv is BaseStrategy {
         stableSwap3Pool.add_liquidity(amounts, 1);
     }
 
-    function _harvest()
+    function _harvest(
+        uint256 _estimatedWETH,
+        uint256 _estimatedYAXIS
+    )
         internal
         override
     {
         _claimReward();
-        uint256 _remainingWeth = _payHarvestFees(pickle);
+        uint256 _remainingWeth = _payHarvestFees(pickle, _estimatedWETH, _estimatedYAXIS);
 
         if (_remainingWeth > 0) {
-            _swapTokens(weth, stableForAddLiquidity, _remainingWeth);
+            _swapTokens(weth, stableForAddLiquidity, _remainingWeth, 1);
             _addLiquidity();
 
             if (balanceOfWant() > 0) {

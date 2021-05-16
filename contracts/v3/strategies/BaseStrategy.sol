@@ -37,11 +37,11 @@ abstract contract BaseStrategy is IStrategy {
     uint256 public constant ONE_HUNDRED_PERCENT = 10000;
 
     address public immutable override want;
-    address public immutable weth;
+    address public immutable override weth;
     address public immutable controller;
     IManager public immutable override manager;
     string public override name;
-    ISwap public router;
+    ISwap public override router;
 
     /**
      * @param _controller The address of the controller
@@ -121,12 +121,15 @@ abstract contract BaseStrategy is IStrategy {
     /**
      * @notice Harvest funds in the strategy's pool
      */
-    function harvest()
+    function harvest(
+        uint256 _estimatedWETH,
+        uint256 _estimatedYAXIS
+    )
         external
         override
         onlyController
     {
-        _harvest();
+        _harvest(_estimatedWETH, _estimatedYAXIS);
     }
 
     /**
@@ -244,53 +247,40 @@ abstract contract BaseStrategy is IStrategy {
         internal
         virtual;
 
-    function _harvest()
+    function _harvest(
+        uint256 _estimatedWETH,
+        uint256 _estimatedYAXIS
+    )
         internal
         virtual;
 
     function _payHarvestFees(
-        address _poolToken
+        address _poolToken,
+        uint256 _estimatedWETH,
+        uint256 _estimatedYAXIS
     )
         internal
         returns (uint256 _wethBal)
     {
         uint256 _amount = IERC20(_poolToken).balanceOf(address(this));
-        _swapTokens(_poolToken, weth, _amount);
+        _swapTokens(_poolToken, weth, _amount, _estimatedWETH);
         _wethBal = IERC20(weth).balanceOf(address(this));
 
         if (_wethBal > 0) {
             // get all the necessary variables in a single call
             (
-                address yax,
-                address stakingPool,
-                uint256 stakingPoolShareFee,
+                address yaxis,
                 address treasury,
-                uint256 treasuryFee,
-                address insurance,
-                uint256 insurancePoolFee
+                uint256 treasuryFee
             ) = manager.getHarvestFeeInfo();
 
             uint256 _fee;
 
-            // pay the staking pool with YAX
-            if (stakingPoolShareFee > 0 && stakingPool != address(0)) {
-                _fee = _wethBal.mul(stakingPoolShareFee).div(ONE_HUNDRED_PERCENT);
-                _swapTokens(weth, yax, _fee);
-                IERC20(yax).safeTransfer(stakingPool, IERC20(yax).balanceOf(address(this)));
-            }
-
             // pay the treasury with YAX
             if (treasuryFee > 0 && treasury != address(0)) {
                 _fee = _wethBal.mul(treasuryFee).div(ONE_HUNDRED_PERCENT);
-                _swapTokens(weth, yax, _fee);
-                IERC20(yax).safeTransfer(treasury, IERC20(yax).balanceOf(address(this)));
-            }
-
-            // pay the insurance pool with YAX
-            if (insurancePoolFee > 0 && insurance != address(0)) {
-                _fee = _wethBal.mul(insurancePoolFee).div(ONE_HUNDRED_PERCENT);
-                _swapTokens(weth, yax, _fee);
-                IERC20(yax).safeTransfer(insurance, IERC20(yax).balanceOf(address(this)));
+                _swapTokens(weth, yaxis, _fee, _estimatedYAXIS);
+                IERC20(yaxis).safeTransfer(treasury, IERC20(yaxis).balanceOf(address(this)));
             }
 
             // return the remaining WETH balance
@@ -301,7 +291,8 @@ abstract contract BaseStrategy is IStrategy {
     function _swapTokens(
         address _input,
         address _output,
-        uint256 _amount
+        uint256 _amount,
+        uint256 _expected
     )
         internal
     {
@@ -310,7 +301,7 @@ abstract contract BaseStrategy is IStrategy {
         path[1] = _output;
         router.swapExactTokensForTokens(
             _amount,
-            1,
+            _expected,
             path,
             address(this),
             // solhint-disable-next-line not-rely-on-time

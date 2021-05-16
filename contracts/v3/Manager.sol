@@ -41,7 +41,6 @@ contract Manager is IManager {
     uint256 public override insuranceFee;
     uint256 public override insurancePoolFee;
     uint256 public override stakingPoolShareFee;
-    uint256 public override treasuryBalance;
     uint256 public override treasuryFee;
     uint256 public override withdrawalProtectionFee;
 
@@ -125,7 +124,6 @@ contract Manager is IManager {
         strategist = msg.sender;
         harvester = msg.sender;
         stakingPoolShareFee = 2000;
-        treasuryBalance = 20000e18;
         treasuryFee = 500;
         withdrawalProtectionFee = 10;
     }
@@ -350,22 +348,6 @@ contract Manager is IManager {
     }
 
     /**
-     * @notice Sets the maximum treasury balance
-     * @dev Strategies will read this value to determine whether or not
-     * to give the treasury the treasuryFee
-     * @param _treasuryBalance The maximum balance of the treasury
-     */
-    function setTreasuryBalance(
-        uint256 _treasuryBalance
-    )
-        external
-        notHalted
-        onlyGovernance
-    {
-        treasuryBalance = _treasuryBalance;
-    }
-
-    /**
      * @notice Sets the treasury fee
      * @dev Throws if setting fee over 20%
      * @param _treasuryFee The value for the treasury fee
@@ -520,12 +502,9 @@ contract Manager is IManager {
 
     /**
      * @notice Returns a tuple of:
-     *     YAX token,
-     *     Staking pool address,
-     *     Staking pool share fee,
+     *     YAXIS token address,
      *     Treasury address,
-     *     Checks the balance of the treasury and returns the treasury fee
-     *         if below the treasuryBalance, or 0 if above
+     *     Treasury fee
      */
     function getHarvestFeeInfo()
         external
@@ -534,21 +513,13 @@ contract Manager is IManager {
         returns (
             address,
             address,
-            uint256,
-            address,
-            uint256,
-            address,
             uint256
         )
     {
         return (
             YAXIS,
-            stakingPool,
-            stakingPoolShareFee,
             treasury,
-            IERC20(YAXIS).balanceOf(treasury) >= treasuryBalance ? 0 : treasuryFee,
-            insurancePool,
-            insurancePoolFee
+            treasuryFee
         );
     }
 

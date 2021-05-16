@@ -71,17 +71,20 @@ contract MetaStrategyIdle is BaseStrategy {
         }
     }
 
-    function _harvest()
+    function _harvest(
+        uint256 _estimatedWETH,
+        uint256 _estimatedYAXIS
+    )
         internal
         override
     {
         IIdleTokenV3_1(idleYieldToken).redeemIdleToken(0);
-        uint256 remainingWeth = _payHarvestFees(IDLE);
+        uint256 remainingWeth = _payHarvestFees(IDLE, _estimatedWETH, _estimatedYAXIS);
 
         _liquidateAsset(COMP, want);
 
         if (remainingWeth > 0) {
-            _swapTokens(weth, want, remainingWeth);
+            _swapTokens(weth, want, remainingWeth, 1);
         }
 
         _deposit();
@@ -119,7 +122,7 @@ contract MetaStrategyIdle is BaseStrategy {
     {
         uint256 _assetBalance = IERC20(_asset).balanceOf(address(this));
         if (_assetBalance > 0) {
-            _swapTokens(_asset, _to, _assetBalance);
+            _swapTokens(_asset, _to, _assetBalance, 1);
         }
     }
 }

@@ -67,15 +67,18 @@ contract NativeStrategyDforce is BaseStrategy {
         }
     }
 
-    function _harvest()
+    function _harvest(
+        uint256 _estimatedWETH,
+        uint256 _estimatedYAXIS
+    )
         internal
         override
     {
         dRewards(pool).getReward();
-        uint256 _remainingWeth = _payHarvestFees(DF);
+        uint256 _remainingWeth = _payHarvestFees(DF, _estimatedWETH, _estimatedYAXIS);
 
         if (_remainingWeth > 0) {
-            _swapTokens(weth, want, _remainingWeth);
+            _swapTokens(weth, want, _remainingWeth, 1);
 
             if (balanceOfWant() > 0) {
                 _deposit();

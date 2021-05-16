@@ -9,6 +9,8 @@ import "./interfaces/IController.sol";
 import "./interfaces/IHarvester.sol";
 import "./interfaces/ILegacyController.sol";
 import "./interfaces/IManager.sol";
+import "./interfaces/IStrategy.sol";
+import "./interfaces/ISwap.sol";
 
 /**
  * @title Harvester
@@ -19,9 +21,13 @@ import "./interfaces/IManager.sol";
 contract Harvester is IHarvester {
     using SafeMath for uint256;
 
+    uint256 public constant ONE_HUNDRED_PERCENT = 10000;
+
     IManager public immutable override manager;
     IController public immutable controller;
     ILegacyController public immutable legacyController;
+
+    uint256 public slippage;
 
     struct Strategy {
         uint256 timeout;
@@ -155,6 +161,16 @@ contract Harvester is IHarvester {
         emit HarvesterSet(_harvester, _status);
     }
 
+    function setSlippage(
+        uint256 _slippage
+    )
+        external
+        onlyStrategist
+    {
+        require(_slippage < ONE_HUNDRED_PERCENT, "!_slippage");
+        slippage = _slippage;
+    }
+
     /**
      * HARVESTER-ONLY FUNCTIONS
      */
@@ -178,12 +194,14 @@ contract Harvester is IHarvester {
      */
     function harvest(
         IController _controller,
-        address _strategy
+        address _strategy,
+        uint256 _estimatedWETH,
+        uint256 _estimatedYAXIS
     )
         public
         onlyHarvester
     {
-        _controller.harvestStrategy(_strategy);
+        _controller.harvestStrategy(_strategy, _estimatedWETH, _estimatedYAXIS);
         emit Harvest(address(_controller), _strategy);
     }
 
@@ -193,13 +211,15 @@ contract Harvester is IHarvester {
      * @param _vault The address of the vault
      */
     function harvestNextStrategy(
-        address _vault
+        address _vault,
+        uint256 _estimatedWETH,
+        uint256 _estimatedYAXIS
     )
         external
     {
         require(canHarvest(_vault), "!canHarvest");
         address strategy = strategies[_vault].addresses[0];
-        harvest(controller, strategy);
+        harvest(controller, strategy, _estimatedWETH, _estimatedYAXIS);
         uint256 k = strategies[_vault].addresses.length;
         if (k > 1) {
             address[] memory _strategies = new address[](k);
@@ -263,6 +283,33 @@ contract Harvester is IHarvester {
             return false;
         }
         return true;
+    }
+
+    function getEstimates(
+        address _vault
+    )
+        public
+        view
+        returns (uint256 _estimatedWETH, uint256 _estimatedYAXIS)
+    {
+        IStrategy _strategy = IStrategy(strategies[_vault].addresses[0]);
+        ISwap _router = _strategy.router();
+        address[] memory _path;
+        _path[0] = _strategy.want();
+        _path[1] = _strategy.weth();
+        uint256[] memory _amounts = _router.getAmountsOut(_strategy.balanceOfPool(), _path);
+        _estimatedWETH = _amounts[1];
+        uint256 _slippage = slippage;
+        if (_slippage > 0) {
+            _estimatedWETH = _estimatedWETH.mul(_slippage).div(ONE_HUNDRED_PERCENT);
+        }
+        _path[0] = manager.YAXIS();
+        uint256 _fee = _estimatedWETH.mul(manager.treasuryFee()).div(ONE_HUNDRED_PERCENT);
+        _amounts = _router.getAmountsOut(_fee, _path);
+        _estimatedYAXIS = _amounts[1];
+        if (_slippage > 0) {
+            _estimatedYAXIS = _estimatedYAXIS.mul(_slippage).div(ONE_HUNDRED_PERCENT);
+        }
     }
 
     /**

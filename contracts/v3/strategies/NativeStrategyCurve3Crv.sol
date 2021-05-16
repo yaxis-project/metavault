@@ -105,16 +105,19 @@ contract NativeStrategyCurve3Crv is BaseStrategy {
         return (dai, 0); // If they're somehow equal, we just want DAI
     }
 
-    function _harvest()
+    function _harvest(
+        uint256 _estimatedWETH,
+        uint256 _estimatedYAXIS
+    )
         internal
         override
     {
         _claimReward();
-        uint256 _remainingWeth = _payHarvestFees(crv);
+        uint256 _remainingWeth = _payHarvestFees(crv, _estimatedWETH, _estimatedYAXIS);
 
         if (_remainingWeth > 0) {
             (address _stableCoin,) = getMostPremium(); // stablecoin we want to convert to
-            _swapTokens(weth, _stableCoin, _remainingWeth);
+            _swapTokens(weth, _stableCoin, _remainingWeth, 1);
             _addLiquidity();
 
             if (balanceOfWant() > 0) {

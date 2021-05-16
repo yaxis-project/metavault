@@ -103,15 +103,18 @@ contract MetaStrategyStabilize is BaseStrategy {
         }
     }
 
-    function _harvest()
+    function _harvest(
+        uint256 _estimatedWETH,
+        uint256 _estimatedYAXIS
+    )
         internal
         override
     {
         IZPAPool(pool).getReward(poolId);
-        uint256 remainingWeth = _payHarvestFees(STBZ);
+        uint256 remainingWeth = _payHarvestFees(STBZ, _estimatedWETH, _estimatedYAXIS);
 
         if (remainingWeth > 0) {
-            _swapTokens(weth, want, remainingWeth);
+            _swapTokens(weth, want, remainingWeth, 1);
 
             if (balanceOfWant() > 0) {
                 _deposit();

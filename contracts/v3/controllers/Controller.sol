@@ -345,7 +345,9 @@ contract Controller is IController {
      * @param _strategy The address of the strategy
      */
     function harvestStrategy(
-        address _strategy
+        address _strategy,
+        uint256 _estimatedWETH,
+        uint256 _estimatedYAXIS
     )
         external
         override
@@ -353,7 +355,7 @@ contract Controller is IController {
         onlyStrategy(_strategy)
     {
         uint256 _before = IStrategy(_strategy).balanceOf();
-        IStrategy(_strategy).harvest();
+        IStrategy(_strategy).harvest(_estimatedWETH, _estimatedYAXIS);
         uint256 _after = IStrategy(_strategy).balanceOf();
         address _vault = _vaultStrategies[_strategy];
         _vaultDetails[_vault].balance = _vaultDetails[_vault].balance.add(_after.sub(_before));
