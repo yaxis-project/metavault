@@ -231,7 +231,7 @@ module.exports = {
         }
     },
     vyper: {
-        version: '0.2.4'
+        version: '0.2.8'
     },
     paths: {
         sources: './contracts',

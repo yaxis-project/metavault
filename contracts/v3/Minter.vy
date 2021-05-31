@@ -1,4 +1,4 @@
-# @version 0.2.4
+# @version ^0.2.4
 """
 @title Token Minter
 @author Curve Finance
