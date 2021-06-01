@@ -27,10 +27,12 @@ contract VaultFactory is IVaultFactory {
     )
         external
         override
+        returns (address)
     {
         require(msg.sender == manager.strategist(), "!strategist");
         Vault _vault = new Vault(_name, _symbol, address(manager));
         factoryCreated[address(_vault)] = true;
         emit VaultCreated(address(_vault));
+        return address(_vault);
     }
 }

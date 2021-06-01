@@ -7,5 +7,5 @@ import "./IManager.sol";
 interface IVaultFactory {
     function manager() external view returns (IManager);
     function factoryCreated(address vault) external view returns (bool);
-    function create(string calldata name, string calldata symbol) external;
+    function create(string calldata name, string calldata symbol) external returns (address);
 }
