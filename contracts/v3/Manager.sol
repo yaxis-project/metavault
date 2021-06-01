@@ -12,7 +12,6 @@ import "./interfaces/IHarvester.sol";
 import "./interfaces/IManager.sol";
 import "./interfaces/IStrategy.sol";
 import "./interfaces/IVault.sol";
-import "./interfaces/IVaultFactory.sol";
 
 /**
  * @title Manager
@@ -82,10 +81,6 @@ contract Manager is IManager {
     );
     event AllowedVault(
         address indexed _vault,
-        bool _allowed
-    );
-    event AllowedVaultFactory(
-        address indexed _vaultFactory,
         bool _allowed
     );
     event Halted();
@@ -194,19 +189,6 @@ contract Manager is IManager {
         require(address(IVault(_vault).manager()) == address(this), "!manager");
         allowedVaults[_vault] = _allowed;
         emit AllowedVault(_vault, _allowed);
-    }
-
-    function setAllowedVaultFactory(
-        address _vaultFactory,
-        bool _allowed
-    )
-        external
-        notHalted
-        onlyGovernance
-    {
-        require(address(IVaultFactory(_vaultFactory).manager()) == address(this), "!manager");
-        allowedVaults[_vaultFactory] = _allowed;
-        emit AllowedVaultFactory(_vaultFactory, _allowed);
     }
 
     /**
