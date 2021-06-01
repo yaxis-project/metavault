@@ -1,4 +1,7 @@
 // SPDX-License-Identifier: MIT
+// solhint-disable func-name-mixedcase
+// solhint-disable var-name-mixedcase
+
 pragma solidity 0.6.12;
 
 import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
@@ -29,6 +32,7 @@ contract MinterWrapper is Ownable {
         Ownable()
     {
         token = _token;
+        // solhint-disable-next-line not-rely-on-time
         _start_epoch_time = block.timestamp.add(INFLATION_DELAY).sub(RATE_REDUCTION_TIME);
     }
 
@@ -59,6 +63,7 @@ contract MinterWrapper is Ownable {
         external
         returns (uint256)
     {
+        // solhint-disable-next-line not-rely-on-time
         if (block.timestamp >= _start_epoch_time.add(RATE_REDUCTION_TIME)) {
             _update_mining_parameters();
             return _start_epoch_time.add(RATE_REDUCTION_TIME);

@@ -1,5 +1,5 @@
 module.exports = async ({ getNamedAccounts, deployments }) => {
-    const { deploy, execute } = deployments;
+    const { deploy } = deployments;
     const { deployer, treasury } = await getNamedAccounts();
     const Manager = await deployments.get('Manager');
     const Minter = await deployments.get('Minter');

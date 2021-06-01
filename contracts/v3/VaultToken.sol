@@ -18,6 +18,7 @@ contract VaultToken is LinkERC20, ERC677Token {
     )
         public
         ERC20(_name, _symbol)
+    // solhint-disable-next-line no-empty-blocks
     {}
 
     /**
