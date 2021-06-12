@@ -9,7 +9,6 @@ interface IManager {
     function allowedStrategies(address) external view returns (bool);
     function allowedTokens(address) external view returns (bool);
     function allowedVaults(address) external view returns (bool);
-    function allowedVaultFactories(address) external view returns (bool);
     function controllers(address) external view returns (address);
     function getHarvestFeeInfo() external view returns (address, address, uint256);
     function getTokens(address) external view returns (address[] memory);

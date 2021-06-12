@@ -221,6 +221,7 @@ contract Controller is IController {
         notHalted
         onlyStrategist
     {
+        require(manager.allowedVaults(_vault), "!_vault");
         require(manager.allowedStrategies(_strategy1), "!_strategy1");
         require(manager.allowedStrategies(_strategy2), "!_strategy2");
         VaultDetail storage vaultDetail = _vaultDetails[_vault];

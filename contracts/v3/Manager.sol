@@ -54,7 +54,6 @@ contract Manager is IManager {
     mapping(address => bool) public override allowedConverters;
     mapping(address => bool) public override allowedStrategies;
     mapping(address => bool) public override allowedTokens;
-    mapping(address => bool) public override allowedVaultFactories;
     mapping(address => bool) public override allowedVaults;
 
     // vault => controller
