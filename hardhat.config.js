@@ -4,6 +4,10 @@ require('hardhat-deploy-ethers');
 require('solidity-coverage');
 require('@nomiclabs/hardhat-vyper');
 
+const ethers = require('ethers');
+// Prevents the "Duplicate definition of Transfer" logs when running tests/scripts
+ethers.utils.Logger.setLogLevel(ethers.utils.Logger.levels.ERROR);
+
 // If not set, we only need to default these with something to get hardhat to run
 const kovanRpcUrl = process.env.KOVAN_RPC_URL || 'http://localhost:8545';
 const mainnetRpcUrl = process.env.MAINNET_RPC_URL || 'http://localhost:8545';
