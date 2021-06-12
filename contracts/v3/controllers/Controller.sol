@@ -122,13 +122,15 @@ contract Controller is IController {
         _vaultDetails[_vault].index[_strategy] = index;
         // store the mapping of strategy to the vault
         _vaultStrategies[_strategy] = _vault;
-        // add it to the harvester
-        IHarvester(manager.harvester()).addStrategy(_vault, _strategy, _timeout);
+        if (_timeout > 0) {
+            // add it to the harvester
+            IHarvester(manager.harvester()).addStrategy(_vault, _strategy, _timeout);
+        }
         emit StrategyAdded(_vault, _strategy, _cap);
     }
 
     /**
-     * @notice Withdraws token from a strategy to governance
+     * @notice Withdraws token from a strategy to the treasury address as returned by the manager
      * @param _strategy The address of the strategy
      * @param _token The address of the token
      */
@@ -141,13 +143,13 @@ contract Controller is IController {
     {
         IStrategy(_strategy).withdraw(_token);
         IERC20(_token).safeTransfer(
-            manager.governance(),
+            manager.treasury(),
             IERC20(_token).balanceOf(address(this))
         );
     }
 
     /**
-     * @notice Withdraws token from the controller to governance
+     * @notice Withdraws token from the controller to the treasury
      * @param _token The address of the token
      * @param _amount The amount that will be withdrawn
      */
@@ -158,7 +160,7 @@ contract Controller is IController {
         external
         onlyStrategist
     {
-        IERC20(_token).safeTransfer(manager.governance(), _amount);
+        IERC20(_token).safeTransfer(manager.treasury(), _amount);
     }
 
     /**
@@ -259,6 +261,7 @@ contract Controller is IController {
             uint256 _diff = _balance.sub(_cap);
             IStrategy(_strategy).withdraw(_diff);
             updateBalance(_vault, _strategy);
+            _vaultDetails[_vault].balance = _vaultDetails[_vault].balance.sub(_diff);
         }
     }
 
@@ -332,8 +335,11 @@ contract Controller is IController {
         onlyStrategy(_strategy)
     {
         // WithdrawAll sends 'want' to 'vault'
+        uint256 _amount = IStrategy(_strategy).balanceOf();
         IStrategy(_strategy).withdrawAll();
-        updateBalance(_vaultStrategies[_strategy], _strategy);
+        address _vault = _vaultStrategies[_strategy];
+        updateBalance(_vault, _strategy);
+        _vaultDetails[_vault].balance = _vaultDetails[_vault].balance.sub(_amount);
     }
 
     /**
