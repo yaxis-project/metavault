@@ -29,5 +29,5 @@ interface IManager {
     function treasuryFee() external view returns (uint256);
     function vaults(address) external view returns (address);
     function withdrawalProtectionFee() external view returns (uint256);
-    function YAXIS() external view returns (address);
+    function yaxis() external view returns (address);
 }

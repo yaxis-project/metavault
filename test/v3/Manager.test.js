@@ -4,8 +4,6 @@ const { solidity } = require('ethereum-waffle');
 chai.use(solidity);
 const hardhat = require('hardhat');
 const { deployments, ethers } = hardhat;
-const { parseEther } = ethers.utils;
-const ether = parseEther;
 
 describe('Manager', () => {
     let deployer, treasury, user;
@@ -36,7 +34,7 @@ describe('Manager', () => {
     });
 
     it('should deploy with expected state', async () => {
-        expect(await manager.YAXIS()).to.equal(yaxis.address);
+        expect(await manager.yaxis()).to.equal(yaxis.address);
         expect(await manager.governance()).to.equal(deployer.address);
         expect(await manager.strategist()).to.equal(deployer.address);
         expect(await manager.harvester()).to.equal(harvester.address);

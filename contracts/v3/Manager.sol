@@ -26,7 +26,7 @@ contract Manager is IManager {
     uint256 public constant PENDING_STRATEGIST_TIMELOCK = 24 hours;
     uint256 public constant MAX_TOKENS = 256;
 
-    address public immutable override YAXIS;
+    address public immutable override yaxis;
 
     address public override governance;
     address public override harvester;
@@ -115,7 +115,7 @@ contract Manager is IManager {
     )
         public
     {
-        YAXIS = _yaxis;
+        yaxis = _yaxis;
         governance = msg.sender;
         strategist = msg.sender;
         harvester = msg.sender;
@@ -500,7 +500,7 @@ contract Manager is IManager {
         )
     {
         return (
-            YAXIS,
+            yaxis,
             treasury,
             treasuryFee
         );

@@ -303,7 +303,7 @@ contract Harvester is IHarvester {
         if (_slippage > 0) {
             _estimatedWETH = _estimatedWETH.mul(_slippage).div(ONE_HUNDRED_PERCENT);
         }
-        _path[0] = manager.YAXIS();
+        _path[0] = manager.yaxis();
         uint256 _fee = _estimatedWETH.mul(manager.treasuryFee()).div(ONE_HUNDRED_PERCENT);
         _amounts = _router.getAmountsOut(_fee, _path);
         _estimatedYAXIS = _amounts[1];
