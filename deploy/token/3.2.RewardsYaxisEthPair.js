@@ -40,3 +40,4 @@ module.exports = async ({ getChainId, getNamedAccounts, deployments }) => {
 };
 
 module.exports.tags = ['rewards'];
+module.exports.dependencies = ['token'];

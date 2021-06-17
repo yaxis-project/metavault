@@ -18,28 +18,21 @@ exports.increaseTime = async (time) => {
     });
 };
 
-exports.setupTestGovernance = deployments.createFixture(
-    async ({ deployments, getNamedAccounts, ethers }) => {
-        await deployments.fixture('governance');
-        const { deployer, user } = await getNamedAccounts();
-        const YAX = await deployments.get('YAX');
-        const yax = await ethers.getContractAt('MockERC20', YAX.address, user);
-        const SYAX = await deployments.get('sYAX');
-        const syax = await ethers.getContractAt('MockYaxisBar', SYAX.address, user);
-        const YaxisChef = await deployments.get('MockYaxisChef');
-        const yaxisChef = await ethers.getContractAt(
-            'MockYaxisChef',
-            YaxisChef.address,
-            deployer
-        );
-        const Pair = await deployments.get('YaxEthUniswapV2Pair');
-        const pair = await ethers.getContractAt('YaxEthUniswapV2Pair', Pair.address, user);
-        const WETH = await deployments.get('WETH');
-        const weth = await ethers.getContractAt('MockERC20', WETH.address, user);
+exports.setupTestGovernance = deployments.createFixture(async ({ deployments, ethers }) => {
+    await deployments.fixture(['token', 'rewards', 'governance']);
+    const YAXIS = await deployments.get('YaxisToken');
+    const yaxis = await ethers.getContractAt('YaxisToken', YAXIS.address);
+    const RewardsYaxis = await deployments.get('RewardsYaxis');
+    const rewardsYaxis = await ethers.getContractAt('Rewards', RewardsYaxis.address);
+    const RewardsYaxisEth = await deployments.get('RewardsYaxisEth');
+    const rewardsYaxisEth = await ethers.getContractAt('Rewards', RewardsYaxisEth.address);
+    const Pair = await deployments.get('YaxisEthUniswapV2Pair');
+    const pair = await ethers.getContractAt('MockUniswapPair', Pair.address);
+    const WETH = await deployments.get('WETH');
+    const weth = await ethers.getContractAt('MockERC20', WETH.address);
 
-        return { deployer, syax, user, yax, yaxisChef, pair, weth };
-    }
-);
+    return { rewardsYaxis, yaxis, rewardsYaxisEth, pair, weth };
+});
 
 exports.setupTestToken = deployments.createFixture(
     async ({ deployments, getNamedAccounts, ethers }) => {
