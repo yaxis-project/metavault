@@ -262,7 +262,8 @@ contract Controller is IController {
             uint256 _diff = _balance.sub(_cap);
             IStrategy(_strategy).withdraw(_diff);
             updateBalance(_vault, _strategy);
-            _vaultDetails[_vault].balance = _vaultDetails[_vault].balance.sub(_diff);
+            _balance = IStrategy(_strategy).balanceOf();
+            _vaultDetails[_vault].balance = _vaultDetails[_vault].balance.sub(_balance);
         }
     }
 
