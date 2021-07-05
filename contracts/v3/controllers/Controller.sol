@@ -336,6 +336,7 @@ contract Controller is IController {
         onlyStrategist
         onlyStrategy(_strategy)
     {
+        // TODO: Says it sends to vault, but sends to controller
         // WithdrawAll sends 'want' to 'vault'
         uint256 _amount = IStrategy(_strategy).balanceOf();
         IStrategy(_strategy).withdrawAll();

@@ -9,10 +9,20 @@ const ether = parseEther;
 
 describe('Vault', () => {
     let deployer, treasury, user;
-    let dai, t3crv, usdc, usdt, vault, manager, controller, harvester, depositor;
+    let dai,
+        t3crv,
+        usdc,
+        usdt,
+        vault,
+        manager,
+        controller,
+        harvester,
+        depositor,
+        strategyCrv,
+        converter;
 
     beforeEach(async () => {
-        await deployments.fixture('v3');
+        await deployments.fixture(['v3', 'NativeStrategyCurve3Crv']);
         [deployer, treasury, , user] = await ethers.getSigners();
         const DAI = await deployments.get('DAI');
         dai = await ethers.getContractAt('MockERC20', DAI.address);
@@ -28,6 +38,13 @@ describe('Vault', () => {
         harvester = await ethers.getContractAt('Harvester', Harvester.address);
         const Controller = await deployments.get('Controller');
         controller = await ethers.getContractAt('Controller', Controller.address);
+        const StrategyCrv = await deployments.get('NativeStrategyCurve3Crv');
+        strategyCrv = await ethers.getContractAt(
+            'NativeStrategyCurve3Crv',
+            StrategyCrv.address,
+            deployer
+        );
+        converter = await deployments.get('StablesConverter');
 
         const Vault = await deployments.deploy('Vault', {
             from: deployer.address,
@@ -53,6 +70,8 @@ describe('Vault', () => {
     });
 
     it('should deploy with expected state', async () => {
+        expect(await vault.name()).to.equal('Vault: Stables');
+        expect(await vault.symbol()).to.equal('MV:S');
         expect(await vault.manager()).to.equal(manager.address);
         expect(await vault.min()).to.equal(9500);
         expect(await vault.totalDepositCap()).to.equal(ether('10000000'));
@@ -66,10 +85,20 @@ describe('Vault', () => {
             expect(await vault.min()).to.equal(9500);
         });
 
+        it('should revert when halted', async () => {
+            await manager.setHalted();
+            await expect(vault.connect(user).setMin(9000)).to.be.revertedWith('halted');
+        });
+
         it('should set the min when called by the strategist', async () => {
             expect(await vault.min()).to.equal(9500);
             await vault.connect(deployer).setMin(9000);
             expect(await vault.min()).to.equal(9000);
+        });
+
+        it('should revert if _min is greater than MAX', async () => {
+            const max = 10000;
+            await expect(vault.connect(deployer).setMin(max + 1)).to.revertedWith('!_min');
         });
     });
 
@@ -82,6 +111,13 @@ describe('Vault', () => {
             expect(await vault.totalDepositCap()).to.equal(ether('10000000'));
         });
 
+        it('should revert when halted', async () => {
+            await manager.setHalted();
+            await expect(vault.connect(deployer).setTotalDepositCap(0)).to.be.revertedWith(
+                'halted'
+            );
+        });
+
         it('should set the total deposit cap when called by the strategist', async () => {
             expect(await vault.totalDepositCap()).to.equal(ether('10000000'));
             await vault.connect(deployer).setTotalDepositCap(0);
@@ -90,11 +126,20 @@ describe('Vault', () => {
     });
 
     describe('earn', () => {
-        it('should revert when called by an address other than the harvester', async () => {
+        beforeEach(async () => {
+            await controller.connect(deployer).setConverter(vault.address, converter.address);
+            await manager.connect(treasury).setAllowedStrategy(strategyCrv.address, true);
             await manager.connect(treasury).setAllowedToken(dai.address, true);
             await expect(manager.addToken(vault.address, dai.address))
                 .to.emit(manager, 'TokenAdded')
                 .withArgs(vault.address, dai.address);
+            await manager.setController(vault.address, controller.address);
+            await controller.addStrategy(vault.address, strategyCrv.address, 0, 86400);
+            await dai.connect(user).faucet(1000);
+            await dai.connect(user).transfer(vault.address, 1000);
+        });
+
+        it('should revert when called by an address other than the harvester', async () => {
             await expect(
                 vault.connect(user).earn(dai.address, ethers.constants.AddressZero)
             ).to.be.revertedWith('!harvester');
@@ -110,6 +155,46 @@ describe('Vault', () => {
                         ethers.constants.AddressZero
                     )
             ).to.be.revertedWith('!_token');
+        });
+
+        it('should revert when halted', async () => {
+            await manager.setHalted();
+            await expect(
+                harvester
+                    .connect(deployer)
+                    .earn(ethers.constants.AddressZero, vault.address, dai.address)
+            ).to.be.revertedWith('halted');
+        });
+
+        it('should revert if strategy isnt allowed', async () => {
+            await expect(
+                harvester
+                    .connect(deployer)
+                    .earn(ethers.constants.AddressZero, vault.address, dai.address)
+            ).to.be.revertedWith('!_strategy');
+        });
+
+        it('should earn when strategy is added', async () => {
+            expect(await dai.balanceOf(vault.address)).to.equal(1000);
+            await expect(
+                harvester
+                    .connect(deployer)
+                    .earn(strategyCrv.address, vault.address, dai.address)
+            )
+                .to.emit(vault, 'Earn')
+                .withArgs(dai.address, 950);
+            expect(await dai.balanceOf(vault.address)).to.equal(50);
+        });
+
+        it('should do nothing if invest is disabled', async () => {
+            expect(await dai.balanceOf(vault.address)).to.equal(1000);
+            await controller.setInvestEnabled(false);
+            await expect(
+                harvester
+                    .connect(deployer)
+                    .earn(strategyCrv.address, vault.address, dai.address)
+            ).to.not.emit(vault, 'Earn');
+            expect(await dai.balanceOf(vault.address)).to.equal(1000);
         });
     });
 
@@ -148,6 +233,19 @@ describe('Vault', () => {
                 await expect(
                     vault.connect(user).depositMultiple([dai.address, usdt.address], [1, 1])
                 ).to.be.revertedWith('!_token');
+            });
+
+            it('should revert when halted', async () => {
+                await manager.setHalted();
+                await expect(
+                    vault.connect(user).deposit(dai.address, ether('1000'))
+                ).to.be.revertedWith('halted');
+            });
+
+            it('should revert if deposit amount is 0', async () => {
+                await expect(vault.connect(user).deposit(dai.address, 0)).to.be.revertedWith(
+                    '!_amount'
+                );
             });
 
             it('should revert if the deposit amount is greater than the total deposit cap', async () => {
@@ -281,6 +379,14 @@ describe('Vault', () => {
                     .to.emit(vault, 'Withdraw')
                     .withArgs(user.address, ether('999'));
             });
+
+            it('should withdraw the full amount even if tokens are sent directly', async () => {
+                await dai.connect(user).faucet(ether('1'));
+                await dai.connect(user).transfer(vault.address, ether('1'));
+                await expect(vault.connect(user).withdraw(ether('1000'), dai.address))
+                    .to.emit(vault, 'Withdraw')
+                    .withArgs(user.address, ether('999.999'));
+            });
         });
     });
 
@@ -320,6 +426,14 @@ describe('Vault', () => {
                     .to.emit(vault, 'Withdraw')
                     .withArgs(user.address, ether('999'));
             });
+        });
+    });
+
+    describe('available', () => {
+        it('should get balance with minimum amount on-hand', async () => {
+            await dai.connect(user).faucet(1000);
+            await dai.connect(user).transfer(vault.address, 1000);
+            expect(await vault.available(dai.address)).to.equal(1000 * 0.95);
         });
     });
 });

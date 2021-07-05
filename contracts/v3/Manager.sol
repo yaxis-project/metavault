@@ -326,6 +326,9 @@ contract Manager is IManager {
         notHalted
         onlyGovernance
     {
+        require(_treasury != address(0), "!_treasury");
+        // TODO: Should be set when initialized?
+        // Otherwise tokens could get burnt
         treasury = _treasury;
     }
 
@@ -371,7 +374,7 @@ contract Manager is IManager {
     {
         require(msg.sender == pendingStrategist, "!pendingStrategist");
         // solhint-disable-next-line not-rely-on-time
-        require(setPendingStrategistTime > block.timestamp.sub(PENDING_STRATEGIST_TIMELOCK), "PENDING_STRATEGIST_TIMELOCK");
+        require(block.timestamp > setPendingStrategistTime.add(PENDING_STRATEGIST_TIMELOCK), "PENDING_STRATEGIST_TIMELOCK");
         delete pendingStrategist;
         delete setPendingStrategistTime;
         strategist = msg.sender;
@@ -425,18 +428,23 @@ contract Manager is IManager {
     {
         uint256 k = tokens[_vault].length;
         uint256 index;
+        bool found;
 
         for (uint i = 0; i < k; i++) {
             if (tokens[_vault][i] == _token) {
                 index = i;
+                found = true;
                 break;
             }
         }
 
-        tokens[_vault][index] = tokens[_vault][k-1];
-        tokens[_vault].pop();
-        delete vaults[_token];
-        emit TokenRemoved(_vault, _token);
+        // TODO: Verify added check
+        if (found) {
+            tokens[_vault][index] = tokens[_vault][k-1];
+            tokens[_vault].pop();
+            delete vaults[_token];
+            emit TokenRemoved(_vault, _token);
+        }
     }
 
     /**
