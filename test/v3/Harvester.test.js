@@ -17,7 +17,11 @@ describe('Harvester', () => {
         strategyCrv,
         converter,
         dai,
-        t3crv;
+        t3crv,
+        crv,
+        yax,
+        weth,
+        unirouter;
 
     beforeEach(async () => {
         await deployments.fixture(['v3', 'NativeStrategyCurve3Crv']);
@@ -28,6 +32,14 @@ describe('Harvester', () => {
         manager = await ethers.getContractAt('Manager', Manager.address);
         const DAI = await deployments.get('DAI');
         dai = await ethers.getContractAt('MockERC20', DAI.address);
+        const CRV = await deployments.get('CRV');
+        crv = await ethers.getContractAt('MockERC20', CRV.address);
+        const WETH = await deployments.get('WETH');
+        weth = await ethers.getContractAt('MockERC20', WETH.address);
+        const YAX = await deployments.get('YaxisToken');
+        yax = await ethers.getContractAt('MockERC20', YAX.address);
+        const router = await deployments.get('MockUniswapRouter');
+        unirouter = await ethers.getContractAt('MockUniswapRouter', router.address);
         converter = await deployments.get('StablesConverter');
         const Controller = await deployments.get('Controller');
         controller = await ethers.getContractAt('Controller', Controller.address);
@@ -167,7 +179,8 @@ describe('Harvester', () => {
             await controller.addStrategy(vault.address, strategyCrv.address, 0, 86400);
             await harvester.setHarvester(deployer.address, true);
             await dai.connect(user).faucet(1000);
-            await dai.connect(user).transfer(vault.address, 1000);
+            await dai.connect(user).approve(vault.address, ethers.constants.MaxUint256);
+            await vault.connect(user).deposit(dai.address, 1000);
         });
 
         it('should revert when called by an address other than the harvester', async () => {
@@ -195,7 +208,17 @@ describe('Harvester', () => {
             await harvester.earn(strategyCrv.address, vault.address, dai.address);
             await harvester.setHarvester(deployer.address, true);
             await dai.connect(user).faucet(1000);
-            await dai.connect(user).transfer(vault.address, 1000);
+            await dai.connect(user).approve(vault.address, ethers.constants.MaxUint256);
+            await vault.connect(user).deposit(dai.address, 1000);
+            await harvester.earn(strategyCrv.address, vault.address, dai.address);
+            await crv.faucet(ether('1000'));
+            await weth.faucet(ether('2000'));
+            await dai.faucet(ether('1000'));
+
+            await crv.transfer(unirouter.address, ether('1000'));
+            await dai.transfer(unirouter.address, ether('1000'));
+            await weth.transfer(unirouter.address, ether('2000'));
+            await yax.connect(deployer).transfer(unirouter.address, ether('1000'));
         });
 
         it('should revert when called by an address other than the harvester', async () => {
@@ -205,7 +228,6 @@ describe('Harvester', () => {
         });
 
         it('should pass when called by the harvester', async () => {
-            // TODO: Failing with "!bal"
             await harvester.harvest(controller.address, strategyCrv.address, 0, 0);
         });
     });
@@ -224,7 +246,17 @@ describe('Harvester', () => {
             await harvester.earn(strategyCrv.address, vault.address, dai.address);
             await harvester.setHarvester(deployer.address, true);
             await dai.connect(user).faucet(1000);
-            await dai.connect(user).transfer(vault.address, 1000);
+            await dai.connect(user).approve(vault.address, ethers.constants.MaxUint256);
+            await vault.connect(user).deposit(dai.address, 1000);
+            await harvester.earn(strategyCrv.address, vault.address, dai.address);
+            await crv.faucet(ether('1000'));
+            await weth.faucet(ether('2000'));
+            await dai.faucet(ether('1000'));
+
+            await crv.transfer(unirouter.address, ether('1000'));
+            await dai.transfer(unirouter.address, ether('1000'));
+            await weth.transfer(unirouter.address, ether('2000'));
+            await yax.connect(deployer).transfer(unirouter.address, ether('1000'));
         });
 
         it('should revert if vault does not exist', async () => {
@@ -243,7 +275,6 @@ describe('Harvester', () => {
         });
 
         it('should pass when called by the harvester', async () => {
-            // TODO: Failing with "!bal"
             await harvester.harvest(controller.address, strategyCrv.address, 0, 0);
             // TODO: Check that addresses in strategies decreases
         });

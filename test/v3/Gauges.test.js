@@ -8,7 +8,7 @@ const { parseEther } = ethers.utils;
 const ether = parseEther;
 
 describe('Gauges', () => {
-    const MAXTIME = 4 * 365 * 86400;
+    const MAXTIME = 1 * 365 * 86400;
     let deployer, treasury;
     let gaugeController,
         gaugeProxy,
@@ -87,7 +87,7 @@ describe('Gauges', () => {
         const { timestamp } = await ethers.provider.getBlock(block);
         await votingEscrow.create_lock(ether('1'), timestamp + MAXTIME);
         expect(await votingEscrow['balanceOf(address)'](deployer.address)).to.be.above(
-            ether('0.99')
+            ether('0.98')
         );
     });
 
@@ -97,7 +97,7 @@ describe('Gauges', () => {
         );
         await gaugeController.vote_for_gauge_weights(vaultStablesGauge.address, 10000);
         expect(await gaugeController.get_gauge_weight(vaultStablesGauge.address)).to.be.above(
-            ether('0.99')
+            ether('0.97')
         );
     });
 });

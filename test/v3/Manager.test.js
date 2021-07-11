@@ -4,6 +4,7 @@ const { solidity } = require('ethereum-waffle');
 chai.use(solidity);
 const hardhat = require('hardhat');
 const { deployments, ethers } = hardhat;
+const { increaseTime } = require('../helpers/setup');
 
 describe('Manager', () => {
     let deployer, treasury, user;
@@ -38,6 +39,7 @@ describe('Manager', () => {
         expect(await manager.governance()).to.equal(deployer.address);
         expect(await manager.strategist()).to.equal(deployer.address);
         expect(await manager.harvester()).to.equal(harvester.address);
+        expect(await manager.treasury()).to.equal(deployer.address);
         expect(await manager.stakingPoolShareFee()).to.equal(2000);
         expect(await manager.treasuryFee()).to.equal(500);
         expect(await manager.withdrawalProtectionFee()).to.equal(10);
@@ -653,37 +655,26 @@ describe('Manager', () => {
         });
 
         context('when there is a pending strategist', () => {
-            let date;
             beforeEach(async () => {
-                // Deterministically set the block time
-                date = Date.now() + 10 * 1000;
-                await ethers.provider.send('evm_setNextBlockTimestamp', [
-                    Math.floor(date / 1000)
-                ]);
                 await manager.connect(deployer).setStrategist(user.address);
             });
 
             it('should revert if called by an account other than the pending strategist', async () => {
+                await increaseTime(7 * 86400);
                 await expect(manager.connect(deployer).acceptStrategist()).to.be.revertedWith(
                     '!pendingStrategist'
                 );
             });
 
             it('should revert if called by the pending strategist within the timelock', async () => {
-                // Progress 10s in next block
-                await ethers.provider.send('evm_setNextBlockTimestamp', [
-                    Math.floor(date / 1000) + 10
-                ]);
+                await increaseTime(2 * 86400);
                 await expect(manager.connect(user).acceptStrategist()).to.be.revertedWith(
                     'PENDING_STRATEGIST_TIMELOCK'
                 );
             });
 
             it('should set the strategist if called by the pending strategist after the timelock', async () => {
-                // Progress 24h + 10s in next block
-                await ethers.provider.send('evm_setNextBlockTimestamp', [
-                    Math.floor(date / 1000) + 60 * 60 * 24 + 10
-                ]);
+                await increaseTime(7 * 86400 + 1);
 
                 await expect(manager.connect(user).acceptStrategist())
                     .to.emit(manager, 'SetStrategist')

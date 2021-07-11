@@ -248,7 +248,8 @@ contract Controller is IController {
     function setCap(
         address _vault,
         address _strategy,
-        uint256 _cap
+        uint256 _cap,
+        address _convert
     )
         external
         notHalted
@@ -264,6 +265,16 @@ contract Controller is IController {
             updateBalance(_vault, _strategy);
             _balance = IStrategy(_strategy).balanceOf();
             _vaultDetails[_vault].balance = _vaultDetails[_vault].balance.sub(_balance);
+            address _want = IStrategy(_strategy).want();
+            _balance = IERC20(_want).balanceOf(address(this));
+            if (_convert != address(0)) {
+                IConverter _converter = IConverter(_vaultDetails[_vault].converter);
+                IERC20(_want).safeTransfer(address(_converter), _balance);
+                _balance = _converter.convert(_want, _convert, _balance, 1);
+                IERC20(_convert).safeTransfer(_vault, _balance);
+            } else {
+                IERC20(_want).safeTransfer(_vault, _balance);
+            }
         }
     }
 
@@ -327,22 +338,36 @@ contract Controller is IController {
     /**
      * @notice Withdraws all funds from a strategy
      * @param _strategy The address of the strategy
+     * @param _convert The token address to convert to
      */
     function withdrawAll(
-        address _strategy
+        address _strategy,
+        address _convert
     )
         external
         override
         onlyStrategist
         onlyStrategy(_strategy)
     {
-        // TODO: Says it sends to vault, but sends to controller
-        // WithdrawAll sends 'want' to 'vault'
-        uint256 _amount = IStrategy(_strategy).balanceOf();
+        address _want = IStrategy(_strategy).want();
         IStrategy(_strategy).withdrawAll();
+        uint256 _amount = IERC20(_want).balanceOf(address(this));
         address _vault = _vaultStrategies[_strategy];
         updateBalance(_vault, _strategy);
-        _vaultDetails[_vault].balance = _vaultDetails[_vault].balance.sub(_amount);
+        if (_convert != address(0)) {
+            IConverter _converter = IConverter(_vaultDetails[_vault].converter);
+            IERC20(_want).safeTransfer(address(_converter), _amount);
+            _amount = _converter.convert(_want, _convert, _amount, 1);
+            IERC20(_convert).safeTransfer(_vault, _amount);
+        } else {
+            IERC20(_want).safeTransfer(_vault, _amount);
+        }
+        uint256 _balance = _vaultDetails[_vault].balance;
+        if (_balance >= _amount) {
+            _vaultDetails[_vault].balance = _vaultDetails[_vault].balance.sub(_amount);
+        } else {
+            _vaultDetails[_vault].balance = 0;
+        }
     }
 
     /**
@@ -467,6 +492,17 @@ contract Controller is IController {
         returns (uint256 _balance)
     {
         return _vaultDetails[msg.sender].balance;
+    }
+
+    function converter(
+        address _vault
+    )
+        external
+        view
+        override
+        returns (address)
+    {
+        return _vaultDetails[_vault].converter;
     }
 
     /**

@@ -23,7 +23,7 @@ import "./interfaces/IVault.sol";
 contract Manager is IManager {
     using SafeMath for uint256;
 
-    uint256 public constant PENDING_STRATEGIST_TIMELOCK = 24 hours;
+    uint256 public constant PENDING_STRATEGIST_TIMELOCK = 7 days;
     uint256 public constant MAX_TOKENS = 256;
 
     address public immutable override yaxis;
@@ -114,10 +114,12 @@ contract Manager is IManager {
     )
         public
     {
+        require(_yaxis != address(0), "!_yaxis");
         yaxis = _yaxis;
         governance = msg.sender;
         strategist = msg.sender;
         harvester = msg.sender;
+        treasury = msg.sender;
         stakingPoolShareFee = 2000;
         treasuryFee = 500;
         withdrawalProtectionFee = 10;
@@ -327,8 +329,6 @@ contract Manager is IManager {
         onlyGovernance
     {
         require(_treasury != address(0), "!_treasury");
-        // TODO: Should be set when initialized?
-        // Otherwise tokens could get burnt
         treasury = _treasury;
     }
 

@@ -4,8 +4,10 @@ const { solidity } = require('ethereum-waffle');
 chai.use(solidity);
 const hardhat = require('hardhat');
 const { deployments, ethers } = hardhat;
+const { parseEther } = ethers.utils;
+const ether = parseEther;
 
-describe('Converter', () => {
+describe('StablesConverter', () => {
     let deployer, user;
     let converter, dai, t3crv, usdc, usdt, stableSwap3Pool, manager;
 
@@ -111,16 +113,9 @@ describe('Converter', () => {
             });
             newConverter = await ethers.getContractAt('StablesConverter', Converter.address);
 
-            await dai.faucet(100000);
-            await usdc.faucet(100000);
-            await usdt.faucet(100000);
-            await t3crv.faucet(100000);
-
-            await dai.approve(stableSwap3Pool.address, ethers.constants.MaxUint256);
-            await usdc.approve(stableSwap3Pool.address, ethers.constants.MaxUint256);
-            await usdt.approve(stableSwap3Pool.address, ethers.constants.MaxUint256);
-
-            await stableSwap3Pool.add_liquidity([100000, 100000, 100000], 1000);
+            await dai.faucet(ether('1000'));
+            await usdc.faucet(ether('1000'));
+            await usdt.faucet('1000000000');
         });
 
         it('should revert if called by an address that is not authorized', async () => {
@@ -131,22 +126,22 @@ describe('Converter', () => {
 
         it('should convert non-3CRV to non-3CRV when called from authorized sender', async () => {
             const startBalance = await usdc.balanceOf(deployer.address);
-            await dai.transfer(newConverter.address, 100);
-            await newConverter.convert(dai.address, usdc.address, 100, 1);
+            await dai.transfer(newConverter.address, ether('100'));
+            await newConverter.convert(dai.address, usdc.address, ether('100'), 1);
             expect(await usdc.balanceOf(deployer.address)).to.be.above(startBalance);
         });
 
         it('should convert 3CRV to non-3CRV when called from authorized sender', async () => {
             const startBalance = await usdc.balanceOf(deployer.address);
-            await t3crv.transfer(newConverter.address, 100);
-            await newConverter.convert(t3crv.address, usdc.address, 100, 1);
+            await t3crv.transfer(newConverter.address, ether('100'));
+            await newConverter.convert(t3crv.address, usdc.address, ether('100'), 1);
             expect(await usdc.balanceOf(deployer.address)).to.be.above(startBalance);
         });
 
         it('should convert non-3CRV to 3CRV when called from authorized sender', async () => {
             const startBalance = await t3crv.balanceOf(deployer.address);
-            await dai.transfer(newConverter.address, 100);
-            await newConverter.convert(dai.address, t3crv.address, 100, 1);
+            await dai.transfer(newConverter.address, ether('100'));
+            await newConverter.convert(dai.address, t3crv.address, ether('100'), 1);
             expect(await t3crv.balanceOf(deployer.address)).to.be.above(startBalance);
         });
     });

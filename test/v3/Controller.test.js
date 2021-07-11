@@ -4,6 +4,8 @@ const { solidity } = require('ethereum-waffle');
 chai.use(solidity);
 const hardhat = require('hardhat');
 const { deployments, ethers } = hardhat;
+const { parseEther } = ethers.utils;
+const ether = parseEther;
 
 describe('Controller', () => {
     let deployer, treasury, user;
@@ -35,7 +37,7 @@ describe('Controller', () => {
         crv = await ethers.getContractAt('MockERC20', CRV.address);
         const WETH = await deployments.get('WETH');
         weth = await ethers.getContractAt('MockERC20', WETH.address);
-        const YAX = await deployments.get('YAX');
+        const YAX = await deployments.get('YaxisToken');
         yax = await ethers.getContractAt('MockERC20', YAX.address);
         converter = await deployments.get('StablesConverter');
         const Harvester = await deployments.get('Harvester');
@@ -61,9 +63,9 @@ describe('Controller', () => {
     });
 
     it('should deploy with expected state', async () => {
-        expect(await controller.manager()).to.equal(manager.address);
+        expect(await controller.manager()).to.be.equal(manager.address);
         expect(await controller.globalInvestEnabled()).to.be.true;
-        expect(await controller.maxStrategies()).to.equal(10);
+        expect(await controller.maxStrategies()).to.be.equal(10);
     });
 
     describe('addStrategy', () => {
@@ -128,9 +130,9 @@ describe('Controller', () => {
         });
 
         it('should get tokens from strategy', async () => {
-            expect(await dai.balanceOf(treasury.address)).to.equal(0);
+            expect(await dai.balanceOf(treasury.address)).to.be.equal(0);
             await controller.inCaseStrategyGetStuck(strategyCrv.address, dai.address);
-            expect(await dai.balanceOf(treasury.address)).to.equal(1000);
+            expect(await dai.balanceOf(treasury.address)).to.be.equal(1000);
         });
 
         context('when it is halted', () => {
@@ -139,9 +141,9 @@ describe('Controller', () => {
             });
 
             it('should still get tokens from the strategy', async () => {
-                expect(await dai.balanceOf(treasury.address)).to.equal(0);
+                expect(await dai.balanceOf(treasury.address)).to.be.equal(0);
                 await controller.inCaseStrategyGetStuck(strategyCrv.address, dai.address);
-                expect(await dai.balanceOf(treasury.address)).to.equal(1000);
+                expect(await dai.balanceOf(treasury.address)).to.be.equal(1000);
             });
         });
     });
@@ -160,9 +162,9 @@ describe('Controller', () => {
         });
 
         it('should get tokens from controller', async () => {
-            expect(await dai.balanceOf(treasury.address)).to.equal(0);
+            expect(await dai.balanceOf(treasury.address)).to.be.equal(0);
             await controller.inCaseTokensGetStuck(dai.address, 1000);
-            expect(await dai.balanceOf(treasury.address)).to.equal(1000);
+            expect(await dai.balanceOf(treasury.address)).to.be.equal(1000);
         });
 
         context('when it is halted', () => {
@@ -171,9 +173,9 @@ describe('Controller', () => {
             });
 
             it('should still get tokens from the controller', async () => {
-                expect(await dai.balanceOf(treasury.address)).to.equal(0);
+                expect(await dai.balanceOf(treasury.address)).to.be.equal(0);
                 await controller.inCaseTokensGetStuck(dai.address, 1000);
-                expect(await dai.balanceOf(treasury.address)).to.equal(1000);
+                expect(await dai.balanceOf(treasury.address)).to.be.equal(1000);
             });
         });
     });
@@ -219,13 +221,13 @@ describe('Controller', () => {
             });
 
             it('should remove the strategy and withdraw tokens', async () => {
-                expect(await t3crv.balanceOf(controller.address)).to.equal(0);
+                expect(await t3crv.balanceOf(controller.address)).to.be.equal(0);
                 await expect(
                     controller.removeStrategy(vault.address, strategyCrv.address, 86400)
                 )
                     .to.emit(controller, 'StrategyRemoved')
                     .withArgs(vault.address, strategyCrv.address);
-                expect(await t3crv.balanceOf(controller.address)).to.equal(1000);
+                expect(await t3crv.balanceOf(controller.address)).to.be.equal(1000);
             });
         });
     });
@@ -294,7 +296,7 @@ describe('Controller', () => {
             });
 
             it('should reorder the strategies', async () => {
-                expect(
+                await expect(
                     controller.reorderStrategies(
                         vault.address,
                         strategyCrv.address,
@@ -306,7 +308,7 @@ describe('Controller', () => {
             });
 
             it('should revert if a strategy doesnt exist', async () => {
-                expect(
+                await expect(
                     controller.reorderStrategies(
                         vault.address,
                         strategyCrv.address,
@@ -320,6 +322,8 @@ describe('Controller', () => {
     describe('setCap', () => {
         beforeEach(async () => {
             await controller.connect(deployer).setConverter(vault.address, converter.address);
+            await manager.connect(treasury).setAllowedController(controller.address, true);
+            await manager.connect(deployer).setController(vault.address, controller.address);
             await manager.connect(treasury).setAllowedStrategy(strategyCrv.address, true);
             await manager.connect(treasury).setAllowedToken(dai.address, true);
             await manager.addToken(vault.address, dai.address);
@@ -327,7 +331,14 @@ describe('Controller', () => {
 
         it('should revert if called by an address other than the strategist', async () => {
             await expect(
-                controller.connect(user).setCap(vault.address, strategyCrv.address, 10)
+                controller
+                    .connect(user)
+                    .setCap(
+                        vault.address,
+                        strategyCrv.address,
+                        10,
+                        ethers.constants.AddressZero
+                    )
             ).to.be.revertedWith('!strategist');
         });
 
@@ -338,7 +349,12 @@ describe('Controller', () => {
 
             it('should revert', async () => {
                 await expect(
-                    controller.setCap(vault.address, strategyCrv.address, 10)
+                    controller.setCap(
+                        vault.address,
+                        strategyCrv.address,
+                        10,
+                        ethers.constants.AddressZero
+                    )
                 ).to.be.revertedWith('halted');
             });
         });
@@ -346,26 +362,39 @@ describe('Controller', () => {
         context('when strategy exists', () => {
             beforeEach(async () => {
                 await controller.addStrategy(vault.address, strategyCrv.address, 0, 86400);
-                await t3crv.connect(user).faucet(1000);
-                await t3crv.connect(user).transfer(strategyCrv.address, 1000);
+                await dai.connect(user).faucet(1000);
+                await dai.connect(user).approve(vault.address, ethers.constants.MaxUint256);
+                await vault.connect(user).deposit(dai.address, 1000);
+                await harvester
+                    .connect(deployer)
+                    .earn(strategyCrv.address, vault.address, dai.address);
             });
 
             it('should set the cap and withdraw excess tokens', async () => {
-                expect(await t3crv.balanceOf(controller.address)).to.equal(0);
-                await controller.setCap(vault.address, strategyCrv.address, 10);
-                expect(await t3crv.balanceOf(controller.address)).to.equal(990);
+                expect(await dai.balanceOf(vault.address)).to.be.equal(50);
+                await controller.setCap(vault.address, strategyCrv.address, 10, dai.address);
+                expect(await dai.balanceOf(vault.address)).to.be.equal(989);
+                expect(await t3crv.balanceOf(controller.address)).to.be.equal(0);
+                expect(await t3crv.balanceOf(vault.address)).to.be.equal(0);
             });
 
             it('should set the cap and not withdraw excess tokens if no cap', async () => {
-                expect(await t3crv.balanceOf(vault.address)).to.equal(0);
-                await controller.setCap(vault.address, strategyCrv.address, 0);
-                expect(await t3crv.balanceOf(vault.address)).to.equal(0);
+                expect(await dai.balanceOf(vault.address)).to.be.equal(50);
+                expect(await t3crv.balanceOf(vault.address)).to.be.equal(0);
+                await controller.setCap(vault.address, strategyCrv.address, 0, dai.address);
+                expect(await dai.balanceOf(vault.address)).to.be.equal(50);
+                expect(await t3crv.balanceOf(vault.address)).to.be.equal(0);
             });
 
             it('should set the cap and not withdraw excess tokens if balance below cap', async () => {
-                expect(await t3crv.balanceOf(vault.address)).to.equal(0);
-                await controller.setCap(vault.address, strategyCrv.address, 99999);
-                expect(await t3crv.balanceOf(vault.address)).to.equal(0);
+                expect(await t3crv.balanceOf(vault.address)).to.be.equal(0);
+                await controller.setCap(
+                    vault.address,
+                    strategyCrv.address,
+                    99999,
+                    dai.address
+                );
+                expect(await t3crv.balanceOf(vault.address)).to.be.equal(0);
             });
         });
     });
@@ -448,9 +477,9 @@ describe('Controller', () => {
         });
 
         it('should set the maximum number of strategies', async () => {
-            expect(await controller.maxStrategies()).to.equal(10);
+            expect(await controller.maxStrategies()).to.be.equal(10);
             await controller.setMaxStrategies(1);
-            expect(await controller.maxStrategies()).to.equal(1);
+            expect(await controller.maxStrategies()).to.be.equal(1);
         });
     });
 
@@ -481,9 +510,9 @@ describe('Controller', () => {
             });
 
             it('should skim', async () => {
-                expect(await t3crv.balanceOf(vault.address)).to.equal(0);
+                expect(await t3crv.balanceOf(vault.address)).to.be.equal(0);
                 await controller.skim(strategyCrv.address);
-                expect(await t3crv.balanceOf(vault.address)).to.equal(1000);
+                expect(await t3crv.balanceOf(vault.address)).to.be.equal(1000);
             });
 
             context('when halted', () => {
@@ -492,9 +521,9 @@ describe('Controller', () => {
                 });
 
                 it('should still skim', async () => {
-                    expect(await t3crv.balanceOf(vault.address)).to.equal(0);
+                    expect(await t3crv.balanceOf(vault.address)).to.be.equal(0);
                     await controller.skim(strategyCrv.address);
-                    expect(await t3crv.balanceOf(vault.address)).to.equal(1000);
+                    expect(await t3crv.balanceOf(vault.address)).to.be.equal(1000);
                 });
             });
         });
@@ -508,9 +537,9 @@ describe('Controller', () => {
         });
 
         it('should revert if strategy is not allowed', async () => {
-            await expect(controller.withdrawAll(strategyCrv.address)).to.be.revertedWith(
-                '!allowedStrategy'
-            );
+            await expect(
+                controller.withdrawAll(strategyCrv.address, dai.address)
+            ).to.be.revertedWith('!allowedStrategy');
         });
 
         context('when strategy exists', () => {
@@ -523,24 +552,24 @@ describe('Controller', () => {
                 await manager.addToken(vault.address, dai.address);
                 await manager.setController(vault.address, controller.address);
                 await controller.addStrategy(vault.address, strategyCrv.address, 0, 86400);
-            });
-
-            it('should withdraw tokens sent directly', async () => {
-                await t3crv.connect(user).faucet(1000);
-                await t3crv.connect(user).transfer(strategyCrv.address, 1000);
-                expect(await t3crv.balanceOf(vault.address)).to.equal(0);
-                await controller.withdrawAll(strategyCrv.address);
-                expect(await t3crv.balanceOf(vault.address)).to.equal(1000);
-            });
-
-            it('should withdraw tokens deposited', async () => {
                 await dai.connect(user).faucet(1000);
                 await dai.connect(user).approve(vault.address, ethers.constants.MaxUint256);
                 await vault.connect(user).deposit(dai.address, 1000);
                 await harvester.earn(strategyCrv.address, vault.address, dai.address);
-                expect(await t3crv.balanceOf(vault.address)).to.equal(0);
-                await controller.withdrawAll(strategyCrv.address);
-                expect(await t3crv.balanceOf(vault.address)).to.at.least(950);
+            });
+
+            it('should withdraw tokens sent directly', async () => {
+                await t3crv.connect(user).faucet(50);
+                await t3crv.connect(user).transfer(strategyCrv.address, 50);
+                expect(await dai.balanceOf(vault.address)).to.be.equal(50);
+                await controller.withdrawAll(strategyCrv.address, dai.address);
+                expect(await dai.balanceOf(vault.address)).to.be.equal(1048);
+            });
+
+            it('should withdraw tokens deposited', async () => {
+                expect(await t3crv.balanceOf(vault.address)).to.be.equal(0);
+                await controller.withdrawAll(strategyCrv.address, dai.address);
+                expect(await dai.balanceOf(vault.address)).to.at.least(950);
             });
         });
     });
@@ -573,20 +602,18 @@ describe('Controller', () => {
                 await vault.connect(user).deposit(dai.address, 1000000);
                 await harvester.earn(strategyCrv.address, vault.address, dai.address);
 
-                await crv.faucet(10000);
-                await weth.faucet(10000);
-                await yax.faucet(10000);
+                await crv.faucet(ether('1000'));
+                await weth.faucet(ether('2000'));
+                await dai.faucet(ether('1000'));
 
-                await crv.transfer(unirouter.address, 10000);
-                await weth.transfer(unirouter.address, 10000);
-                await yax.transfer(unirouter.address, 10000);
+                await crv.transfer(unirouter.address, ether('1000'));
+                await dai.transfer(unirouter.address, ether('1000'));
+                await weth.transfer(unirouter.address, ether('2000'));
+                await yax.connect(deployer).transfer(unirouter.address, ether('1000'));
             });
 
             it('should harvest', async () => {
-                // TODO: Failing with "!bal"
-                await expect(
-                    harvester.harvest(controller.address, strategyCrv.address, 10, 10)
-                )
+                await expect(harvester.harvest(controller.address, strategyCrv.address, 0, 0))
                     .to.emit(controller, 'Harvest')
                     .withArgs(strategyCrv.address);
             });
@@ -693,9 +720,11 @@ describe('Controller', () => {
         });
 
         it('should get the correct cap', async () => {
-            expect(await controller.getCap(vault.address, strategyCrv.address)).to.equal(0);
-            await controller.setCap(vault.address, strategyCrv.address, 123);
-            expect(await controller.getCap(vault.address, strategyCrv.address)).to.equal(123);
+            expect(await controller.getCap(vault.address, strategyCrv.address)).to.be.equal(0);
+            await controller.setCap(vault.address, strategyCrv.address, 123, dai.address);
+            expect(await controller.getCap(vault.address, strategyCrv.address)).to.be.equal(
+                123
+            );
         });
     });
 
