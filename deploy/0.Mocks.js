@@ -47,22 +47,20 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
             args: ['0x0000000000000000000000000000000000000000']
         });
 
-        // Special case since Hardhat won't deploy Vyper to Kovan
-        if (chainId != '42') {
-            stableSwap3Pool = await deploy('MockStableSwap3Pool', {
-                from: deployer,
-                log: true,
-                args: [
-                    deployer,
-                    [dai.address, usdc.address, usdt.address],
-                    t3crv.address,
-                    200,
-                    4000000,
-                    5000000000
-                ]
-            });
-            stableSwap3Pool = stableSwap3Pool.address;
-        }
+        stableSwap3Pool = await deploy('MockStableSwap3Pool', {
+            from: deployer,
+            log: true,
+            args: [
+                deployer,
+                [dai.address, usdc.address, usdt.address],
+                t3crv.address,
+                200,
+                4000000,
+                5000000000
+            ]
+        });
+        stableSwap3Pool = stableSwap3Pool.address;
+
         if (t3crv.newlyDeployed) {
             await execute('T3CRV', { from: deployer }, 'transferOwnership', stableSwap3Pool);
             await execute(
