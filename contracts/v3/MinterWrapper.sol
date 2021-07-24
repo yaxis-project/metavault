@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: MIT
 // solhint-disable func-name-mixedcase
-// solhint-disable var-name-mixedcase
 
 pragma solidity 0.6.12;
 
@@ -13,17 +12,11 @@ contract MinterWrapper is Ownable {
     using SafeERC20 for IERC20;
     using SafeMath for uint256;
 
-    uint256 public constant YEAR = 86400 * 365;
-    uint256 public constant INFLATION_DELAY = 86400;
-    uint256 public constant RATE_REDUCTION_TIME = YEAR;
-    uint256 public constant RATE_DENOMINATOR = 1e18;
-    uint256 public constant RATE_REDUCTION_COEFFICIENT = 1189207115002721024;
-
-    address public immutable token;
+    IERC20 public immutable token;
     address public minter;
     uint256 public rate;
-    uint256 internal _start_epoch_time;
-    uint256 internal _start_epoch_supply;
+
+    event Write();
 
     constructor(
         address _token
@@ -31,9 +24,8 @@ contract MinterWrapper is Ownable {
         public
         Ownable()
     {
-        token = _token;
-        // solhint-disable-next-line not-rely-on-time
-        _start_epoch_time = block.timestamp.add(INFLATION_DELAY).sub(RATE_REDUCTION_TIME);
+        token = IERC20(_token);
+        rate = 1e12;
     }
 
     /**
@@ -49,40 +41,34 @@ contract MinterWrapper is Ownable {
         minter = _minter;
     }
 
+    function setRate(
+        uint256 _rate
+    )
+        external
+        onlyOwner
+    {
+        rate = _rate;
+    }
+
     function mint(
         address _account,
         uint256 _amount
     )
         external
+        returns (bool)
     {
         require(msg.sender == minter, "!minter");
-        IERC20(token).safeTransfer(_account, _amount);
+        token.safeTransfer(_account, _amount);
+        return true;
     }
 
     function future_epoch_time_write()
         external
         returns (uint256)
     {
+        emit Write();
         // solhint-disable-next-line not-rely-on-time
-        if (block.timestamp >= _start_epoch_time.add(RATE_REDUCTION_TIME)) {
-            _update_mining_parameters();
-            return _start_epoch_time.add(RATE_REDUCTION_TIME);
-        } else {
-            return _start_epoch_time.add(RATE_REDUCTION_TIME);
-        }
-    }
-
-    function _update_mining_parameters()
-        internal
-    {
-        _start_epoch_time = _start_epoch_time.add(RATE_REDUCTION_TIME);
-
-        if (rate == 0) {
-            rate = available_supply().mul(1e18).div(YEAR);
-        } else {
-            _start_epoch_supply = _start_epoch_supply.add(rate.mul(RATE_REDUCTION_TIME));
-            rate = rate.mul(RATE_DENOMINATOR).div(RATE_REDUCTION_COEFFICIENT);
-        }
+        return block.timestamp;
     }
 
     function available_supply()
@@ -90,6 +76,6 @@ contract MinterWrapper is Ownable {
         view
         returns (uint256)
     {
-        return IERC20(token).balanceOf(address(this));
+        return token.balanceOf(address(this));
     }
 }

@@ -3,15 +3,19 @@ const { expect } = chai;
 const { solidity } = require('ethereum-waffle');
 chai.use(solidity);
 const hardhat = require('hardhat');
+const { increaseTime } = require('../helpers/setup');
 const { deployments, ethers } = hardhat;
 const { parseEther } = ethers.utils;
 const ether = parseEther;
 
 describe('Gauges', () => {
     const MAXTIME = 1 * 365 * 86400;
-    let deployer, treasury;
-    let gaugeController,
+    let deployer, treasury, user;
+    let controller,
+        dai,
+        gaugeController,
         gaugeProxy,
+        manager,
         minter,
         minterWrapper,
         vaultStables,
@@ -21,9 +25,15 @@ describe('Gauges', () => {
 
     before(async () => {
         await deployments.fixture('v3');
-        [deployer, treasury] = await ethers.getSigners();
+        [deployer, treasury, user] = await ethers.getSigners();
+        const Manager = await deployments.get('Manager');
+        manager = await ethers.getContractAt('Manager', Manager.address);
+        const Controller = await deployments.get('Controller');
+        controller = await ethers.getContractAt('Controller', Controller.address);
         const YAXIS = await deployments.get('YaxisToken');
         yaxis = await ethers.getContractAt('YaxisToken', YAXIS.address);
+        const DAI = await deployments.get('DAI');
+        dai = await ethers.getContractAt('MockERC20', DAI.address);
         const GaugeController = await deployments.get('GaugeController');
         gaugeController = await ethers.getContractAt(
             'GaugeController',
@@ -66,8 +76,8 @@ describe('Gauges', () => {
 
     it('should fund the minterWrapper with YAXIS', async () => {
         expect(await yaxis.balanceOf(minterWrapper.address)).to.be.equal(0);
-        await yaxis.connect(deployer).transfer(minterWrapper.address, ether('1000'));
-        expect(await yaxis.balanceOf(minterWrapper.address)).to.be.equal(ether('1000'));
+        await yaxis.connect(deployer).transfer(minterWrapper.address, ether('10000'));
+        expect(await yaxis.balanceOf(minterWrapper.address)).to.be.equal(ether('10000'));
     });
 
     it('should add the vault gauge type', async () => {
@@ -75,8 +85,16 @@ describe('Gauges', () => {
         expect(await gaugeController.n_gauge_types()).to.be.equal(1);
     });
 
+    it('should change the vault type weight', async () => {
+        await gaugeController['change_type_weight(int128,uint256)'](0, ether('1'));
+    });
+
     it('should add the vault gauge', async () => {
-        await gaugeController['add_gauge(address,int128)'](vaultStablesGauge.address, 0);
+        await gaugeController['add_gauge(address,int128,uint256)'](
+            vaultStablesGauge.address,
+            0,
+            ether('1')
+        );
         expect(await gaugeController.n_gauges()).to.be.equal(1);
     });
 
@@ -93,11 +111,45 @@ describe('Gauges', () => {
 
     it('should allow users to vote for a gauge', async () => {
         expect(await gaugeController.get_gauge_weight(vaultStablesGauge.address)).to.be.equal(
-            0
+            ether('1')
         );
         await gaugeController.vote_for_gauge_weights(vaultStablesGauge.address, 10000);
         expect(await gaugeController.get_gauge_weight(vaultStablesGauge.address)).to.be.above(
             ether('0.97')
         );
+    });
+
+    it('should allow users to stake vault tokens in a gauge', async () => {
+        await increaseTime(86400 * 7);
+        await manager.connect(deployer).setAllowedController(controller.address, true);
+        await manager.connect(deployer).setAllowedVault(vaultStables.address, true);
+        await manager.connect(deployer).setAllowedToken(dai.address, true);
+        await manager
+            .connect(deployer)
+            .setController(vaultStables.address, controller.address);
+        await manager.connect(deployer).addToken(vaultStables.address, dai.address);
+        await dai.connect(user).faucet(ether('1000'));
+        await dai.connect(user).approve(vaultStables.address, ethers.constants.MaxUint256);
+        await vaultStables.connect(user).deposit(dai.address, ether('1000'));
+        expect(await vaultStables.balanceOf(user.address)).to.be.equal(ether('1000'));
+        await vaultStables
+            .connect(user)
+            .approve(vaultStablesGauge.address, ethers.constants.MaxUint256);
+        expect(await vaultStablesGauge.balanceOf(user.address)).to.be.equal(0);
+        await vaultStablesGauge
+            .connect(user)
+            ['deposit(uint256,address)'](ether('1000'), user.address);
+        expect(await vaultStablesGauge.balanceOf(user.address)).to.be.equal(ether('1000'));
+    });
+
+    it('should allow users to earn rewards', async () => {
+        expect(await yaxis.balanceOf(user.address)).to.be.equal(0);
+        await increaseTime(86400 * 30);
+
+        await expect(minter.connect(user).mint(vaultStablesGauge.address)).to.emit(
+            minter,
+            'Minted'
+        );
+        expect(await yaxis.balanceOf(user.address)).to.be.above(0);
     });
 });
