@@ -46,6 +46,10 @@ contract LegacyController is ILegacyController {
         token = IERC20(_token);
     }
 
+    /**
+     * @notice Sets the vault address
+     * @param _vault The v3 vault address
+     */
     function setVault(
         address _vault
     )
@@ -59,6 +63,10 @@ contract LegacyController is ILegacyController {
         vault = IVault(_vault);
     }
 
+    /**
+     * @notice Sets the converter address
+     * @param _converter The address of the converter
+     */
     function setConverter(
         address _converter
     )
@@ -68,6 +76,10 @@ contract LegacyController is ILegacyController {
         converter = IConverter(_converter);
     }
 
+    /**
+     * @notice Sets the investEnabled status flag
+     * @param _investEnabled Bool for enabling investment
+     */
     function setInvestEnabled(
         bool _investEnabled
     )
@@ -77,6 +89,12 @@ contract LegacyController is ILegacyController {
         investEnabled = _investEnabled;
     }
 
+    /**
+     * @notice Recovers stuck tokens sent directly to this contract
+     * @dev This only allows the strategist to recover unsupported tokens
+     * @param _token The address of the token
+     * @param _receiver The address to receive the tokens
+     */
     function recoverUnsupportedToken(
         address _token,
         address _receiver
@@ -88,6 +106,10 @@ contract LegacyController is ILegacyController {
         IERC20(_token).safeTransfer(_receiver, IERC20(_token).balanceOf(address(this)));
     }
 
+    /**
+     * @notice Returns the balance of the given token on the vault
+     * @param _token The address of the token
+     */
     function balanceOf(
         address _token
     )
@@ -100,6 +122,11 @@ contract LegacyController is ILegacyController {
                     .add(IERC20(address(vault)).balanceOf(address(this)));
     }
 
+    /**
+     * @notice Returns the withdraw fee for withdrawing the given token and amount
+     * @param _token The address of the token
+     * @param _amount The amount to withdraw
+     */
     function withdrawFee(
         address _token,
         uint256 _amount
@@ -112,6 +139,10 @@ contract LegacyController is ILegacyController {
         return manager.withdrawalProtectionFee().mul(_amount).div(MAX);
     }
 
+    /**
+     * @notice Withdraws the amount from the v3 vault
+     * @param _amount The amount to withdraw
+     */
     function withdraw(
         address,
         uint256 _amount
@@ -142,6 +173,11 @@ contract LegacyController is ILegacyController {
         emit Withdraw(_amount);
     }
 
+    /**
+     * @notice Only emits the Earn event
+     * @dev This is a dummy function to allow the MetaVault to call
+     * @param _amount The amount to earn
+     */
     function earn(
         address,
         uint256 _amount
@@ -152,6 +188,11 @@ contract LegacyController is ILegacyController {
         emit Earn(_amount);
     }
 
+    /**
+     * @notice Deposits the given token to the v3 vault
+     * @param _toToken The address to convert to
+     * @param _expected The expected amount to deposit after conversion
+     */
     function legacyDeposit(
         address _toToken,
         uint256 _expected
@@ -171,31 +212,49 @@ contract LegacyController is ILegacyController {
         vault.deposit(_toToken, IERC20(_toToken).balanceOf(address(this)));
     }
 
+    /**
+     * @notice Reverts if the converter is not set
+     */
     modifier onlyEnabledConverter() {
         require(address(converter) != address(0), "!converter");
         _;
     }
 
+    /**
+     * @notice Reverts if the vault is not set
+     */
     modifier onlyEnabledVault() {
         require(address(vault) != address(0), "!vault");
         _;
     }
 
+    /**
+     * @notice Reverts if the caller is not the harvester
+     */
     modifier onlyHarvester() {
         require(msg.sender == manager.harvester(), "!harvester");
         _;
     }
 
+    /**
+     * @notice Reverts if the caller is not the MetaVault
+     */
     modifier onlyMetaVault() {
         require(msg.sender == metavault, "!metavault");
         _;
     }
 
+    /**
+     * @notice Reverts if the caller is not the strategist
+     */
     modifier onlyStrategist() {
         require(msg.sender == manager.strategist(), "!strategist");
         _;
     }
 
+    /**
+     * @notice Reverts if the given token is not the stored token
+     */
     modifier onlyToken(address _token) {
         require(_token == address(token), "!_token");
         _;

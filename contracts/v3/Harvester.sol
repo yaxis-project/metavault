@@ -233,6 +233,11 @@ contract Harvester is IHarvester {
         strategies[_vault].lastCalled = block.timestamp;
     }
 
+    /**
+     * @notice Earns tokens in the LegacyController to the v3 vault
+     * @param _token The address of the token
+     * @param _expected The expected amount to deposit after conversion
+     */
     function legacyEarn(
         address _token,
         uint256 _expected
@@ -285,19 +290,25 @@ contract Harvester is IHarvester {
         return true;
     }
 
+    /**
+     * @notice Returns the estimated amount of WETH and YAXIS for the given strategy
+     * @param _strategy The address of the strategy
+     */
     function getEstimates(
-        address _vault
+        address _strategy
     )
         public
         view
         returns (uint256 _estimatedWETH, uint256 _estimatedYAXIS)
     {
-        IStrategy _strategy = IStrategy(strategies[_vault].addresses[0]);
-        ISwap _router = _strategy.router();
+        ISwap _router = IStrategy(_strategy).router();
         address[] memory _path;
-        _path[0] = _strategy.want();
-        _path[1] = _strategy.weth();
-        uint256[] memory _amounts = _router.getAmountsOut(_strategy.balanceOfPool(), _path);
+        _path[0] = IStrategy(_strategy).want();
+        _path[1] = IStrategy(_strategy).weth();
+        uint256[] memory _amounts = _router.getAmountsOut(
+            IStrategy(_strategy).balanceOfPool(),
+            _path
+        );
         _estimatedWETH = _amounts[1];
         uint256 _slippage = slippage;
         if (_slippage > 0) {

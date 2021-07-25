@@ -494,6 +494,10 @@ contract Controller is IController {
         return _vaultDetails[msg.sender].balance;
     }
 
+    /**
+     * @notice Returns the converter assigned for the given vault
+     * @param _vault Address of the vault
+     */
     function converter(
         address _vault
     )
@@ -551,6 +555,10 @@ contract Controller is IController {
         return _vaultDetails[_vault].strategies;
     }
 
+    /**
+     * @notice Returns the length of the strategies of the calling vault
+     * @dev This function is expected to be called by a vault
+     */
     function strategies()
         external
         view
@@ -611,6 +619,11 @@ contract Controller is IController {
         }
     }
 
+    /**
+     * @notice Updates the stored balance of a given strategy for a vault
+     * @param _vault The address of the vault
+     * @param _strategy The address of the strategy
+     */
     function updateBalance(
         address _vault,
         address _strategy
@@ -624,31 +637,49 @@ contract Controller is IController {
      * MODIFIERS
      */
 
+    /**
+     * @notice Reverts if the protocol is halted
+     */
     modifier notHalted() {
         require(!manager.halted(), "halted");
         _;
     }
 
+    /**
+     * @notice Reverts if the caller is not governance
+     */
     modifier onlyGovernance() {
         require(msg.sender == manager.governance(), "!governance");
         _;
     }
 
+    /**
+     * @notice Reverts if the caller is not the strategist
+     */
     modifier onlyStrategist() {
         require(msg.sender == manager.strategist(), "!strategist");
         _;
     }
 
+    /**
+     * @notice Reverts if the strategy is not allowed in the manager
+     */
     modifier onlyStrategy(address _strategy) {
         require(manager.allowedStrategies(_strategy), "!allowedStrategy");
         _;
     }
 
+    /**
+     * @notice Reverts if the caller is not the harvester
+     */
     modifier onlyHarvester() {
         require(msg.sender == manager.harvester(), "!harvester");
         _;
     }
 
+    /**
+     * @notice Reverts if the caller is not the vault for the given token
+     */
     modifier onlyVault(address _token) {
         require(msg.sender == manager.vaults(_token), "!vault");
         _;

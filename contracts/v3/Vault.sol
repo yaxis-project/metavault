@@ -123,6 +123,11 @@ contract Vault is VaultToken, IVault {
      * USER-FACING FUNCTIONS
      */
 
+    /**
+     * @notice Deposits the given token into the vault
+     * @param _token The address of the token
+     * @param _amount The amount of tokens to deposit
+     */
      function deposit(
         address _token,
         uint256 _amount
@@ -236,8 +241,12 @@ contract Vault is VaultToken, IVault {
      * VIEWS
      */
 
-    // Custom logic in here for how much the vault allows to be borrowed
-    // Sets minimum required on-hand to keep small withdrawals cheap
+    /**
+     * @notice Returns the amount of tokens available to be sent to strategies
+     * @dev Custom logic in here for how much the vault allows to be borrowed
+     * @dev Sets minimum required on-hand to keep small withdrawals cheap
+     * @param _token The address of the token
+     */
     function available(
         address _token
     )
@@ -249,6 +258,9 @@ contract Vault is VaultToken, IVault {
         return IERC20(_token).balanceOf(address(this)).mul(min).div(MAX);
     }
 
+    /**
+     * @notice Returns the total balance of the vault, including strategies
+     */
     function balance()
         public
         view
@@ -258,6 +270,9 @@ contract Vault is VaultToken, IVault {
         return balanceOfThis().add(IController(manager.controllers(address(this))).balanceOf());
     }
 
+    /**
+     * @notice Returns the balance of allowed tokens present on the vault only
+     */
     function balanceOfThis()
         public
         view
@@ -270,6 +285,9 @@ contract Vault is VaultToken, IVault {
         }
     }
 
+    /**
+     * @notice Returns the rate of vault shares
+     */
     function getPricePerFullShare()
         external
         view
@@ -279,6 +297,9 @@ contract Vault is VaultToken, IVault {
         return balance().mul(1e18).div(totalSupply());
     }
 
+    /**
+     * @notice Returns an array of the tokens for this vault
+     */
     function getTokens()
         external
         view
@@ -288,6 +309,10 @@ contract Vault is VaultToken, IVault {
         return manager.getTokens(address(this));
     }
 
+    /**
+     * @notice Returns the fee for withdrawing the given amount
+     * @param _amount The amount to withdraw
+     */
     function withdrawFee(
         uint256 _amount
     )

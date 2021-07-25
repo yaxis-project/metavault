@@ -129,6 +129,11 @@ contract Manager is IManager {
      * GOVERNANCE-ONLY FUNCTIONS
      */
 
+    /**
+     * @notice Sets the permission for the given controller
+     * @param _controller The address of the controller
+     * @param _allowed The status of if it is allowed
+     */
     function setAllowedController(
         address _controller,
         bool _allowed
@@ -142,6 +147,11 @@ contract Manager is IManager {
         emit AllowedController(_controller, _allowed);
     }
 
+    /**
+     * @notice Sets the permission for the given converter
+     * @param _converter The address of the converter
+     * @param _allowed The status of if it is allowed
+     */
     function setAllowedConverter(
         address _converter,
         bool _allowed
@@ -155,6 +165,11 @@ contract Manager is IManager {
         emit AllowedConverter(_converter, _allowed);
     }
 
+    /**
+     * @notice Sets the permission for the given strategy
+     * @param _strategy The address of the strategy
+     * @param _allowed The status of if it is allowed
+     */
     function setAllowedStrategy(
         address _strategy,
         bool _allowed
@@ -168,6 +183,11 @@ contract Manager is IManager {
         emit AllowedStrategy(_strategy, _allowed);
     }
 
+    /**
+     * @notice Sets the permission for the given token
+     * @param _token The address of the token
+     * @param _allowed The status of if it is allowed
+     */
     function setAllowedToken(
         address _token,
         bool _allowed
@@ -180,6 +200,11 @@ contract Manager is IManager {
         emit AllowedToken(_token, _allowed);
     }
 
+    /**
+     * @notice Sets the permission for the given vault
+     * @param _vault The address of the vault
+     * @param _allowed The status of if it is allowed
+     */
     function setAllowedVault(
         address _vault,
         bool _allowed
@@ -368,6 +393,10 @@ contract Manager is IManager {
      * STRATEGIST-ONLY FUNCTIONS
      */
 
+    /**
+     * @notice Updates the strategist to the pending strategist
+     * @dev This can only be called after the pending strategist timelock (7 days)
+     */
     function acceptStrategist()
         external
         notHalted
@@ -381,6 +410,11 @@ contract Manager is IManager {
         emit SetStrategist(msg.sender);
     }
 
+    /**
+     * @notice Adds a token to be able to be deposited for a given vault
+     * @param _vault The address of the vault
+     * @param _token The address of the token
+     */
     function addToken(
         address _vault,
         address _token
@@ -417,6 +451,11 @@ contract Manager is IManager {
         _token.transfer(_to, _amount);
     }
 
+    /**
+     * @notice Removes a token from being able to be deposited for a given vault
+     * @param _vault The address of the vault
+     * @param _token The address of the token
+     */
     function removeToken(
         address _vault,
         address _token
@@ -466,6 +505,10 @@ contract Manager is IManager {
         emit SetController(_vault, _controller);
     }
 
+    /**
+     * @notice Sets the protocol as halted, disallowing all deposits forever
+     * @dev Withdraws will still work, allowing users to exit the protocol
+     */
     function setHalted()
         external
         notHalted
@@ -479,6 +522,10 @@ contract Manager is IManager {
      * EXTERNAL VIEW FUNCTIONS
      */
 
+    /**
+     * @notice Returns an array of token addresses for a given vault
+     * @param _vault The address of the vault
+     */
     function getTokens(
         address _vault
     )

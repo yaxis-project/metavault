@@ -29,7 +29,9 @@ contract MinterWrapper is Ownable {
     }
 
     /**
+     * @notice Sets the address of the minter contract
      * @dev can only be set once
+     * @param _minter The address of the minter
      */
     function setMinter(
         address _minter
@@ -41,6 +43,10 @@ contract MinterWrapper is Ownable {
         minter = _minter;
     }
 
+    /**
+     * @notice Sets the emission rate
+     * @param _rate The rate of reward token emissions
+     */
     function setRate(
         uint256 _rate
     )
@@ -50,6 +56,12 @@ contract MinterWrapper is Ownable {
         rate = _rate;
     }
 
+    /**
+     * @notice Mints the given amount to the given account
+     * @dev Requires this contract to be funded with the reward token
+     * @param _account The address to receive the reward tokens
+     * @param _amount The amount of tokens to send the receiver
+     */
     function mint(
         address _account,
         uint256 _amount
@@ -62,6 +74,10 @@ contract MinterWrapper is Ownable {
         return true;
     }
 
+    /**
+     * @notice Returns the current block timestamp
+     * @dev Emits Write event to prevent from being a view function
+     */
     function future_epoch_time_write()
         external
         returns (uint256)
@@ -71,6 +87,9 @@ contract MinterWrapper is Ownable {
         return block.timestamp;
     }
 
+    /**
+     * @notice Returns the amount of reward tokens on this contract
+     */
     function available_supply()
         public
         view
