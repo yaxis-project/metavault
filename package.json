@@ -6,7 +6,7 @@
   "scripts": {
     "compile": "hardhat compile",
     "coverage": "hardhat coverage --testfiles 'test/metavault/*.js'",
-    "deploy:v3:kovan": "hardhat deploy --network kovan --tags v3 --gasprice 1000000000",
+    "deploy:v3:kovan": "hardhat deploy --network kovan --tags v3,v3-strategies --gasprice 1000000000",
     "deploy:metavault:kovan": "hardhat deploy --network kovan --tags metavault --gasprice 1000000000",
     "deploy:token:kovan": "hardhat deploy --network kovan --tags token --gasprice 1000000000",
     "deploy:v3:mainnet": "LIVE=true hardhat deploy --network mainnet --tags v3",
