@@ -62,8 +62,8 @@ describe('Gauges', () => {
         expect(await gaugeController.future_admin()).to.be.equal(treasury.address);
         expect(await gaugeController.token()).to.be.equal(yaxis.address);
         expect(await gaugeController.voting_escrow()).to.be.equal(votingEscrow.address);
-        expect(await gaugeController.n_gauges()).to.be.equal(0);
-        expect(await gaugeController.n_gauge_types()).to.be.equal(0);
+        expect(await gaugeController.n_gauges()).to.be.equal(1);
+        expect(await gaugeController.n_gauge_types()).to.be.equal(1);
         expect(await minter.token()).to.be.equal(minterWrapper.address);
         expect(await minter.controller()).to.be.equal(gaugeController.address);
         expect(await minterWrapper.token()).to.be.equal(yaxis.address);
@@ -78,24 +78,6 @@ describe('Gauges', () => {
         expect(await yaxis.balanceOf(minterWrapper.address)).to.be.equal(0);
         await yaxis.connect(deployer).transfer(minterWrapper.address, ether('10000'));
         expect(await yaxis.balanceOf(minterWrapper.address)).to.be.equal(ether('10000'));
-    });
-
-    it('should add the vault gauge type', async () => {
-        await gaugeController['add_type(string)']('vault');
-        expect(await gaugeController.n_gauge_types()).to.be.equal(1);
-    });
-
-    it('should change the vault type weight', async () => {
-        await gaugeController['change_type_weight(int128,uint256)'](0, ether('1'));
-    });
-
-    it('should add the vault gauge', async () => {
-        await gaugeController['add_gauge(address,int128,uint256)'](
-            vaultStablesGauge.address,
-            0,
-            ether('1')
-        );
-        expect(await gaugeController.n_gauges()).to.be.equal(1);
     });
 
     it('should allow users to lock tokens in voting escrow', async () => {

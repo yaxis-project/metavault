@@ -1,4 +1,5 @@
 module.exports = async ({ getNamedAccounts, deployments }) => {
+    const { ethers } = require('hardhat');
     const { deploy, execute } = deployments;
     const { deployer, treasury } = await getNamedAccounts();
 
@@ -32,6 +33,13 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
     });
 
     if (GaugeController.newlyDeployed) {
+        await execute(
+            'GaugeController',
+            { from: deployer, log: true },
+            'add_type(string,uint256)',
+            'vault',
+            ethers.utils.parseEther('1')
+        );
         await execute(
             'GaugeController',
             { from: deployer, log: true },
