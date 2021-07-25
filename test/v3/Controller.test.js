@@ -23,7 +23,7 @@ describe('Controller', () => {
         yax;
 
     beforeEach(async () => {
-        await deployments.fixture(['v3', 'NativeStrategyCurve3Crv']);
+        await deployments.fixture(['v3']);
         [deployer, treasury, , user] = await ethers.getSigners();
         const Manager = await deployments.get('Manager');
         manager = await ethers.getContractAt('Manager', Manager.address);
@@ -33,7 +33,13 @@ describe('Controller', () => {
         t3crv = await ethers.getContractAt('MockERC20', T3CRV.address);
         const DAI = await deployments.get('DAI');
         dai = await ethers.getContractAt('MockERC20', DAI.address);
-        const CRV = await deployments.get('CRV');
+        const USDC = await deployments.get('USDC');
+        const USDT = await deployments.get('USDT');
+        const CRV = await deployments.deploy('CRV', {
+            contract: 'MockERC20',
+            from: deployer.address,
+            args: ['Curve.fi', 'CRV', 18]
+        });
         crv = await ethers.getContractAt('MockERC20', CRV.address);
         const WETH = await deployments.get('WETH');
         weth = await ethers.getContractAt('MockERC20', WETH.address);
@@ -42,7 +48,16 @@ describe('Controller', () => {
         converter = await deployments.get('StablesConverter');
         const Harvester = await deployments.get('Harvester');
         harvester = await ethers.getContractAt('Harvester', Harvester.address);
+        const gauge = await deployments.deploy('MockCurveGauge', {
+            from: deployer.address,
+            args: [t3crv.address]
+        });
+        const minter = await deployments.deploy('MockCurveMinter', {
+            from: deployer.address,
+            args: [crv.address]
+        });
         const router = await deployments.get('MockUniswapRouter');
+        const stableSwap3Pool = await deployments.get('MockStableSwap3Pool');
         unirouter = await ethers.getContractAt('MockUniswapRouter', router.address);
 
         const Vault = await deployments.deploy('Vault', {
@@ -54,7 +69,24 @@ describe('Controller', () => {
         await manager.setAllowedVault(vault.address, true);
         await manager.setGovernance(treasury.address);
 
-        const StrategyCrv = await deployments.get('NativeStrategyCurve3Crv');
+        const StrategyCrv = await deployments.deploy('NativeStrategyCurve3Crv', {
+            from: deployer.address,
+            args: [
+                'Curve: 3CRV',
+                T3CRV.address,
+                CRV.address,
+                WETH.address,
+                DAI.address,
+                USDC.address,
+                USDT.address,
+                gauge.address,
+                minter.address,
+                stableSwap3Pool.address,
+                Controller.address,
+                Manager.address,
+                unirouter.address
+            ]
+        });
         strategyCrv = await ethers.getContractAt(
             'NativeStrategyCurve3Crv',
             StrategyCrv.address,

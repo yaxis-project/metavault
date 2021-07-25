@@ -17,6 +17,7 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
     const chainId = await getChainId();
     const Controller = await deployments.get('Controller');
     const Manager = await deployments.get('Manager');
+    const Vault = await deployments.get('VaultStables');
     const name = 'Curve: 3CRV';
 
     if (chainId != '1') {
@@ -75,7 +76,7 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
         }
     }
 
-    await deploy('NativeStrategyCurve3Crv', {
+    const Strategy = await deploy('NativeStrategyCurve3Crv', {
         from: deployer,
         log: true,
         args: [
@@ -94,6 +95,25 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
             unirouter
         ]
     });
+
+    if (Strategy.newlyDeployed) {
+        await execute(
+            'Manager',
+            { from: deployer, log: true },
+            'setAllowedStrategy',
+            Strategy.address,
+            true
+        );
+        await execute(
+            'Controller',
+            { from: deployer, log: true },
+            'addStrategy',
+            Vault.address,
+            Strategy.address,
+            0,
+            86400
+        );
+    }
 };
 
 module.exports.tags = ['v3-strategies', 'NativeStrategyCurve3Crv'];
