@@ -2,6 +2,7 @@ module.exports = async ({ getChainId, getNamedAccounts, deployments }) => {
     const { deploy, execute } = deployments;
     const chainId = await getChainId();
     let { DAI, deployer, USDC, USDT } = await getNamedAccounts();
+    const Controller = await deployments.get('Controller');
     const Manager = await deployments.get('Manager');
     const Minter = await deployments.get('Minter');
     const GaugeProxy = await deployments.get('GaugeProxy');
@@ -68,6 +69,13 @@ module.exports = async ({ getChainId, getNamedAccounts, deployments }) => {
             'addToken',
             Vault.address,
             USDT
+        );
+        await execute(
+            'Manager',
+            { from: deployer, log: true },
+            'setController',
+            Vault.address,
+            Controller.address
         );
     }
 };
