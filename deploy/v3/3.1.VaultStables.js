@@ -77,6 +77,12 @@ module.exports = async ({ getChainId, getNamedAccounts, deployments }) => {
             Vault.address,
             Controller.address
         );
+        await execute(
+            'VaultStables',
+            { from: deployer, log: true },
+            'setGauge',
+            Gauge.address
+        );
     }
 };
 
