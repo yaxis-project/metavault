@@ -31,6 +31,7 @@ contract Vault is VaultToken, IVault {
     IManager public immutable override manager;
 
     // Strategist-updated variables
+    address public override gauge;
     uint256 public min;
     uint256 public totalDepositCap;
 
@@ -59,6 +60,21 @@ contract Vault is VaultToken, IVault {
     /**
      * STRATEGIST-ONLY FUNCTIONS
      */
+
+    /**
+     * @notice Sets the value of this vault's gauge
+     * @dev Allow to be unset with the zero address
+     * @param _gauge The address of the gauge
+     */
+    function setGauge(
+        address _gauge
+    )
+        external
+        notHalted
+        onlyStrategist
+    {
+        gauge = _gauge;
+    }
 
     /**
      * @notice Sets the value for min
@@ -136,11 +152,11 @@ contract Vault is VaultToken, IVault {
         override
         checkToken(_token)
         notHalted
+        returns (uint256 _shares)
     {
         require(_amount > 0, "!_amount");
 
         uint256 _balance = balance();
-        uint256 _shares;
 
         uint256 _before = IERC20(_token).balanceOf(address(this));
         IERC20(_token).safeTransferFrom(msg.sender, address(this), _amount);
@@ -176,11 +192,12 @@ contract Vault is VaultToken, IVault {
         external
         override
         notHalted
+        returns (uint256 _shares)
     {
         require(_tokens.length == _amounts.length, "!length");
 
         for (uint8 i; i < _amounts.length; i++) {
-            deposit(_tokens[i], _amounts[i]);
+            _shares = _shares.add(deposit(_tokens[i], _amounts[i]));
         }
     }
 

@@ -9,17 +9,7 @@ const ether = parseEther;
 
 describe('Vault', () => {
     let deployer, treasury, user;
-    let dai,
-        t3crv,
-        usdc,
-        usdt,
-        vault,
-        manager,
-        controller,
-        harvester,
-        depositor,
-        strategyCrv,
-        converter;
+    let dai, t3crv, usdc, usdt, vault, manager, controller, harvester, strategyCrv, converter;
 
     beforeEach(async () => {
         await deployments.fixture(['v3', 'NativeStrategyCurve3Crv']);
@@ -51,12 +41,6 @@ describe('Vault', () => {
             args: ['Vault: Stables', 'MV:S', manager.address]
         });
         vault = await ethers.getContractAt('Vault', Vault.address);
-
-        const Depositor = await deployments.deploy('Depositor', {
-            from: user.address,
-            args: [vault.address]
-        });
-        depositor = await ethers.getContractAt('Depositor', Depositor.address, user);
 
         await manager.setAllowedVault(vault.address, true);
         await manager.setGovernance(treasury.address);
@@ -310,24 +294,6 @@ describe('Vault', () => {
                     ).to.emit(vault, 'Deposit');
                     expect(await vault.balanceOf(user.address)).to.equal(ether('4000'));
                     expect(await vault.totalSupply()).to.equal(ether('4000'));
-                });
-            });
-
-            context('when depositing from a contract', () => {
-                beforeEach(async () => {
-                    await dai.connect(user).transfer(depositor.address, ether('1000'));
-                    await usdc.connect(user).transfer(depositor.address, '1000000000');
-                });
-
-                it('should deposit', async () => {
-                    await expect(
-                        depositor.depositVault(
-                            [dai.address, usdc.address],
-                            [ether('1000'), '1000000000']
-                        )
-                    ).to.emit(vault, 'Deposit');
-                    expect(await vault.balanceOf(depositor.address)).to.equal(ether('2000'));
-                    expect(await vault.totalSupply()).to.equal(ether('2000'));
                 });
             });
         });

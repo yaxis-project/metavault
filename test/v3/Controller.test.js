@@ -128,7 +128,7 @@ describe('Controller', () => {
 
             context('when it is halted', () => {
                 beforeEach(async () => {
-                    await manager.setHalted();
+                    await manager.connect(deployer).setHalted();
                 });
 
                 it('should revert', async () => {
