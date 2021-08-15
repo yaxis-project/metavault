@@ -77,4 +77,24 @@ contract VaultHelper {
             IERC20(_vault).safeTransfer(msg.sender, _shares);
         }
     }
+
+    function withdrawVault(
+        address _vault,
+        address _toToken,
+        uint256 _amount
+    )
+        external
+    {
+        address _gauge = IVault(_vault).gauge();
+        if (_gauge != address(0)) {
+            IERC20(_gauge).safeTransferFrom(msg.sender, address(this), _amount);
+            ILiquidityGaugeV2(_gauge).withdraw(_amount);
+            IVault(_vault).withdraw(IERC20(_vault).balanceOf(address(this)), _toToken);
+            IERC20(_toToken).safeTransfer(msg.sender, IERC20(_toToken).balanceOf(address(this)));
+        } else {
+            IERC20(_vault).safeTransferFrom(msg.sender, address(this), _amount);
+            IVault(_vault).withdraw(_amount, _toToken);
+            IERC20(_toToken).safeTransfer(msg.sender, IERC20(_toToken).balanceOf(address(this)));
+        }
+    }
 }
