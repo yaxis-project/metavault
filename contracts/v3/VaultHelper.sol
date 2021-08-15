@@ -9,18 +9,18 @@ import "./interfaces/ILiquidityGaugeV2.sol";
 import "./interfaces/IVault.sol";
 
 /**
- * @title Depositor
- * @notice The Depositor acts as a single contract that users may set
+ * @title VaultHelper
+ * @notice The VaultHelper acts as a single contract that users may set
  * token approvals on for any token of any vault.
  * @dev This contract has no state and could be deployed by anyone if
  * they didn't trust the original deployer.
  */
-contract Depositor {
+contract VaultHelper {
     using SafeERC20 for IERC20;
 
     /**
      * @notice Deposits the given token into the specified vault
-     * @dev Users must approve the depositor to spend their token
+     * @dev Users must approve the vault helper to spend their token
      * @param _vault The address of the vault
      * @param _token The address of the token
      * @param _amount The amount of tokens to deposit
@@ -49,7 +49,7 @@ contract Depositor {
 
     /**
      * @notice Deposits multiple tokens simultaneously to the specified vault
-     * @dev Users must approve the depositor to spend their tokens
+     * @dev Users must approve the vault helper to spend their tokens
      * @param _vault The address of the vault
      * @param _tokens The addresses of each token being deposited
      * @param _amounts The amounts of each token being deposited
@@ -75,6 +75,26 @@ contract Depositor {
             IERC20(_gauge).safeTransfer(msg.sender, _shares);
         } else {
             IERC20(_vault).safeTransfer(msg.sender, _shares);
+        }
+    }
+
+    function withdrawVault(
+        address _vault,
+        address _toToken,
+        uint256 _amount
+    )
+        external
+    {
+        address _gauge = IVault(_vault).gauge();
+        if (_gauge != address(0)) {
+            IERC20(_gauge).safeTransferFrom(msg.sender, address(this), _amount);
+            ILiquidityGaugeV2(_gauge).withdraw(_amount);
+            IVault(_vault).withdraw(IERC20(_vault).balanceOf(address(this)), _toToken);
+            IERC20(_toToken).safeTransfer(msg.sender, IERC20(_toToken).balanceOf(address(this)));
+        } else {
+            IERC20(_vault).safeTransferFrom(msg.sender, address(this), _amount);
+            IVault(_vault).withdraw(_amount, _toToken);
+            IERC20(_toToken).safeTransfer(msg.sender, IERC20(_toToken).balanceOf(address(this)));
         }
     }
 }

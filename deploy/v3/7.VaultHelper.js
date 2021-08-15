@@ -2,7 +2,7 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
     const { deploy } = deployments;
     const { deployer } = await getNamedAccounts();
 
-    await deploy('Depositor', {
+    await deploy('VaultHelper', {
         from: deployer,
         log: true
     });
