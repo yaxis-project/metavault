@@ -12,7 +12,7 @@ describe('Vault', () => {
     let dai, t3crv, usdc, usdt, vault, manager, controller, harvester, strategyCrv, converter;
 
     beforeEach(async () => {
-        await deployments.fixture(['v3', 'NativeStrategyCurve3Crv']);
+        await deployments.fixture('test');
         [deployer, treasury, , user] = await ethers.getSigners();
         const DAI = await deployments.get('DAI');
         dai = await ethers.getContractAt('MockERC20', DAI.address);
@@ -111,6 +111,8 @@ describe('Vault', () => {
 
     describe('earn', () => {
         beforeEach(async () => {
+            await manager.connect(treasury).setAllowedController(controller.address, true);
+            await manager.connect(treasury).setAllowedConverter(converter.address, true);
             await controller.connect(deployer).setConverter(vault.address, converter.address);
             await manager.connect(treasury).setAllowedStrategy(strategyCrv.address, true);
             await manager.connect(treasury).setAllowedToken(dai.address, true);
@@ -118,6 +120,8 @@ describe('Vault', () => {
                 .to.emit(manager, 'TokenAdded')
                 .withArgs(vault.address, dai.address);
             await manager.setController(vault.address, controller.address);
+            await manager.connect(treasury).setHarvester(harvester.address);
+            await harvester.connect(deployer).setHarvester(deployer.address, true);
             await controller.addStrategy(vault.address, strategyCrv.address, 0, 86400);
             await dai.connect(user).faucet(1000);
             await dai.connect(user).transfer(vault.address, 1000);
