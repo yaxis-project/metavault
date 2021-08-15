@@ -20,11 +20,13 @@ describe('Controller', () => {
         unirouter,
         crv,
         weth,
-        yax;
+        yaxis;
 
     beforeEach(async () => {
-        await deployments.fixture(['v3']);
+        await deployments.fixture('test');
         [deployer, treasury, , user] = await ethers.getSigners();
+        const YAXIS = await deployments.get('YaxisToken');
+        yaxis = await ethers.getContractAt('MockERC20', YAXIS.address);
         const Manager = await deployments.get('Manager');
         manager = await ethers.getContractAt('Manager', Manager.address);
         const Controller = await deployments.get('Controller');
@@ -33,65 +35,25 @@ describe('Controller', () => {
         t3crv = await ethers.getContractAt('MockERC20', T3CRV.address);
         const DAI = await deployments.get('DAI');
         dai = await ethers.getContractAt('MockERC20', DAI.address);
-        const USDC = await deployments.get('USDC');
-        const USDT = await deployments.get('USDT');
-        const CRV = await deployments.deploy('CRV', {
-            contract: 'MockERC20',
-            from: deployer.address,
-            args: ['Curve.fi', 'CRV', 18]
-        });
+        const CRV = await deployments.get('CRV');
         crv = await ethers.getContractAt('MockERC20', CRV.address);
         const WETH = await deployments.get('WETH');
         weth = await ethers.getContractAt('MockERC20', WETH.address);
-        const YAX = await deployments.get('YaxisToken');
-        yax = await ethers.getContractAt('MockERC20', YAX.address);
-        converter = await deployments.get('StablesConverter');
+        const Converter = await deployments.get('StablesConverter');
+        converter = await ethers.getContractAt('StablesConverter', Converter.address);
         const Harvester = await deployments.get('Harvester');
         harvester = await ethers.getContractAt('Harvester', Harvester.address);
-        const gauge = await deployments.deploy('MockCurveGauge', {
-            from: deployer.address,
-            args: [t3crv.address]
-        });
-        const minter = await deployments.deploy('MockCurveMinter', {
-            from: deployer.address,
-            args: [crv.address]
-        });
-        const router = await deployments.get('MockUniswapRouter');
-        const stableSwap3Pool = await deployments.get('MockStableSwap3Pool');
-        unirouter = await ethers.getContractAt('MockUniswapRouter', router.address);
-
-        const Vault = await deployments.deploy('Vault', {
-            from: deployer.address,
-            args: ['Vault: Stables', 'MV:S', manager.address]
-        });
+        const Router = await deployments.get('MockUniswapRouter');
+        unirouter = await ethers.getContractAt('MockUniswapRouter', Router.address);
+        const Vault = await deployments.get('VaultStables');
         vault = await ethers.getContractAt('Vault', Vault.address);
-
-        await manager.setAllowedVault(vault.address, true);
-        await manager.setGovernance(treasury.address);
-
-        const StrategyCrv = await deployments.deploy('NativeStrategyCurve3Crv', {
-            from: deployer.address,
-            args: [
-                'Curve: 3CRV',
-                T3CRV.address,
-                CRV.address,
-                WETH.address,
-                DAI.address,
-                USDC.address,
-                USDT.address,
-                gauge.address,
-                minter.address,
-                stableSwap3Pool.address,
-                Controller.address,
-                Manager.address,
-                unirouter.address
-            ]
-        });
+        const StrategyCrv = await deployments.get('NativeStrategyCurve3Crv');
         strategyCrv = await ethers.getContractAt(
             'NativeStrategyCurve3Crv',
-            StrategyCrv.address,
-            deployer
+            StrategyCrv.address
         );
+
+        await manager.connect(deployer).setAllowedVault(vault.address, true);
     });
 
     it('should deploy with expected state', async () => {
@@ -102,7 +64,10 @@ describe('Controller', () => {
 
     describe('addStrategy', () => {
         beforeEach(async () => {
+            await manager.connect(deployer).setAllowedController(controller.address, true);
+            await manager.connect(deployer).setAllowedConverter(converter.address, true);
             await controller.connect(deployer).setConverter(vault.address, converter.address);
+            await manager.connect(deployer).setHarvester(harvester.address);
         });
 
         it('should revert if the strategy is not allowed', async () => {
@@ -113,8 +78,8 @@ describe('Controller', () => {
 
         context('when the strategy is allowed', () => {
             beforeEach(async () => {
-                await manager.connect(treasury).setAllowedStrategy(strategyCrv.address, true);
-                await manager.connect(treasury).setAllowedToken(dai.address, true);
+                await manager.connect(deployer).setAllowedStrategy(strategyCrv.address, true);
+                await manager.connect(deployer).setAllowedToken(dai.address, true);
                 await manager.addToken(vault.address, dai.address);
             });
 
@@ -124,6 +89,16 @@ describe('Controller', () => {
                         .connect(user)
                         .addStrategy(vault.address, strategyCrv.address, 0, 86400)
                 ).to.be.revertedWith('!strategist');
+            });
+
+            it('should add the strategy when called by the strategist', async () => {
+                await expect(
+                    controller
+                        .connect(deployer)
+                        .addStrategy(vault.address, strategyCrv.address, 0, 86400)
+                )
+                    .to.emit(controller, 'StrategyAdded')
+                    .withArgs(vault.address, strategyCrv.address, 0);
             });
 
             context('when it is halted', () => {
@@ -137,12 +112,6 @@ describe('Controller', () => {
                     ).to.be.revertedWith('halted');
                 });
             });
-
-            it('should add the strategy when called by the strategist', async () => {
-                expect(controller.addStrategy(vault.address, strategyCrv.address, 0, 86400))
-                    .to.emit(controller, 'StrategyAdded')
-                    .withArgs(vault.address, strategyCrv.address, 0);
-            });
         });
     });
 
@@ -150,7 +119,7 @@ describe('Controller', () => {
         beforeEach(async () => {
             await dai.connect(user).faucet(1000);
             await dai.connect(user).transfer(strategyCrv.address, 1000);
-            await manager.connect(treasury).setTreasury(treasury.address);
+            await manager.connect(deployer).setTreasury(treasury.address);
         });
 
         it('should revert if called by an address other than the strategist', async () => {
@@ -169,7 +138,7 @@ describe('Controller', () => {
 
         context('when it is halted', () => {
             beforeEach(async () => {
-                await manager.setHalted();
+                await manager.connect(deployer).setHalted();
             });
 
             it('should still get tokens from the strategy', async () => {
@@ -184,7 +153,7 @@ describe('Controller', () => {
         beforeEach(async () => {
             await dai.connect(user).faucet(1000);
             await dai.connect(user).transfer(controller.address, 1000);
-            await manager.connect(treasury).setTreasury(treasury.address);
+            await manager.connect(deployer).setTreasury(treasury.address);
         });
 
         it('should revert if called by an address other than the strategist', async () => {
@@ -214,9 +183,13 @@ describe('Controller', () => {
 
     describe('removeStrategy', () => {
         beforeEach(async () => {
+            await manager.connect(deployer).setAllowedController(controller.address, true);
+            await manager.connect(deployer).setAllowedController(controller.address, true);
+            await manager.connect(deployer).setAllowedConverter(converter.address, true);
             await controller.connect(deployer).setConverter(vault.address, converter.address);
-            await manager.connect(treasury).setAllowedStrategy(strategyCrv.address, true);
-            await manager.connect(treasury).setAllowedToken(dai.address, true);
+            await manager.connect(deployer).setHarvester(harvester.address);
+            await manager.connect(deployer).setAllowedStrategy(strategyCrv.address, true);
+            await manager.connect(deployer).setAllowedToken(dai.address, true);
             await manager.addToken(vault.address, dai.address);
         });
 
@@ -266,7 +239,10 @@ describe('Controller', () => {
 
     describe('reorderStrategies', () => {
         beforeEach(async () => {
+            await manager.connect(deployer).setAllowedController(controller.address, true);
+            await manager.connect(deployer).setAllowedConverter(converter.address, true);
             await controller.connect(deployer).setConverter(vault.address, converter.address);
+            await manager.connect(deployer).setHarvester(harvester.address);
         });
 
         it('should revert if not called by strategist', async () => {
@@ -295,7 +271,7 @@ describe('Controller', () => {
 
         context('when the vault is not allowed', () => {
             beforeEach(async () => {
-                await manager.connect(treasury).setAllowedVault(vault.address, false);
+                await manager.connect(deployer).setAllowedVault(vault.address, false);
             });
 
             it('should revert', async () => {
@@ -321,8 +297,8 @@ describe('Controller', () => {
 
         context('when the strategy is allowed', () => {
             beforeEach(async () => {
-                await manager.connect(treasury).setAllowedStrategy(strategyCrv.address, true);
-                await manager.connect(treasury).setAllowedToken(dai.address, true);
+                await manager.connect(deployer).setAllowedStrategy(strategyCrv.address, true);
+                await manager.connect(deployer).setAllowedToken(dai.address, true);
                 await manager.addToken(vault.address, dai.address);
                 await controller.addStrategy(vault.address, strategyCrv.address, 0, 86400);
             });
@@ -353,11 +329,15 @@ describe('Controller', () => {
 
     describe('setCap', () => {
         beforeEach(async () => {
+            await manager.connect(deployer).setAllowedController(controller.address, true);
+            await manager.connect(deployer).setAllowedConverter(converter.address, true);
             await controller.connect(deployer).setConverter(vault.address, converter.address);
-            await manager.connect(treasury).setAllowedController(controller.address, true);
+            await manager.connect(deployer).setHarvester(harvester.address);
+            await harvester.connect(deployer).setHarvester(deployer.address, true);
+            await manager.connect(deployer).setAllowedController(controller.address, true);
             await manager.connect(deployer).setController(vault.address, controller.address);
-            await manager.connect(treasury).setAllowedStrategy(strategyCrv.address, true);
-            await manager.connect(treasury).setAllowedToken(dai.address, true);
+            await manager.connect(deployer).setAllowedStrategy(strategyCrv.address, true);
+            await manager.connect(deployer).setAllowedToken(dai.address, true);
             await manager.addToken(vault.address, dai.address);
         });
 
@@ -432,6 +412,11 @@ describe('Controller', () => {
     });
 
     describe('setConverter', () => {
+        beforeEach(async () => {
+            await manager.connect(deployer).setAllowedController(controller.address, true);
+            await manager.connect(deployer).setAllowedConverter(converter.address, true);
+        });
+
         it('should revert if called by an address other than the strategist', async () => {
             await expect(
                 controller.connect(user).setConverter(vault.address, converter.address)
@@ -456,7 +441,8 @@ describe('Controller', () => {
 
         context('when converter is not allowed', () => {
             beforeEach(async () => {
-                await manager.connect(treasury).setAllowedConverter(converter.address, false);
+                await manager.connect(deployer).setAllowedController(controller.address, true);
+                await manager.connect(deployer).setAllowedConverter(converter.address, false);
             });
 
             it('should revert', async () => {
@@ -530,11 +516,14 @@ describe('Controller', () => {
 
         context('when strategy exists', () => {
             beforeEach(async () => {
+                await manager.connect(deployer).setAllowedController(controller.address, true);
+                await manager.connect(deployer).setAllowedConverter(converter.address, true);
                 await controller
                     .connect(deployer)
                     .setConverter(vault.address, converter.address);
-                await manager.connect(treasury).setAllowedStrategy(strategyCrv.address, true);
-                await manager.connect(treasury).setAllowedToken(dai.address, true);
+                await manager.connect(deployer).setHarvester(harvester.address);
+                await manager.connect(deployer).setAllowedStrategy(strategyCrv.address, true);
+                await manager.connect(deployer).setAllowedToken(dai.address, true);
                 await manager.addToken(vault.address, dai.address);
                 await controller.addStrategy(vault.address, strategyCrv.address, 0, 86400);
                 await t3crv.connect(user).faucet(1000);
@@ -576,11 +565,15 @@ describe('Controller', () => {
 
         context('when strategy exists', () => {
             beforeEach(async () => {
+                await manager.connect(deployer).setAllowedController(controller.address, true);
+                await manager.connect(deployer).setAllowedConverter(converter.address, true);
                 await controller
                     .connect(deployer)
                     .setConverter(vault.address, converter.address);
-                await manager.connect(treasury).setAllowedStrategy(strategyCrv.address, true);
-                await manager.connect(treasury).setAllowedToken(dai.address, true);
+                await manager.connect(deployer).setHarvester(harvester.address);
+                await harvester.connect(deployer).setHarvester(deployer.address, true);
+                await manager.connect(deployer).setAllowedStrategy(strategyCrv.address, true);
+                await manager.connect(deployer).setAllowedToken(dai.address, true);
                 await manager.addToken(vault.address, dai.address);
                 await manager.setController(vault.address, controller.address);
                 await controller.addStrategy(vault.address, strategyCrv.address, 0, 86400);
@@ -607,6 +600,11 @@ describe('Controller', () => {
     });
 
     describe('harvestStrategy', () => {
+        beforeEach(async () => {
+            await harvester.connect(deployer).setHarvester(deployer.address, true);
+            await manager.connect(deployer).setHarvester(harvester.address);
+        });
+
         it('should revert if called by an address other than the harvester', async () => {
             await expect(
                 controller.connect(user).harvestStrategy(strategyCrv.address, 1, 1)
@@ -621,11 +619,13 @@ describe('Controller', () => {
 
         context('when strategy exists', () => {
             beforeEach(async () => {
+                await manager.connect(deployer).setAllowedController(controller.address, true);
+                await manager.connect(deployer).setAllowedConverter(converter.address, true);
                 await controller
                     .connect(deployer)
                     .setConverter(vault.address, converter.address);
-                await manager.connect(treasury).setAllowedStrategy(strategyCrv.address, true);
-                await manager.connect(treasury).setAllowedToken(dai.address, true);
+                await manager.connect(deployer).setAllowedStrategy(strategyCrv.address, true);
+                await manager.connect(deployer).setAllowedToken(dai.address, true);
                 await manager.addToken(vault.address, dai.address);
                 await manager.setController(vault.address, controller.address);
                 await controller.addStrategy(vault.address, strategyCrv.address, 0, 86400);
@@ -641,7 +641,7 @@ describe('Controller', () => {
                 await crv.transfer(unirouter.address, ether('1000'));
                 await dai.transfer(unirouter.address, ether('1000'));
                 await weth.transfer(unirouter.address, ether('2000'));
-                await yax.connect(deployer).transfer(unirouter.address, ether('1000'));
+                await yaxis.connect(deployer).transfer(unirouter.address, ether('1000'));
             });
 
             it('should harvest', async () => {
@@ -661,12 +661,16 @@ describe('Controller', () => {
 
         context('when strategy exists', () => {
             beforeEach(async () => {
+                await manager.connect(deployer).setAllowedController(controller.address, true);
+                await manager.connect(deployer).setAllowedConverter(converter.address, true);
                 await controller
                     .connect(deployer)
                     .setConverter(vault.address, converter.address);
-                await manager.connect(treasury).setAllowedStrategy(strategyCrv.address, true);
-                await manager.connect(treasury).setAllowedToken(dai.address, true);
-                await manager.connect(treasury).setAllowedToken(t3crv.address, true);
+                await manager.connect(deployer).setHarvester(harvester.address);
+                await harvester.connect(deployer).setHarvester(deployer.address, true);
+                await manager.connect(deployer).setAllowedStrategy(strategyCrv.address, true);
+                await manager.connect(deployer).setAllowedToken(dai.address, true);
+                await manager.connect(deployer).setAllowedToken(t3crv.address, true);
                 await manager.addToken(vault.address, dai.address);
                 await manager.addToken(vault.address, t3crv.address);
                 await manager.setController(vault.address, controller.address);
@@ -709,11 +713,15 @@ describe('Controller', () => {
 
         context('when strategy exists', () => {
             beforeEach(async () => {
+                await manager.connect(deployer).setAllowedController(controller.address, true);
+                await manager.connect(deployer).setAllowedConverter(converter.address, true);
                 await controller
                     .connect(deployer)
                     .setConverter(vault.address, converter.address);
-                await manager.connect(treasury).setAllowedStrategy(strategyCrv.address, true);
-                await manager.connect(treasury).setAllowedToken(dai.address, true);
+                await manager.connect(deployer).setHarvester(harvester.address);
+                await harvester.connect(deployer).setHarvester(deployer.address, true);
+                await manager.connect(deployer).setAllowedStrategy(strategyCrv.address, true);
+                await manager.connect(deployer).setAllowedToken(dai.address, true);
                 await manager.addToken(vault.address, dai.address);
                 await manager.setController(vault.address, controller.address);
                 await controller.addStrategy(vault.address, strategyCrv.address, 0, 86400);
@@ -744,9 +752,13 @@ describe('Controller', () => {
 
     describe('getCap', () => {
         beforeEach(async () => {
+            await manager.connect(deployer).setAllowedController(controller.address, true);
+            await manager.connect(deployer).setAllowedConverter(converter.address, true);
             await controller.connect(deployer).setConverter(vault.address, converter.address);
-            await manager.connect(treasury).setAllowedStrategy(strategyCrv.address, true);
-            await manager.connect(treasury).setAllowedToken(dai.address, true);
+            await manager.connect(deployer).setHarvester(harvester.address);
+            await harvester.connect(deployer).setHarvester(deployer.address, true);
+            await manager.connect(deployer).setAllowedStrategy(strategyCrv.address, true);
+            await manager.connect(deployer).setAllowedToken(dai.address, true);
             await manager.addToken(vault.address, dai.address);
             await controller.addStrategy(vault.address, strategyCrv.address, 0, 86400);
         });
