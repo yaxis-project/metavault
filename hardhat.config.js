@@ -46,8 +46,14 @@ module.exports = {
         CRV: {
             1: '0xD533a949740bb3306d119CC777fa900bA034cd52'
         },
+        CVX: {
+            1: '0x4e3FBD56CD56c3e72c1403e103b45Db9da5B9D2B'
+        },
         converter: {
             1: '0xA5c16eb6eBD72BC72c70Fca3e4faCf389AD4aBE7'
+        },
+        convex3poolVault: {
+            1: '0xF403C135812408BFbE8713b5A23a04b3D48AAE31'
         },
         DAI: {
             1: '0x6B175474E89094C44Da98b954EedeAC495271d0F'
