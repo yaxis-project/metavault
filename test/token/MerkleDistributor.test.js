@@ -6,7 +6,7 @@ const hardhat = require('hardhat');
 const { deployments, ethers } = hardhat;
 
 describe('MerkleDistributor', () => {
-    const MERKLE_ROOT = '0x3dfe13c4a605fd21576c89fa0b335cedb97b748cada972e960abc763da1a4449';
+    const MERKLE_ROOT = '0xbcb3e26fca3db7ebea6fc6796e2e4036ca5957c54d5ef684052197f024e945b9';
     let yaxis, merkle;
 
     beforeEach(async () => {
