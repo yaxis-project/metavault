@@ -8,7 +8,7 @@ import "@openzeppelin/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
 import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import "../../interfaces/dYdXSoloMargin.sol";
+import "../interfaces/dYdXSoloMargin.sol";
 
 contract MockdYdXSoloMargin is ISoloMargin {
     using SafeERC20 for IERC20;

@@ -6,7 +6,7 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
-import "../../interfaces/Idle.sol";
+import "../interfaces/Idle.sol";
 
 contract MockIdleToken is ERC20, IIdleTokenV3_1 {
     using SafeMath for uint256;

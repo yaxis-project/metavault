@@ -4,7 +4,7 @@ pragma solidity 0.6.12;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-import "../../interfaces/PickleJar.sol";
+import "../interfaces/PickleJar.sol";
 import "./MockERC20.sol";
 
 contract MockPickleJar is MockERC20 {

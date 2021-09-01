@@ -3,5 +3,5 @@
 set -e
 
 # Add tests here that should be ran during CI
-yarn test:metavault
+yarn test:v3
 yarn test:token

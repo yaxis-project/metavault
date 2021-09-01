@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.6.0;
 
-import "../../interfaces/Chainlink.sol";
+import "../interfaces/Chainlink.sol";
 
 /**
  * @title MockV3Aggregator
