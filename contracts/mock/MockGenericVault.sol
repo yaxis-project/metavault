@@ -9,7 +9,7 @@ import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
 import "./MockERC20.sol";
-import "../../interfaces/GenericVault.sol";
+import "../interfaces/GenericVault.sol";
 
 contract MockGenericVault is MockERC20 {
     using SafeERC20 for IERC20;
