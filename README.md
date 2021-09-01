@@ -30,6 +30,7 @@ yarn hardhat contracts --network kovan
 ### Mainnet
 
 ```
+MerkleDistributor 0xd0c9432625A181C823b3e63D5E6656F87231AE96
 RewardsMetavault 0x226f9954A1221cDe805C76CfB312A5d761630E14
 RewardsYaxis 0x3b09B9ADFe11f92225b4C55De89fa81456595CD9
 RewardsYaxisEth 0xEDaFe410e2f07ab9D7F1B04316D29C2F49dCb104
