@@ -6,7 +6,7 @@ import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import '@openzeppelin/contracts/utils/Address.sol';
 import '@openzeppelin/contracts/token/ERC20/SafeERC20.sol';
 
-contract MockBaseRewardPool {
+contract MockConvexBaseRewardPool {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
 

@@ -7,7 +7,7 @@ import '@openzeppelin/contracts/utils/Address.sol';
 import '@openzeppelin/contracts/token/ERC20/SafeERC20.sol';
 
 import '../../metavault/mock/MockERC20.sol';
-import './MockBaseRewardPool.sol';
+import './MockConvexBaseRewardPool.sol';
 
 contract MockConvexVault {
     using SafeERC20 for IERC20;
@@ -70,7 +70,7 @@ contract MockConvexVault {
         );
 
         //create a reward contract for crv rewards
-        MockBaseRewardPool newRewardPool = new MockBaseRewardPool(
+        MockConvexBaseRewardPool newRewardPool = new MockConvexBaseRewardPool(
             pid,
             address(token),
             crv,
@@ -113,7 +113,7 @@ contract MockConvexVault {
             address rewardContract = pool.crvRewards;
             IERC20(token).safeApprove(rewardContract, 0);
             IERC20(token).safeApprove(rewardContract, _amount);
-            MockBaseRewardPool(rewardContract).stakeFor(msg.sender, _amount);
+            MockConvexBaseRewardPool(rewardContract).stakeFor(msg.sender, _amount);
         } else {*/
         //add user balance directly
         MockERC20(token).mint(msg.sender, _amount);
