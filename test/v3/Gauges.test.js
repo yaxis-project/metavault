@@ -72,6 +72,7 @@ describe('Gauges', () => {
         expect(await vaultStablesGauge.controller()).to.be.equal(gaugeController.address);
         expect(await vaultStablesGauge.admin()).to.be.equal(gaugeProxy.address);
         expect(await vaultStablesGauge.minter()).to.be.equal(minter.address);
+        expect(await vaultStables.getPricePerFullShare()).to.equal(0);
     });
 
     it('should fund the minterWrapper with YAXIS', async () => {

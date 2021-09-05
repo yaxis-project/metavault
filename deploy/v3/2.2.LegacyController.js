@@ -32,6 +32,13 @@ module.exports = async ({ getChainId, getNamedAccounts, deployments }) => {
         });
 
         await execute('MetaVault', { from: deployer }, 'setConverter', NonConverter.address);
+        await execute(
+            'DAI',
+            { from: deployer },
+            'mint',
+            MetaVault.address,
+            ethers.utils.parseEther('1')
+        );
     }
 
     await deploy('LegacyController', {

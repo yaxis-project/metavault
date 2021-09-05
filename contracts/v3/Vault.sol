@@ -311,7 +311,11 @@ contract Vault is VaultToken, IVault {
         override
         returns (uint256)
     {
-        return balance().mul(1e18).div(totalSupply());
+        if (totalSupply() > 0) {
+            return balance().mul(1e18).div(totalSupply());
+        } else {
+            return balance();
+        }
     }
 
     /**
