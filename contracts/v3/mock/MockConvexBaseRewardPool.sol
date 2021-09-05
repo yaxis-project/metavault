@@ -16,20 +16,26 @@ contract MockConvexBaseRewardPool {
 
     constructor(
         uint256 pid_,
-        address stakingToken_,
+        address, /*stakingToken_*/
         address rewardToken_,
-        address operator_,
-        address rewardManager_
+        address, /*operator_*/
+        address /*rewardManager_*/
     ) public {
         pid = pid_;
         rewardToken = IERC20(rewardToken_);
     }
 
-    function stakeFor(address _for, uint256 _amount) public returns (bool) {
+    function stakeFor(
+        address, /*_for*/
+        uint256 /*_amount*/
+    ) public pure returns (bool) {
         return true;
     }
 
-    function getReward(address _account, bool _claimExtras) public returns (bool) {
+    function getReward(
+        address _account,
+        bool /*_claimExtras*/
+    ) public returns (bool) {
         IERC20(rewardToken).safeTransferFrom(address(this), _account, 1000);
         return true;
     }

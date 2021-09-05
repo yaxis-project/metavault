@@ -6,7 +6,7 @@ import '@openzeppelin/contracts/token/ERC20/ERC20.sol';
 import '@openzeppelin/contracts/utils/Address.sol';
 import '@openzeppelin/contracts/token/ERC20/SafeERC20.sol';
 
-import '../../metavault/mock/MockERC20.sol';
+import '../../mock/MockERC20.sol';
 import './MockConvexBaseRewardPool.sol';
 
 contract MockConvexVault {
@@ -57,7 +57,7 @@ contract MockConvexVault {
     function addPool(
         address _lptoken,
         address _gauge,
-        uint256 _stashVersion
+        uint256 /*_stashVersion*/
     ) external returns (bool) {
         //the next pool's pid
         uint256 pid = poolInfo.length;
@@ -99,7 +99,7 @@ contract MockConvexVault {
     function deposit(
         uint256 _pid,
         uint256 _amount,
-        bool _stake
+        bool /*_stake*/
     ) public returns (bool) {
         PoolInfo storage pool = poolInfo[_pid];
         //send to proxy to stake
@@ -107,17 +107,9 @@ contract MockConvexVault {
         IERC20(lptoken).safeTransferFrom(msg.sender, address(this), _amount);
 
         address token = pool.token;
-        /*if (_stake) {
-            //mint here and send to rewards on user behalf
-            MockERC20(token).mint(address(this), _amount);
-            address rewardContract = pool.crvRewards;
-            IERC20(token).safeApprove(rewardContract, 0);
-            IERC20(token).safeApprove(rewardContract, _amount);
-            MockConvexBaseRewardPool(rewardContract).stakeFor(msg.sender, _amount);
-        } else {*/
+
         //add user balance directly
         MockERC20(token).mint(msg.sender, _amount);
-        //}
 
         emit Deposited(msg.sender, _pid, _amount);
         return true;
