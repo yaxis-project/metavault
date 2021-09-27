@@ -5,10 +5,11 @@ chai.use(solidity);
 const hardhat = require('hardhat');
 const { deployments, ethers } = hardhat;
 
-describe('ConvexStrategy3Crv', () => {
+describe('ConvexStrategyMIMCrv', () => {
     let deployer, treasury, user;
     let mim,
         t3crv,
+        mim3crv,
         stableSwap2Pool,
         manager,
         convexStrategy,
