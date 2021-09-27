@@ -55,6 +55,9 @@ module.exports = {
         convex3poolVault: {
             1: '0xF403C135812408BFbE8713b5A23a04b3D48AAE31'
         },
+        convexMIMpoolVault: {
+            1: '0x2DfB14E32e2F8156ec15a2c21c3A6c053af52Be8'
+        },
         DAI: {
             1: '0x6B175474E89094C44Da98b954EedeAC495271d0F'
         },
@@ -106,6 +109,12 @@ module.exports = {
         insurancePool: {
             default: 4
         },
+        MIM: {
+            1: '0x99D8a9C45b2ecA8864373A26D1459e3Dff1e17F3'
+        },
+        MIMCRV: {
+            1: '0x5a6A4D54456819380173272A5E8E9B9904BdF41B'
+        },
         minter: {
             1: '0xd061D61a4d941c39E5453435B6345Dc261C2fcE0'
         },
@@ -134,6 +143,9 @@ module.exports = {
         stableSwap3Pool: {
             1: '0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7',
             42: '0xE2C2a45850375c0A8B92b853fcd0a110463ed5Ab'
+        },
+        stableSwapMIMPool: {
+            1: '0x5a6A4D54456819380173272A5E8E9B9904BdF41B',
         },
         stakingPool: {
             default: 2,
