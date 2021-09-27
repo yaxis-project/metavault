@@ -4,7 +4,7 @@
 
 pragma solidity 0.6.12;
 
-interface IStableSwap3Pool {
+interface IStableSwap2Pool {
     function get_virtual_price() external view returns (uint256);
 
     function balances(uint256) external view returns (uint256);

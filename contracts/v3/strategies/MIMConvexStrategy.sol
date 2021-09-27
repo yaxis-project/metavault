@@ -46,16 +46,32 @@ contract MIMConvexStrategy is BaseStrategy {
         crvRewards = IConvexRewards(_crvRewards);
         stableSwap2Pool = _stableSwap2Pool;
         // Required to overcome "Stack Too Deep" error
-        _setApprovals();
+        _setApprovals(
+            _want,
+            _crv,
+            _cvx,
+            _mim,
+            _cvx3,
+            address(_convexVault),
+            address(_stableSwap2Pool)
+        );
     }
 
-    function _setApprovals() internal {
-        IERC20(want).safeApprove(address(convexVault), type(uint256).max);
-        IERC20(crv).safeApprove(address(router), type(uint256).max);
-        IERC20(cvx).safeApprove(address(router), type(uint256).max);
-        IERC20(mim).safeApprove(address(stableSwap2Pool), type(uint256).max);
-        IERC20(cvx3).safeApprove(address(stableSwap2Pool), type(uint256).max);
-        IERC20(want).safeApprove(address(stableSwap2Pool), type(uint256).max);
+    function _setApprovals(
+        address _want,
+        address _crv,
+        address _cvx,
+        address _mim,
+        address _cvx3,
+        address _convexVault,
+        address _stableSwap2Pool
+    ) internal {
+        IERC20(_want).safeApprove(address(_convexVault), type(uint256).max);
+        IERC20(_crv).safeApprove(address(router), type(uint256).max);
+        IERC20(_cvx).safeApprove(address(router), type(uint256).max);
+        IERC20(_mim).safeApprove(address(_stableSwap2Pool), type(uint256).max);
+        IERC20(_cvx3).safeApprove(address(_stableSwap2Pool), type(uint256).max);
+        IERC20(_want).safeApprove(address(_stableSwap2Pool), type(uint256).max);
     }
 
     function _deposit() internal override {
