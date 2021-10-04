@@ -12,7 +12,7 @@ contract MIMConvexStrategy is BaseStrategy {
     address public immutable cvx;
 
     address public immutable mim;
-    address public immutable cvx3;
+    address public immutable crv3;
 
     uint256 public immutable pid;
     IConvexVault public immutable convexVault;
@@ -20,6 +20,21 @@ contract MIMConvexStrategy is BaseStrategy {
     IConvexRewards public immutable crvRewards;
     IStableSwap2Pool public immutable stableSwap2Pool;
 
+    /**
+     * @param _name The strategy name
+     * @param _want The desired token of the strategy
+     * @param _crv The address of CRV
+     * @param _cvx The address of CVX
+     * @param _weth The address of WETH
+     * @param _mim The address of MIM
+     * @param _crv3 The address of 3CRV
+     * @param _pid The pool id of convex
+     * @param _convexVault The address of the convex vault
+     * @param _stableSwap2Pool The address of the stable swap pool
+     * @param _controller The address of the controller
+     * @param _manager The address of the manager
+     * @param _router The address of the router for swapping tokens
+     */
     constructor(
         string memory _name,
         address _want,
@@ -27,7 +42,7 @@ contract MIMConvexStrategy is BaseStrategy {
         address _cvx,
         address _weth,
         address _mim,
-        address _cvx3,
+        address _crv3,
         uint256 _pid,
         IConvexVault _convexVault,
         IStableSwap2Pool _stableSwap2Pool,
@@ -35,11 +50,18 @@ contract MIMConvexStrategy is BaseStrategy {
         address _manager,
         address _router
     ) public BaseStrategy(_name, _controller, _manager, _want, _weth, _router) {
+        require(address(_crv) != address(0), '!_crv');
+        require(address(_cvx) != address(0), '!_cvx');
+        require(address(_mim) != address(0), '!_mim');
+        require(address(_crv3) != address(0), '!_crv3');
+        require(address(_convexVault) != address(0), '!_convexVault');
+        require(address(_stableSwap2Pool) != address(0), '!_stableSwap2Pool');
+
         (, address _token, , address _crvRewards, , ) = _convexVault.poolInfo(_pid);
         crv = _crv;
         cvx = _cvx;
         mim = _mim;
-        cvx3 = _cvx3;
+        crv3 = _crv3;
         pid = _pid;
         convexVault = _convexVault;
         mimCvxDepositLP = _token;
@@ -51,7 +73,7 @@ contract MIMConvexStrategy is BaseStrategy {
             _crv,
             _cvx,
             _mim,
-            _cvx3,
+            _crv3,
             address(_convexVault),
             address(_stableSwap2Pool)
         );
@@ -62,7 +84,7 @@ contract MIMConvexStrategy is BaseStrategy {
         address _crv,
         address _cvx,
         address _mim,
-        address _cvx3,
+        address _crv3,
         address _convexVault,
         address _stableSwap2Pool
     ) internal {
@@ -70,12 +92,14 @@ contract MIMConvexStrategy is BaseStrategy {
         IERC20(_crv).safeApprove(address(router), type(uint256).max);
         IERC20(_cvx).safeApprove(address(router), type(uint256).max);
         IERC20(_mim).safeApprove(address(_stableSwap2Pool), type(uint256).max);
-        IERC20(_cvx3).safeApprove(address(_stableSwap2Pool), type(uint256).max);
+        IERC20(_crv3).safeApprove(address(_stableSwap2Pool), type(uint256).max);
         IERC20(_want).safeApprove(address(_stableSwap2Pool), type(uint256).max);
     }
 
     function _deposit() internal override {
-        convexVault.depositAll(pid, true);
+        if (balanceOfWant() > 0) {
+            convexVault.depositAll(pid, true);
+        }
     }
 
     function _claimReward() internal {
@@ -85,18 +109,14 @@ contract MIMConvexStrategy is BaseStrategy {
     function _addLiquidity() internal {
         uint256[2] memory amounts;
         amounts[0] = IERC20(mim).balanceOf(address(this));
-        amounts[1] = IERC20(cvx3).balanceOf(address(this));
+        amounts[1] = IERC20(crv3).balanceOf(address(this));
         stableSwap2Pool.add_liquidity(amounts, 1);
     }
 
     function getMostPremium() public view returns (address, uint256) {
-        uint256[] memory balances = new uint256[](2);
-        balances[0] = stableSwap2Pool.balances(0); // MIM
-        balances[1] = stableSwap2Pool.balances(1); // 3CRV
-
-        if (balances[0] > balances[1]) {
-            // MIM
-            return (cvx3, 1);
+        // both MIM and 3CRV have 18 decimals
+        if (stableSwap2Pool.balances(0) > stableSwap2Pool.balances(1)) {
+            return (crv3, 1);
         }
 
         return (mim, 0); // If they're somehow equal, we just want MIM
@@ -115,10 +135,7 @@ contract MIMConvexStrategy is BaseStrategy {
             (address _token, ) = getMostPremium(); // stablecoin we want to convert to
             _swapTokens(weth, _token, _remainingWeth, 1);
             _addLiquidity();
-
-            if (balanceOfWant() > 0) {
-                _deposit();
-            }
+            _deposit();
         }
     }
 
