@@ -119,14 +119,9 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
             Manager.address
         ]
     });
-    await deployments.deploy('General3Converter', {
+    await deployments.deploy('GeneralConverter', {
         from: deployer,
-        args: [
-            [DAI.address, USDC.address, USDT.address],
-            T3CRV.address,
-            StableSwap.address,
-            Manager.address
-        ]
+        args: [3, T3CRV.address, StableSwap.address, Manager.address]
     });
 
     const MetaVault = await deployments.deploy('MetaVault', {

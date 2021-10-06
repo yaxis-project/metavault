@@ -1,56 +1,55 @@
-// SPDX-License-Identifier: MIT
-
 pragma solidity 0.6.12;
 
 import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
+// SPDX-License-Identifier: MIT
 import '@openzeppelin/contracts/math/SafeMath.sol';
 import '@openzeppelin/contracts/token/ERC20/ERC20.sol';
 import '@openzeppelin/contracts/token/ERC20/SafeERC20.sol';
 
 import '../interfaces/IConverter.sol';
 import '../interfaces/IManager.sol';
+import '../interfaces/ICurvePool.sol';
+import '../interfaces/ICurve2Pool.sol';
 import '../interfaces/ICurve3Pool.sol';
 
 /**
- * @title General3Converter
+ * @title GeneralConverter
  */
-contract General3Converter is IConverter {
+contract GeneralConverter is IConverter {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
 
     IManager public immutable override manager;
-    ICurve3Pool public immutable stableSwap3Pool;
-    IERC20 public immutable tokenCRV; // 3Crv
+    ICurvePool public immutable swapPool;
+    IERC20 public immutable tokenCRV;
 
-    IERC20[3] public tokens;
+    IERC20[] public tokens;
 
     mapping(address => int128) internal indices;
 
     /**
-     * @param _tokens A list of the address of the token in the Curve pool
+     * @param _coinCount The number of coins in the pool
      * @param _tokenCRV The address of the CRV token
-     * @param _stableSwap3Pool The address of 3Pool
+     * @param _swapPool The address of swap pool
      * @param _manager The address of the Vault Manager
      */
     constructor(
-        IERC20[] memory _tokens,
+        uint256 _coinCount,
         IERC20 _tokenCRV,
-        ICurve3Pool _stableSwap3Pool,
+        ICurvePool _swapPool,
         IManager _manager
     ) public {
-        require(_tokens.length == 3, 'Token count must be 3');
-
         tokenCRV = _tokenCRV;
-        stableSwap3Pool = _stableSwap3Pool;
+        swapPool = _swapPool;
         manager = _manager;
 
-        for (uint256 i = 0; i < _tokens.length; i++) {
-            tokens[i] = _tokens[i];
-            indices[address(_tokens[i])] = int128(i);
-            _tokens[i].safeApprove(address(_stableSwap3Pool), type(uint256).max);
+        for (uint256 i = 0; i < _coinCount; i++) {
+            tokens.push(IERC20(_swapPool.coins(i)));
+            indices[address(tokens[i])] = int128(i);
+            tokens[i].safeApprove(address(_swapPool), type(uint256).max);
         }
 
-        _tokenCRV.safeApprove(address(_stableSwap3Pool), type(uint256).max);
+        _tokenCRV.safeApprove(address(_swapPool), type(uint256).max);
     }
 
     /**
@@ -105,12 +104,26 @@ contract General3Converter is IConverter {
     ) external override onlyAuthorized returns (uint256 _outputAmount) {
         if (_output == address(tokenCRV)) {
             // convert to CRV
-            uint256[3] memory amounts;
-            for (uint8 i = 0; i < 3; i++) {
+            for (uint8 i = 0; i < tokens.length; i++) {
                 if (_input == address(tokens[i])) {
-                    amounts[i] = _inputAmount;
                     uint256 _before = tokenCRV.balanceOf(address(this));
-                    stableSwap3Pool.add_liquidity(amounts, _estimatedOutput);
+
+                    if (tokens.length == 2) {
+                        uint256[2] memory amounts;
+                        amounts[i] = _inputAmount;
+                        ICurve2Pool(address(swapPool)).add_liquidity(
+                            amounts,
+                            _estimatedOutput
+                        );
+                    } else {
+                        uint256[3] memory amounts;
+                        amounts[i] = _inputAmount;
+                        ICurve3Pool(address(swapPool)).add_liquidity(
+                            amounts,
+                            _estimatedOutput
+                        );
+                    }
+
                     uint256 _after = tokenCRV.balanceOf(address(this));
                     _outputAmount = _after.sub(_before);
                     tokenCRV.safeTransfer(msg.sender, _outputAmount);
@@ -119,14 +132,10 @@ contract General3Converter is IConverter {
             }
         } else if (_input == address(tokenCRV)) {
             // convert from CRV
-            for (uint8 i = 0; i < 3; i++) {
+            for (uint8 i = 0; i < tokens.length; i++) {
                 if (_output == address(tokens[i])) {
                     uint256 _before = tokens[i].balanceOf(address(this));
-                    stableSwap3Pool.remove_liquidity_one_coin(
-                        _inputAmount,
-                        i,
-                        _estimatedOutput
-                    );
+                    swapPool.remove_liquidity_one_coin(_inputAmount, i, _estimatedOutput);
                     uint256 _after = tokens[i].balanceOf(address(this));
                     _outputAmount = _after.sub(_before);
                     tokens[i].safeTransfer(msg.sender, _outputAmount);
@@ -134,7 +143,7 @@ contract General3Converter is IConverter {
                 }
             }
         } else {
-            stableSwap3Pool.exchange(
+            swapPool.exchange(
                 indices[_input],
                 indices[_output],
                 _inputAmount,
@@ -160,24 +169,30 @@ contract General3Converter is IConverter {
     ) external view override returns (uint256) {
         if (_output == address(tokenCRV)) {
             // convert to CRV
-            uint256[3] memory amounts;
-            for (uint8 i = 0; i < 3; i++) {
+            for (uint8 i = 0; i < tokens.length; i++) {
                 if (_input == address(tokens[i])) {
-                    amounts[i] = _inputAmount;
-                    return stableSwap3Pool.calc_token_amount(amounts, true);
+                    if (tokens.length == 2) {
+                        uint256[2] memory amounts;
+                        amounts[i] = _inputAmount;
+                        return ICurve2Pool(address(swapPool)).calc_token_amount(amounts, true);
+                    } else {
+                        uint256[3] memory amounts;
+                        amounts[i] = _inputAmount;
+                        return ICurve3Pool(address(swapPool)).calc_token_amount(amounts, true);
+                    }
                 }
             }
         } else if (_input == address(tokenCRV)) {
             // convert from CRV
-            for (uint8 i = 0; i < 3; i++) {
+            for (uint8 i = 0; i < tokens.length; i++) {
                 if (_output == address(tokens[i])) {
                     // @dev this is for UI reference only, the actual share price
                     // (stable/CRV) will be re-calculated on-chain when we do convert()
-                    return stableSwap3Pool.calc_withdraw_one_coin(_inputAmount, i);
+                    return swapPool.calc_withdraw_one_coin(_inputAmount, i);
                 }
             }
         } else {
-            return stableSwap3Pool.get_dy(indices[_input], indices[_output], _inputAmount);
+            return swapPool.get_dy(indices[_input], indices[_output], _inputAmount);
         }
         return 0;
     }
