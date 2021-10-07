@@ -39,6 +39,8 @@ contract GeneralConverter is IConverter {
         ICurvePool _swapPool,
         IManager _manager
     ) public {
+        require(_coinCount == 2 || _coinCount == 3, '_coinCount should be 2 or 3');
+
         tokenCRV = _tokenCRV;
         swapPool = _swapPool;
         manager = _manager;
