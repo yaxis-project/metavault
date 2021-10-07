@@ -5,10 +5,10 @@ chai.use(solidity);
 const hardhat = require('hardhat');
 const { deployments, ethers } = hardhat;
 
-describe('ConvexStrategyMIMCrv', () => {
+describe('MIMConvexStrategy', () => {
     let deployer, treasury, user;
     let mim,
-        t3crv,
+        mock3crv,
         mim3crv,
         stableSwap2Pool,
         manager,
@@ -21,12 +21,12 @@ describe('ConvexStrategyMIMCrv', () => {
         unirouter;
 
     beforeEach(async () => {
-        await deployments.fixture(['v3', 'ConvexStrategy']);
+        await deployments.fixture(['v3', 'MIMConvexStrategy']);
         [deployer, treasury, , user] = await ethers.getSigners();
         const Manager = await deployments.get('Manager');
         manager = await ethers.getContractAt('Manager', Manager.address);
-        const T3CRV = await deployments.get('T3CRV');
-        t3crv = await ethers.getContractAt('MockERC20', T3CRV.address);
+        const MOCK3CRV = await deployments.get('MOCK3CRV');
+        mock3crv = await ethers.getContractAt('MockERC20', MOCK3CRV.address);
         const MIM3CRV = await deployments.get('MIM3CRV');
         mim3crv = await ethers.getContractAt('MockERC20', MIM3CRV.address);
         const CRV = await deployments.get('CRV');
@@ -50,7 +50,7 @@ describe('ConvexStrategyMIMCrv', () => {
         unirouter = await ethers.getContractAt('MockUniswapRouter', router.address);
         const vaultPID = 0;
 
-        const ConvexStrategy = await deployments.deploy('ConvexStrategy', {
+        const MIMConvexStrategy = await deployments.deploy('MIMConvexStrategy', {
             from: deployer.address,
             args: [
                 'Convex: MIMCRV',
@@ -59,7 +59,7 @@ describe('ConvexStrategyMIMCrv', () => {
                 cvx.address,
                 weth.address,
                 mim.address,
-                t3crv.address,
+                mock3crv.address,
                 vaultPID,
                 convexVault.address,
                 stableSwap2Pool.address,
@@ -68,7 +68,10 @@ describe('ConvexStrategyMIMCrv', () => {
                 unirouter.address
             ]
         });
-        convexStrategy = await ethers.getContractAt('ConvexStrategy', ConvexStrategy.address);
+        convexStrategy = await ethers.getContractAt(
+            'MIMConvexStrategy',
+            MIMConvexStrategy.address
+        );
 
         await manager.setGovernance(treasury.address);
     });
@@ -77,7 +80,7 @@ describe('ConvexStrategyMIMCrv', () => {
         expect(await convexStrategy.crv()).to.equal(crv.address);
         expect(await convexStrategy.cvx()).to.equal(cvx.address);
         expect(await convexStrategy.mim()).to.equal(mim.address);
-        expect(await convexStrategy.t3crv()).to.equal(usdc.address);
+        expect(await convexStrategy.crv3()).to.equal(mock3crv.address);
         expect(await convexStrategy.stableSwap2Pool()).to.equal(stableSwap2Pool.address);
         expect(await convexStrategy.convexVault()).to.equal(convexVault.address);
         expect(await convexStrategy.want()).to.equal(mim3crv.address);

@@ -25,8 +25,8 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
         MIM = mim.address;
         const t3crv = await deployments.get('T3CRV');
         T3CRV = t3crv.address;
-        const mimcrv = await deployments.get('MIMCRV');
-        MIMCRV = mimcrv.address;
+        const mim3crv = await deployments.get('MIM3CRV');
+        MIMCRV = mim3crv.address;
         const weth = await deployments.get('WETH');
         WETH = weth.address;
         await deploy('CRV', {
@@ -82,7 +82,7 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
         pid = 0;
     }
 
-    const Strategy = await deploy('ConvexStrategy', {
+    const Strategy = await deploy('MIMConvexStrategy', {
         from: deployer,
         log: true,
         args: [
@@ -122,4 +122,4 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
     }
 };
 
-module.exports.tags = ['v3-strategies', 'ConvexStrategy'];
+module.exports.tags = ['v3-strategies', 'MIMConvexStrategy'];

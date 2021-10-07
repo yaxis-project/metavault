@@ -40,6 +40,25 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
             contract: 'MockERC20',
             args: ['Curve.fi DAI/USDC/USDT', '3CRV', 18]
         });
+        const mim3crv = await deployments.deploy('MIM3CRV', {
+            from: deployer,
+            contract: 'MockERC20',
+            args: [
+                'Curve.fi Factory USD Metapool: Magic Internet Money 3Pool',
+                'MIM-3LP3CRV',
+                18
+            ]
+        });
+        const mim = await deployments.deploy('MIM', {
+            from: deployer,
+            contract: 'MockERC20',
+            args: ['MIM Stablecoin', 'MIM', 18]
+        });
+        const mock3crv = await deployments.deploy('MOCK3CRV', {
+            from: deployer,
+            contract: 'MockERC20',
+            args: ['Curve.fi DAI/USDC/USDT', 'MOCK3CRV', 18]
+        });
 
         await deploy('MockUniswapRouter', {
             from: deployer,
@@ -60,6 +79,17 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
             ]
         });
         stableSwap3Pool = stableSwap3Pool.address;
+        const mimStableSwap = await deployments.deploy('MockStableSwap2Pool', {
+            from: deployer,
+            args: [
+                deployer,
+                [mim.address, mock3crv.address],
+                mim3crv.address,
+                200,
+                4000000,
+                5000000000
+            ]
+        });
 
         if (t3crv.newlyDeployed) {
             await execute('T3CRV', { from: deployer }, 'transferOwnership', stableSwap3Pool);
@@ -110,6 +140,51 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
                 { from: deployer },
                 'add_liquidity',
                 [ethers.utils.parseEther('200000000'), '200000000000000', '200000000000000'],
+                0
+            );
+        }
+
+        if (mim3crv.newlyDeployed) {
+            await execute(
+                'MIM3CRV',
+                { from: deployer },
+                'transferOwnership',
+                mimStableSwap.address
+            );
+            await execute(
+                'MIM',
+                { from: deployer },
+                'mint',
+                deployer,
+                ethers.utils.parseEther('10000000000000')
+            );
+            await execute(
+                'MOCK3CRV',
+                { from: deployer },
+                'mint',
+                deployer,
+                ethers.utils.parseEther('10000000000000')
+            );
+            await execute(
+                'MIM',
+                { from: deployer },
+                'approve',
+                mimStableSwap.address,
+                ethers.constants.MaxUint256
+            );
+            await execute(
+                'MOCK3CRV',
+                { from: deployer },
+                'approve',
+                mimStableSwap.address,
+                ethers.constants.MaxUint256
+            );
+
+            await execute(
+                'MockStableSwap2Pool',
+                { from: deployer },
+                'add_liquidity',
+                [ethers.utils.parseEther('200000000'), ethers.utils.parseEther('200000000')],
                 0
             );
         }

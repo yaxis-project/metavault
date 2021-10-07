@@ -42,6 +42,11 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
         contract: 'MockERC20',
         args: ['MIM Stablecoin', 'MIM', 18]
     });
+    const MOCK3CRV = await deployments.deploy('MOCK3CRV', {
+        from: deployer,
+        contract: 'MockERC20',
+        args: ['Curve.fi DAI/USDC/USDT', 'MOCK3CRV', 18]
+    });
     const CRV = await deployments.deploy('CRV', {
         contract: 'MockERC20',
         from: deployer,
@@ -67,7 +72,7 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
         from: deployer,
         args: [
             deployer,
-            [MIM.address, T3CRV.address],
+            [MIM.address, MOCK3CRV.address],
             MIM3CRV.address,
             200,
             4000000,
@@ -108,6 +113,20 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
         '10000000000000000000'
     );
     await deployments.execute(
+        'MIM',
+        { from: deployer },
+        'mint',
+        deployer,
+        ethers.utils.parseEther('10000000000000')
+    );
+    await deployments.execute(
+        'MOCK3CRV',
+        { from: deployer },
+        'mint',
+        deployer,
+        ethers.utils.parseEther('10000000000000')
+    );
+    await deployments.execute(
         'DAI',
         { from: deployer },
         'approve',
@@ -136,7 +155,7 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
         ethers.constants.MaxUint256
     );
     await deployments.execute(
-        'T3CRV',
+        'MOCK3CRV',
         { from: deployer },
         'approve',
         MIMStableSwap.address,
