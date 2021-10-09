@@ -649,6 +649,13 @@ describe('Controller', () => {
                     .to.emit(controller, 'Harvest')
                     .withArgs(strategyCrv.address);
             });
+
+            it('should revert if the system is halted', async () => {
+                await manager.setHalted();
+                await expect(
+                    harvester.harvest(controller.address, strategyCrv.address, 0, 0)
+                ).to.be.revertedWith('halted');
+            });
         });
     });
 
@@ -688,6 +695,13 @@ describe('Controller', () => {
                 await expect(
                     controller.connect(user).earn(strategyCrv.address, dai.address, 0)
                 ).to.be.revertedWith('!vault');
+            });
+
+            it('should revert if the system is halted', async () => {
+                await manager.setHalted();
+                await expect(
+                    controller.earn(strategyCrv.address, dai.address, 0)
+                ).to.be.revertedWith('halted');
             });
 
             it('should earn with want token', async () => {

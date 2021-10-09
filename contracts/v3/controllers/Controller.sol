@@ -41,19 +41,9 @@ contract Controller is IController {
     mapping(address => address) internal _vaultStrategies;
 
     /**
-     * @notice Logged when earn is called for a strategy
-     */
-    event Earn(address indexed token, address indexed strategy);
-
-    /**
      * @notice Logged when harvest is called for a strategy
      */
     event Harvest(address indexed strategy);
-
-    /**
-     * @notice Logged when insurance is claimed for a vault
-     */
-    event InsuranceClaimed(address indexed vault);
 
     /**
      * @notice Logged when a strategy is added for a vault
@@ -109,7 +99,10 @@ contract Controller is IController {
         onlyStrategist
         onlyStrategy(_strategy)
     {
+        require(manager.allowedVaults(_vault), "!_vault");
         require(_vaultDetails[_vault].converter != address(0), "!converter");
+        // checking if strategy is already added
+        require(_vaultStrategies[_strategy] == address(0), "Strategy is already added"); 
         // get the index of the newly added strategy
         uint256 index = _vaultDetails[_vault].strategies.length;
         // ensure we haven't added too many strategies already
@@ -178,6 +171,7 @@ contract Controller is IController {
         notHalted
         onlyStrategist
     {
+        require(manager.allowedVaults(_vault), "!_vault");
         VaultDetail storage vaultDetail = _vaultDetails[_vault];
         // get the index of the strategy to remove
         uint256 index = vaultDetail.index[_strategy];
@@ -222,8 +216,8 @@ contract Controller is IController {
         onlyStrategist
     {
         require(manager.allowedVaults(_vault), "!_vault");
-        require(manager.allowedStrategies(_strategy1), "!_strategy1");
-        require(manager.allowedStrategies(_strategy2), "!_strategy2");
+        require(_vaultStrategies[_strategy1] == _vault, "!_strategy1");
+        require(_vaultStrategies[_strategy2] == _vault, "!_strategy2");
         VaultDetail storage vaultDetail = _vaultDetails[_vault];
         // get the indexes of the strategies
         uint256 index1 = vaultDetail.index[_strategy1];
@@ -264,7 +258,7 @@ contract Controller is IController {
             IStrategy(_strategy).withdraw(_diff);
             updateBalance(_vault, _strategy);
             _balance = IStrategy(_strategy).balanceOf();
-            _vaultDetails[_vault].balance = _vaultDetails[_vault].balance.sub(_balance);
+            _vaultDetails[_vault].balance = _vaultDetails[_vault].balance.sub(_diff);
             address _want = IStrategy(_strategy).want();
             _balance = IERC20(_want).balanceOf(address(this));
             if (_convert != address(0)) {
@@ -364,7 +358,7 @@ contract Controller is IController {
         }
         uint256 _balance = _vaultDetails[_vault].balance;
         if (_balance >= _amount) {
-            _vaultDetails[_vault].balance = _vaultDetails[_vault].balance.sub(_amount);
+            _vaultDetails[_vault].balance = _balance.sub(_amount);
         } else {
             _vaultDetails[_vault].balance = 0;
         }
@@ -385,6 +379,7 @@ contract Controller is IController {
     )
         external
         override
+        notHalted
         onlyHarvester
         onlyStrategy(_strategy)
     {
@@ -414,6 +409,7 @@ contract Controller is IController {
     )
         external
         override
+        notHalted
         onlyStrategy(_strategy)
         onlyVault(_token)
     {
@@ -432,7 +428,6 @@ contract Controller is IController {
         // call the strategy deposit function
         IStrategy(_strategy).deposit();
         updateBalance(msg.sender, _strategy);
-        emit Earn(_token, _strategy);
     }
 
     /**
