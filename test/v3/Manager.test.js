@@ -12,7 +12,7 @@ describe('Manager', () => {
     let manager, controller, converter, harvester;
 
     beforeEach(async () => {
-        await deployments.fixture('v3');
+        await deployments.fixture('test');
         [deployer, treasury, , user] = await ethers.getSigners();
         const YAXIS = await deployments.get('YaxisToken');
         yaxis = await ethers.getContractAt('MockERC20', YAXIS.address);
@@ -38,7 +38,7 @@ describe('Manager', () => {
         expect(await manager.yaxis()).to.equal(yaxis.address);
         expect(await manager.governance()).to.equal(deployer.address);
         expect(await manager.strategist()).to.equal(deployer.address);
-        expect(await manager.harvester()).to.equal(harvester.address);
+        expect(await manager.harvester()).to.equal(deployer.address);
         expect(await manager.treasury()).to.equal(deployer.address);
         expect(await manager.stakingPoolShareFee()).to.equal(2000);
         expect(await manager.treasuryFee()).to.equal(500);
@@ -48,6 +48,7 @@ describe('Manager', () => {
     describe('setAllowedController', () => {
         beforeEach(async () => {
             await manager.connect(deployer).setGovernance(treasury.address);
+            await manager.connect(treasury).setAllowedController(controller.address, true);
         });
 
         it('should revert when called by non-governance address', async () => {
@@ -98,6 +99,7 @@ describe('Manager', () => {
     describe('setAllowedConverter', () => {
         beforeEach(async () => {
             await manager.connect(deployer).setGovernance(treasury.address);
+            await manager.connect(treasury).setAllowedConverter(converter.address, true);
         });
 
         it('should revert when called by non-governance address', async () => {
@@ -733,6 +735,15 @@ describe('Manager', () => {
             await expect(manager.connect(deployer).addToken(vault.address, dai.address))
                 .to.emit(manager, 'TokenAdded')
                 .withArgs(vault.address, dai.address);
+        });
+
+        it('should revert if the token is already added', async () => {
+            await expect(manager.connect(deployer).addToken(vault.address, dai.address))
+                .to.emit(manager, 'TokenAdded')
+                .withArgs(vault.address, dai.address);
+            await expect(
+                manager.connect(deployer).addToken(vault.address, dai.address)
+            ).to.be.revertedWith('!_token');
         });
 
         it('should revert when it reaches the maximum number of tokens in vault', async () => {

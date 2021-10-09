@@ -110,7 +110,6 @@ describe('Gauges', () => {
         await manager
             .connect(deployer)
             .setController(vaultStables.address, controller.address);
-        await manager.connect(deployer).addToken(vaultStables.address, dai.address);
         await dai.connect(user).faucet(ether('1000'));
         await dai.connect(user).approve(vaultStables.address, ethers.constants.MaxUint256);
         await vaultStables.connect(user).deposit(dai.address, ether('1000'));
@@ -123,16 +122,5 @@ describe('Gauges', () => {
             .connect(user)
             ['deposit(uint256,address)'](ether('1000'), user.address);
         expect(await vaultStablesGauge.balanceOf(user.address)).to.be.equal(ether('1000'));
-    });
-
-    it('should allow users to earn rewards', async () => {
-        expect(await yaxis.balanceOf(user.address)).to.be.equal(0);
-        await increaseTime(86400 * 30);
-
-        await expect(minter.connect(user).mint(vaultStablesGauge.address)).to.emit(
-            minter,
-            'Minted'
-        );
-        expect(await yaxis.balanceOf(user.address)).to.be.above(0);
     });
 });

@@ -109,6 +109,29 @@ contract Vault is VaultToken, IVault {
     }
 
     /**
+     * @notice Swaps tokens held within the vault
+     * @param _token0 The token address to swap out
+     * @param _token1 The token address to to
+     * @param _expectedAmount The expected amount of _token1 to receive
+     */
+    function swap(
+        address _token0,
+        address _token1,
+        uint256 _expectedAmount
+    )
+        external
+        override
+        notHalted
+        onlyStrategist
+        returns (uint256 _balance)
+    {
+        IConverter _converter = IConverter(IController(manager.controllers(address(this))).converter(address(this)));
+        _balance = IERC20(_token0).balanceOf(address(this));
+        IERC20(_token0).safeTransfer(address(_converter), _balance);
+        _balance = _converter.convert(_token0, _token1, _balance, _expectedAmount);
+    }
+
+    /**
      * HARVESTER-ONLY FUNCTIONS
      */
 
@@ -169,7 +192,7 @@ contract Vault is VaultToken, IVault {
                 _amount = (_amount.mul(totalSupply())).div(_balance);
             }
 
-            _shares = _shares.add(_amount);
+            _shares = _amount;
         }
 
         if (_shares > 0) {
@@ -191,7 +214,6 @@ contract Vault is VaultToken, IVault {
     )
         external
         override
-        notHalted
         returns (uint256 _shares)
     {
         require(_tokens.length == _amounts.length, "!length");
@@ -233,7 +255,7 @@ contract Vault is VaultToken, IVault {
             uint256 _after = IERC20(_output).balanceOf(address(this));
             uint256 _diff = _after.sub(_balance);
             if (_diff < _toWithdraw) {
-                _amount = _balance.add(_diff);
+                _amount = _after;
             }
         }
 
@@ -360,22 +382,12 @@ contract Vault is VaultToken, IVault {
         return _amount;
     }
 
-    function _checkToken(
-        address _token
-    )
-        private
-        view
-        returns (bool)
-    {
-        return manager.allowedTokens(_token) && manager.vaults(_token) == address(this);
-    }
-
     /**
      * MODIFIERS
      */
 
     modifier checkToken(address _token) {
-        require(_checkToken(_token), "!_token");
+        require(manager.allowedTokens(_token) && manager.vaults(_token) == address(this), "!_token");
         _;
     }
 

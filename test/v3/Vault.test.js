@@ -35,11 +35,7 @@ describe('Vault', () => {
             deployer
         );
         converter = await deployments.get('StablesConverter');
-
-        const Vault = await deployments.deploy('Vault', {
-            from: deployer.address,
-            args: ['Vault: Stables', 'MV:S', manager.address]
-        });
+        const Vault = await deployments.get('VaultStables');
         vault = await ethers.getContractAt('Vault', Vault.address);
 
         await manager.setAllowedVault(vault.address, true);
@@ -404,6 +400,48 @@ describe('Vault', () => {
             await dai.connect(user).faucet(1000);
             await dai.connect(user).transfer(vault.address, 1000);
             expect(await vault.available(dai.address)).to.equal(1000 * 0.95);
+        });
+    });
+
+    describe('swap', () => {
+        beforeEach(async () => {
+            await manager.connect(treasury).setAllowedToken(dai.address, true);
+            await manager.connect(treasury).setAllowedToken(usdc.address, true);
+            await manager.connect(treasury).setAllowedVault(vault.address, true);
+            await manager.connect(treasury).setAllowedController(controller.address, true);
+            await manager.connect(treasury).setAllowedConverter(converter.address, true);
+            await controller.connect(deployer).setConverter(vault.address, converter.address);
+            await manager.connect(deployer).setController(vault.address, controller.address);
+            await expect(manager.connect(deployer).addToken(vault.address, dai.address))
+                .to.emit(manager, 'TokenAdded')
+                .withArgs(vault.address, dai.address);
+            await expect(manager.connect(deployer).addToken(vault.address, usdc.address))
+                .to.emit(manager, 'TokenAdded')
+                .withArgs(vault.address, usdc.address);
+            expect((await vault.getTokens()).length).to.equal(2);
+            await expect(vault.connect(user).deposit(dai.address, ether('1000')))
+                .to.emit(vault, 'Deposit')
+                .withArgs(user.address, ether('1000'));
+        });
+
+        it('should revert when called by an address other than strategist', async () => {
+            await expect(
+                vault.connect(user).swap(dai.address, usdc.address, 1)
+            ).to.be.revertedWith('!strategist');
+        });
+
+        it('should revert when halted', async () => {
+            await manager.setHalted();
+            await expect(
+                vault.connect(user).swap(dai.address, usdc.address, 1)
+            ).to.be.revertedWith('halted');
+        });
+
+        it('should swap tokens for the desired tokens', async () => {
+            expect(await dai.balanceOf(vault.address)).to.be.equal(ether('1000'));
+            await vault.connect(deployer).swap(dai.address, usdc.address, 1);
+            expect(await dai.balanceOf(vault.address)).to.be.equal(0);
+            expect(await usdc.balanceOf(vault.address)).to.be.above(999000000);
         });
     });
 });
