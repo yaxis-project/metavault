@@ -17,6 +17,11 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
         contract: 'MockERC20',
         args: ['Curve.fi DAI/USDC/USDT', '3CRV', 18]
     });
+    const MIM3CRV = await deployments.deploy('MIM3CRV', {
+        from: deployer,
+        contract: 'MockERC20',
+        args: ['Curve.fi Factory USD Metapool: Magic Internet Money 3Pool', 'MIM-3LP3CRV', 18]
+    });
     const DAI = await deployments.deploy('DAI', {
         from: deployer,
         contract: 'MockERC20',
@@ -31,6 +36,16 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
         from: deployer,
         contract: 'MockERC20NonStandard',
         args: ['Tether', 'USDT', 6]
+    });
+    const MIM = await deployments.deploy('MIM', {
+        from: deployer,
+        contract: 'MockERC20',
+        args: ['MIM Stablecoin', 'MIM', 18]
+    });
+    const MOCK3CRV = await deployments.deploy('MOCK3CRV', {
+        from: deployer,
+        contract: 'MockERC20',
+        args: ['Curve.fi DAI/USDC/USDT', 'MOCK3CRV', 18]
     });
     const CRV = await deployments.deploy('CRV', {
         contract: 'MockERC20',
@@ -53,11 +68,28 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
             5000000000
         ]
     });
+    const MIMStableSwap = await deployments.deploy('MockStableSwap2Pool', {
+        from: deployer,
+        args: [
+            deployer,
+            [MIM.address, MOCK3CRV.address],
+            MIM3CRV.address,
+            200,
+            4000000,
+            5000000000
+        ]
+    });
     await deployments.execute(
         'T3CRV',
         { from: deployer },
         'transferOwnership',
         StableSwap.address
+    );
+    await deployments.execute(
+        'MIM3CRV',
+        { from: deployer },
+        'transferOwnership',
+        MIMStableSwap.address
     );
     await deployments.execute(
         'DAI',
@@ -81,6 +113,20 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
         '10000000000000000000'
     );
     await deployments.execute(
+        'MIM',
+        { from: deployer },
+        'mint',
+        deployer,
+        ethers.utils.parseEther('10000000000000')
+    );
+    await deployments.execute(
+        'MOCK3CRV',
+        { from: deployer },
+        'mint',
+        deployer,
+        ethers.utils.parseEther('10000000000000')
+    );
+    await deployments.execute(
         'DAI',
         { from: deployer },
         'approve',
@@ -102,10 +148,31 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
         ethers.constants.MaxUint256
     );
     await deployments.execute(
+        'MIM',
+        { from: deployer },
+        'approve',
+        MIMStableSwap.address,
+        ethers.constants.MaxUint256
+    );
+    await deployments.execute(
+        'MOCK3CRV',
+        { from: deployer },
+        'approve',
+        MIMStableSwap.address,
+        ethers.constants.MaxUint256
+    );
+    await deployments.execute(
         'MockStableSwap3Pool',
         { from: deployer },
         'add_liquidity',
         [ethers.utils.parseEther('200000000'), '200000000000000', '200000000000000'],
+        0
+    );
+    await deployments.execute(
+        'MockStableSwap2Pool',
+        { from: deployer },
+        'add_liquidity',
+        [ethers.utils.parseEther('200000000'), ethers.utils.parseEther('200000000')],
         0
     );
     await deployments.deploy('StablesConverter', {
