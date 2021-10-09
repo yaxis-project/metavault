@@ -145,7 +145,7 @@ module.exports = {
             42: '0xE2C2a45850375c0A8B92b853fcd0a110463ed5Ab'
         },
         stableSwapMIMPool: {
-            1: '0x5a6A4D54456819380173272A5E8E9B9904BdF41B',
+            1: '0x5a6A4D54456819380173272A5E8E9B9904BdF41B'
         },
         stakingPool: {
             default: 2,
