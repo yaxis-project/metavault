@@ -137,7 +137,7 @@ contract StablesConverter is IConverter {
             IERC20 _token;
             for (uint8 i = 0; i < 3; i++) {
                 _token = tokens[i];
-                if (_output == address(_token) {
+                if (_output == address(_token)) {
                     uint256 _before = _token.balanceOf(address(this));
                     stableSwap3Pool.remove_liquidity_one_coin(
                         _inputAmount,

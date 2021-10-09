@@ -703,18 +703,6 @@ describe('Controller', () => {
                     controller.earn(strategyCrv.address, dai.address, 0)
                 ).to.be.revertedWith('halted');
             });
-
-            it('should earn with want token', async () => {
-                await expect(harvester.earn(strategyCrv.address, vault.address, t3crv.address))
-                    .to.emit(controller, 'Earn')
-                    .withArgs(t3crv.address, strategyCrv.address);
-            });
-
-            it('should earn with something other than want token', async () => {
-                await expect(harvester.earn(strategyCrv.address, vault.address, dai.address))
-                    .to.emit(controller, 'Earn')
-                    .withArgs(dai.address, strategyCrv.address);
-            });
         });
     });
 
