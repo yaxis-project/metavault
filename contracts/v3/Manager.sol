@@ -5,6 +5,7 @@
 pragma solidity 0.6.12;
 
 import "@openzeppelin/contracts/math/SafeMath.sol";
+import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 import "./interfaces/IController.sol";
@@ -22,11 +23,14 @@ import "./interfaces/IVault.sol";
  */
 contract Manager is IManager {
     using SafeMath for uint256;
+    using SafeERC20 for IERC20;
 
     uint256 public constant PENDING_STRATEGIST_TIMELOCK = 7 days;
     uint256 public constant MAX_TOKENS = 256;
 
     address public immutable override yaxis;
+
+    bool public override halted;
 
     address public override governance;
     address public override harvester;
@@ -44,7 +48,6 @@ contract Manager is IManager {
     uint256 public override treasuryFee;
     uint256 public override withdrawalProtectionFee;
 
-    bool public override halted;
 
     uint256 private setPendingStrategistTime;
 
@@ -427,6 +430,7 @@ contract Manager is IManager {
         require(allowedTokens[_token], "!allowedTokens");
         require(allowedVaults[_vault], "!allowedVaults");
         require(tokens[_vault].length < MAX_TOKENS, ">tokens");
+        require(vaults[_token] == address(0), "!_token");
         vaults[_token] = _vault;
         tokens[_vault].push(_token);
         emit TokenAdded(_vault, _token);
@@ -448,7 +452,7 @@ contract Manager is IManager {
         notHalted
         onlyStrategist
     {
-        _token.transfer(_to, _amount);
+        _token.safeTransfer(_to, _amount);
     }
 
     /**

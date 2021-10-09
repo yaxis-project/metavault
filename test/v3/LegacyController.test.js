@@ -21,7 +21,7 @@ describe('LegacyController', () => {
         strategy;
 
     beforeEach(async () => {
-        await deployments.fixture(['v3', 'NativeStrategyCurve3Crv']);
+        await deployments.fixture('test');
         [deployer, , , user] = await ethers.getSigners();
         const T3CRV = await deployments.get('T3CRV');
         t3crv = await ethers.getContractAt('MockERC20', T3CRV.address);
@@ -59,10 +59,12 @@ describe('LegacyController', () => {
         await manager.connect(deployer).setAllowedVault(vault.address, true);
         await manager.connect(deployer).setAllowedStrategy(Strategy.address, true);
         await manager.connect(deployer).setAllowedToken(dai.address, true);
+        await manager.addToken(vault.address, dai.address);
         await manager.connect(deployer).setAllowedConverter(converter.address, true);
         await manager.connect(deployer).setAllowedController(legacyController.address, true);
-        await manager.connect(deployer).addToken(vault.address, dai.address);
+        await manager.connect(deployer).setAllowedController(controller.address, true);
         await manager.connect(deployer).setHarvester(harvester.address);
+        await harvester.setHarvester(deployer.address, true);
         await manager.connect(deployer).setController(vault.address, controller.address);
         await controller.connect(deployer).setConverter(vault.address, converter.address);
         await controller.connect(deployer).addStrategy(vault.address, Strategy.address, 0, 0);
