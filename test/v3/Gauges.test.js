@@ -12,14 +12,14 @@ describe('Gauges', () => {
     const MAXTIME = 1 * 365 * 86400;
     let deployer, treasury, user;
     let controller,
-        dai,
+        t3crv,
         gaugeController,
         gaugeProxy,
         manager,
         minter,
         minterWrapper,
-        vaultStables,
-        vaultStablesGauge,
+        vault3Crv,
+        vault3CrvGauge,
         votingEscrow,
         yaxis;
 
@@ -32,8 +32,8 @@ describe('Gauges', () => {
         controller = await ethers.getContractAt('Controller', Controller.address);
         const YAXIS = await deployments.get('YaxisToken');
         yaxis = await ethers.getContractAt('YaxisToken', YAXIS.address);
-        const DAI = await deployments.get('DAI');
-        dai = await ethers.getContractAt('MockERC20', DAI.address);
+        const T3CRV = await deployments.get('T3CRV');
+        t3crv = await ethers.getContractAt('MockERC20', T3CRV.address);
         const GaugeController = await deployments.get('GaugeController');
         gaugeController = await ethers.getContractAt(
             'GaugeController',
@@ -48,12 +48,12 @@ describe('Gauges', () => {
         minterWrapper = await ethers.getContractAt('MinterWrapper', MinterWrapper.address);
         const Minter = await deployments.get('Minter');
         minter = await ethers.getContractAt('Minter', Minter.address);
-        const VaultStables = await deployments.get('VaultStables');
-        vaultStables = await ethers.getContractAt('Vault', VaultStables.address);
-        const VaultStablesGauge = await deployments.get('VaultStablesGauge');
-        vaultStablesGauge = await ethers.getContractAt(
+        const Vault3CRV = await deployments.get('Vault3CRV');
+        vault3Crv = await ethers.getContractAt('Vault', Vault3CRV.address);
+        const Vault3CRVGauge = await deployments.get('Vault3CRVGauge');
+        vault3CrvGauge = await ethers.getContractAt(
             'LiquidityGaugeV2',
-            VaultStablesGauge.address
+            Vault3CRVGauge.address
         );
     });
 
@@ -67,12 +67,12 @@ describe('Gauges', () => {
         expect(await minter.token()).to.be.equal(minterWrapper.address);
         expect(await minter.controller()).to.be.equal(gaugeController.address);
         expect(await minterWrapper.token()).to.be.equal(yaxis.address);
-        expect(await vaultStablesGauge.crv_token()).to.be.equal(minterWrapper.address);
-        expect(await vaultStablesGauge.lp_token()).to.be.equal(vaultStables.address);
-        expect(await vaultStablesGauge.controller()).to.be.equal(gaugeController.address);
-        expect(await vaultStablesGauge.admin()).to.be.equal(gaugeProxy.address);
-        expect(await vaultStablesGauge.minter()).to.be.equal(minter.address);
-        expect(await vaultStables.getPricePerFullShare()).to.equal(0);
+        expect(await vault3CrvGauge.crv_token()).to.be.equal(minterWrapper.address);
+        expect(await vault3CrvGauge.lp_token()).to.be.equal(vault3Crv.address);
+        expect(await vault3CrvGauge.controller()).to.be.equal(gaugeController.address);
+        expect(await vault3CrvGauge.admin()).to.be.equal(gaugeProxy.address);
+        expect(await vault3CrvGauge.minter()).to.be.equal(minter.address);
+        expect(await vault3Crv.getPricePerFullShare()).to.equal(0);
     });
 
     it('should fund the minterWrapper with YAXIS', async () => {
@@ -93,11 +93,11 @@ describe('Gauges', () => {
     });
 
     it('should allow users to vote for a gauge', async () => {
-        expect(await gaugeController.get_gauge_weight(vaultStablesGauge.address)).to.be.equal(
+        expect(await gaugeController.get_gauge_weight(vault3CrvGauge.address)).to.be.equal(
             ether('1')
         );
-        await gaugeController.vote_for_gauge_weights(vaultStablesGauge.address, 10000);
-        expect(await gaugeController.get_gauge_weight(vaultStablesGauge.address)).to.be.above(
+        await gaugeController.vote_for_gauge_weights(vault3CrvGauge.address, 10000);
+        expect(await gaugeController.get_gauge_weight(vault3CrvGauge.address)).to.be.above(
             ether('0.97')
         );
     });
@@ -105,22 +105,20 @@ describe('Gauges', () => {
     it('should allow users to stake vault tokens in a gauge', async () => {
         await increaseTime(86400 * 7);
         await manager.connect(deployer).setAllowedController(controller.address, true);
-        await manager.connect(deployer).setAllowedVault(vaultStables.address, true);
-        await manager.connect(deployer).setAllowedToken(dai.address, true);
-        await manager
-            .connect(deployer)
-            .setController(vaultStables.address, controller.address);
-        await dai.connect(user).faucet(ether('1000'));
-        await dai.connect(user).approve(vaultStables.address, ethers.constants.MaxUint256);
-        await vaultStables.connect(user).deposit(dai.address, ether('1000'));
-        expect(await vaultStables.balanceOf(user.address)).to.be.equal(ether('1000'));
-        await vaultStables
+        await manager.connect(deployer).setAllowedVault(vault3Crv.address, true);
+        await manager.connect(deployer).setAllowedToken(t3crv.address, true);
+        await manager.connect(deployer).setController(vault3Crv.address, controller.address);
+        await t3crv.connect(user).faucet(ether('1000'));
+        await t3crv.connect(user).approve(vault3Crv.address, ethers.constants.MaxUint256);
+        await vault3Crv.connect(user).deposit(ether('1000'));
+        expect(await vault3Crv.balanceOf(user.address)).to.be.equal(ether('1000'));
+        await vault3Crv
             .connect(user)
-            .approve(vaultStablesGauge.address, ethers.constants.MaxUint256);
-        expect(await vaultStablesGauge.balanceOf(user.address)).to.be.equal(0);
-        await vaultStablesGauge
+            .approve(vault3CrvGauge.address, ethers.constants.MaxUint256);
+        expect(await vault3CrvGauge.balanceOf(user.address)).to.be.equal(0);
+        await vault3CrvGauge
             .connect(user)
             ['deposit(uint256,address)'](ether('1000'), user.address);
-        expect(await vaultStablesGauge.balanceOf(user.address)).to.be.equal(ether('1000'));
+        expect(await vault3CrvGauge.balanceOf(user.address)).to.be.equal(ether('1000'));
     });
 });

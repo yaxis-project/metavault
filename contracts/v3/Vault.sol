@@ -109,29 +109,6 @@ contract Vault is VaultToken, IVault {
     }
 
     /**
-     * @notice Swaps tokens held within the vault
-     * @param _token0 The token address to swap out
-     * @param _token1 The token address to to
-     * @param _expectedAmount The expected amount of _token1 to receive
-     */
-    function swap(
-        address _token0,
-        address _token1,
-        uint256 _expectedAmount
-    )
-        external
-        override
-        notHalted
-        onlyStrategist
-        returns (uint256 _balance)
-    {
-        IConverter _converter = IConverter(IController(manager.controllers(address(this))).converter(address(this)));
-        _balance = IERC20(_token0).balanceOf(address(this));
-        IERC20(_token0).safeTransfer(address(_converter), _balance);
-        _balance = _converter.convert(_token0, _token1, _balance, _expectedAmount);
-    }
-
-    /**
      * HARVESTER-ONLY FUNCTIONS
      */
 
@@ -139,16 +116,15 @@ contract Vault is VaultToken, IVault {
      * @notice Sends accrued 3CRV tokens on the metavault to the controller to be deposited to strategies
      */
     function earn(
-        address _token,
         address _strategy
     )
         external
         override
-        checkToken(_token)
         notHalted
         onlyHarvester
     {
         require(manager.allowedStrategies(_strategy), "!_strategy");
+        address _token = getToken();
         IController _controller = IController(manager.controllers(address(this)));
         if (_controller.investEnabled()) {
             uint256 _balance = available(_token);
@@ -164,20 +140,18 @@ contract Vault is VaultToken, IVault {
 
     /**
      * @notice Deposits the given token into the vault
-     * @param _token The address of the token
      * @param _amount The amount of tokens to deposit
      */
      function deposit(
-        address _token,
         uint256 _amount
      )
         public
         override
-        checkToken(_token)
         notHalted
         returns (uint256 _shares)
     {
         require(_amount > 0, "!_amount");
+        address _token = getToken();
 
         uint256 _balance = balance();
 
@@ -203,39 +177,16 @@ contract Vault is VaultToken, IVault {
     }
 
     /**
-     * @notice Deposits multiple tokens simultaneously to the vault
-     * @dev Users must approve the vault to spend their stablecoin
-     * @param _tokens The addresses of each token being deposited
-     * @param _amounts The amounts of each token being deposited
-     */
-    function depositMultiple(
-        address[] calldata _tokens,
-        uint256[] calldata _amounts
-    )
-        external
-        override
-        returns (uint256 _shares)
-    {
-        require(_tokens.length == _amounts.length, "!length");
-
-        for (uint8 i; i < _amounts.length; i++) {
-            _shares = _shares.add(deposit(_tokens[i], _amounts[i]));
-        }
-    }
-
-    /**
      * @notice Withdraws an amount of shares to a given output token
      * @param _shares The amount of shares to withdraw
-     * @param _output The address of the token to receive
      */
     function withdraw(
-        uint256 _shares,
-        address _output
+        uint256 _shares
     )
         public
         override
-        checkToken(_output)
     {
+        address _output = getToken();
         uint256 _amount = (balance().mul(_shares)).div(totalSupply());
         _burn(msg.sender, _shares);
 
@@ -265,15 +216,12 @@ contract Vault is VaultToken, IVault {
 
     /**
      * @notice Withdraw the entire balance for an account
-     * @param _output The address of the desired token to receive
      */
-    function withdrawAll(
-        address _output
-    )
+    function withdrawAll()
         external
         override
     {
-        withdraw(balanceOf(msg.sender), _output);
+        withdraw(balanceOf(msg.sender));
     }
 
     /**
@@ -315,13 +263,10 @@ contract Vault is VaultToken, IVault {
     function balanceOfThis()
         public
         view
-        returns (uint256 _balance)
+        returns (uint256)
     {
-        address[] memory _tokens = manager.getTokens(address(this));
-        for (uint8 i; i < _tokens.length; i++) {
-            address _token = _tokens[i];
-            _balance = _balance.add(_normalizeDecimals(_token, IERC20(_token).balanceOf(address(this))));
-        }
+        address _token = getToken();
+        return _normalizeDecimals(_token, IERC20(_token).balanceOf(address(this)));
     }
 
     /**
@@ -343,13 +288,13 @@ contract Vault is VaultToken, IVault {
     /**
      * @notice Returns an array of the tokens for this vault
      */
-    function getTokens()
-        external
+    function getToken()
+        public
         view
         override
-        returns (address[] memory)
+        returns (address)
     {
-        return manager.getTokens(address(this));
+        return manager.getToken(address(this));
     }
 
     /**
@@ -385,11 +330,6 @@ contract Vault is VaultToken, IVault {
     /**
      * MODIFIERS
      */
-
-    modifier checkToken(address _token) {
-        require(manager.allowedTokens(_token) && manager.vaults(_token) == address(this), "!_token");
-        _;
-    }
 
     modifier notHalted() {
         require(!manager.halted(), "halted");

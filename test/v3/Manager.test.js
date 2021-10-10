@@ -743,31 +743,7 @@ describe('Manager', () => {
                 .withArgs(vault.address, dai.address);
             await expect(
                 manager.connect(deployer).addToken(vault.address, dai.address)
-            ).to.be.revertedWith('!_token');
-        });
-
-        it('should revert when it reaches the maximum number of tokens in vault', async () => {
-            const _numToAddress = (num) => `0x${(num + 1).toString().padStart(40, '0')}`;
-
-            // Fill manager with maximum number of tokens in a vault
-            const max = 256;
-            const addTokens = new Array(max)
-                .fill(0)
-                .map((_, i) =>
-                    manager.connect(treasury).setAllowedToken(_numToAddress(i), true)
-                );
-            await Promise.all(addTokens);
-            const addMax = new Array(max)
-                .fill(0)
-                .map((v, i) =>
-                    manager.connect(deployer).addToken(vault.address, _numToAddress(i))
-                );
-            await Promise.all(addMax);
-
-            // The next should fail
-            await expect(
-                manager.connect(deployer).addToken(vault.address, dai.address)
-            ).to.be.revertedWith('>tokens');
+            ).to.be.revertedWith('!_vault');
         });
     });
 
@@ -832,25 +808,12 @@ describe('Manager', () => {
             await expect(manager.connect(deployer).removeToken(vault.address, dai.address))
                 .to.emit(manager, 'TokenRemoved')
                 .withArgs(vault.address, dai.address);
-            expect((await manager.getTokens(vault.address)).length).to.equal(0);
         });
 
-        it('should do nothing if vault is not added', async () => {
+        it('should revert if the token is not added', async () => {
             await expect(
-                manager
-                    .connect(deployer)
-                    .removeToken(ethers.constants.AddressZero, dai.address)
-            ).to.not.emit(manager, 'TokenRemoved');
-            expect((await manager.getTokens(vault.address)).length).to.equal(1);
-        });
-
-        it('should do nothing if token is not added', async () => {
-            await expect(
-                manager
-                    .connect(deployer)
-                    .removeToken(vault.address, ethers.constants.AddressZero)
-            ).to.not.emit(manager, 'TokenRemoved');
-            expect((await manager.getTokens(vault.address)).length).to.equal(1);
+                manager.connect(deployer).removeToken(vault.address, usdc.address)
+            ).to.be.revertedWith('!_token');
         });
     });
 

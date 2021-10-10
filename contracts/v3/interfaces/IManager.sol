@@ -11,7 +11,7 @@ interface IManager {
     function allowedVaults(address) external view returns (bool);
     function controllers(address) external view returns (address);
     function getHarvestFeeInfo() external view returns (address, address, uint256);
-    function getTokens(address) external view returns (address[] memory);
+    function getToken(address) external view returns (address);
     function governance() external view returns (address);
     function halted() external view returns (bool);
     function harvester() external view returns (address);
@@ -23,7 +23,6 @@ interface IManager {
     function stakingPool() external view returns (address);
     function stakingPoolShareFee() external view returns (uint256);
     function strategist() external view returns (address);
-    function tokens(address, uint256) external view returns (address);
     function treasury() external view returns (address);
     function treasuryFee() external view returns (uint256);
     function vaults(address) external view returns (address);

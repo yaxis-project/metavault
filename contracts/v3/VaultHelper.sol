@@ -19,58 +19,23 @@ contract VaultHelper {
     using SafeERC20 for IERC20;
 
     /**
-     * @notice Deposits the given token into the specified vault
+     * @notice Deposits into the specified vault and stakes in the gauge
      * @dev Users must approve the vault helper to spend their token
      * @param _vault The address of the vault
-     * @param _token The address of the token
      * @param _amount The amount of tokens to deposit
      */
     function depositVault(
         address _vault,
-        address _token,
         uint256 _amount
     )
         external
     {
         require(_amount > 0, "!_amount");
+        address _token = IVault(_vault).getToken();
         IERC20(_token).safeTransferFrom(msg.sender, address(this), _amount);
         IERC20(_token).safeApprove(_vault, 0);
         IERC20(_token).safeApprove(_vault, _amount);
-        uint256 _shares = IVault(_vault).deposit(_token, _amount);
-        address _gauge = IVault(_vault).gauge();
-        if (_gauge != address(0)) {
-            IERC20(_vault).safeApprove(_gauge, 0);
-            IERC20(_vault).safeApprove(_gauge, _shares);
-            ILiquidityGaugeV2(_gauge).deposit(_shares);
-            IERC20(_gauge).safeTransfer(msg.sender, _shares);
-        } else {
-            IERC20(_vault).safeTransfer(msg.sender, _shares);
-        }
-    }
-
-    /**
-     * @notice Deposits multiple tokens simultaneously to the specified vault
-     * @dev Users must approve the vault helper to spend their tokens
-     * @param _vault The address of the vault
-     * @param _tokens The addresses of each token being deposited
-     * @param _amounts The amounts of each token being deposited
-     */
-    function depositMultipleVault(
-        address _vault,
-        address[] calldata _tokens,
-        uint256[] calldata _amounts
-    )
-        external
-    {
-        require(_tokens.length == _amounts.length, "!length");
-
-        for (uint8 i = 0; i < _amounts.length; i++) {
-            require(_amounts[i] > 0, "!_amounts");
-            IERC20(_tokens[i]).safeTransferFrom(msg.sender, address(this), _amounts[i]);
-            IERC20(_tokens[i]).safeApprove(_vault, 0);
-            IERC20(_tokens[i]).safeApprove(_vault, _amounts[i]);
-        }
-        uint256 _shares = IVault(_vault).depositMultiple(_tokens, _amounts);
+        uint256 _shares = IVault(_vault).deposit(_amount);
         address _gauge = IVault(_vault).gauge();
         if (_gauge != address(0)) {
             IERC20(_vault).safeApprove(_gauge, 0);
@@ -84,21 +49,21 @@ contract VaultHelper {
 
     function withdrawVault(
         address _vault,
-        address _toToken,
         uint256 _amount
     )
         external
     {
         address _gauge = IVault(_vault).gauge();
+        address _token = IVault(_vault).getToken();
         if (_gauge != address(0)) {
             IERC20(_gauge).safeTransferFrom(msg.sender, address(this), _amount);
             ILiquidityGaugeV2(_gauge).withdraw(_amount);
-            IVault(_vault).withdraw(IERC20(_vault).balanceOf(address(this)), _toToken);
-            IERC20(_toToken).safeTransfer(msg.sender, IERC20(_toToken).balanceOf(address(this)));
+            IVault(_vault).withdraw(IERC20(_vault).balanceOf(address(this)));
+            IERC20(_token).safeTransfer(msg.sender, IERC20(_token).balanceOf(address(this)));
         } else {
             IERC20(_vault).safeTransferFrom(msg.sender, address(this), _amount);
-            IVault(_vault).withdraw(_amount, _toToken);
-            IERC20(_toToken).safeTransfer(msg.sender, IERC20(_toToken).balanceOf(address(this)));
+            IVault(_vault).withdraw(_amount);
+            IERC20(_token).safeTransfer(msg.sender, IERC20(_token).balanceOf(address(this)));
         }
     }
 }

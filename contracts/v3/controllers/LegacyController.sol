@@ -58,7 +58,7 @@ contract LegacyController is ILegacyController {
     {
         IVault cachedVault = vault;
         if (address(cachedVault) != address(0)) {
-            cachedVault.withdrawAll(address(token));
+            cachedVault.withdrawAll();
             token.safeTransfer(metavault, token.balanceOf(address(this)));
         }
         vault = IVault(_vault);
@@ -109,14 +109,12 @@ contract LegacyController is ILegacyController {
 
     /**
      * @notice Returns the balance of the given token on the vault
-     * @param _token The address of the token
      */
     function balanceOf(
-        address _token
+        address
     )
         external
         view
-        onlyToken(_token)
         returns (uint256)
     {
         return token.balanceOf(address(this))
@@ -125,16 +123,14 @@ contract LegacyController is ILegacyController {
 
     /**
      * @notice Returns the withdraw fee for withdrawing the given token and amount
-     * @param _token The address of the token
      * @param _amount The amount to withdraw
      */
     function withdrawFee(
-        address _token,
+        address ,
         uint256 _amount
     )
         external
         view
-        onlyToken(_token)
         returns (uint256)
     {
         return manager.withdrawalProtectionFee().mul(_amount).div(MAX);
@@ -161,16 +157,15 @@ contract LegacyController is ILegacyController {
             uint256 _toWithdraw = _amount.sub(_balance);
             IVault cachedVault = vault;
             // convert to vault shares
-            address[] memory _tokens = cachedVault.getTokens();
-            require(_tokens.length > 0, "!_tokens");
+            address _token = cachedVault.getToken();
             // get the amount of the token that we would be withdrawing
-            uint256 _expected = converter.expected(address(token), _tokens[0], _toWithdraw);
+            uint256 _expected = converter.expected(address(token), _token, _toWithdraw);
             uint256 _shares = _expected.mul(1e18).div(cachedVault.getPricePerFullShare());
-            cachedVault.withdraw(_shares, _tokens[0]);
-            _balance = IERC20(_tokens[0]).balanceOf(address(this));
-            IERC20(_tokens[0]).safeTransfer(address(converter), _balance);
+            cachedVault.withdraw(_shares);
+            _balance = IERC20(_token).balanceOf(address(this));
+            IERC20(_token).safeTransfer(address(converter), _balance);
             // TODO: calculate expected
-            converter.convert(_tokens[0], address(token), _balance, 1);
+            converter.convert(_token, address(token), _balance, 1);
             emit Withdraw(token.balanceOf(address(this)));
             token.safeTransfer(metavault, token.balanceOf(address(this)));
         }
@@ -193,11 +188,9 @@ contract LegacyController is ILegacyController {
 
     /**
      * @notice Deposits the given token to the v3 vault
-     * @param _toToken The address to convert to
      * @param _expected The expected amount to deposit after conversion
      */
     function legacyDeposit(
-        address _toToken,
         uint256 _expected
     )
         external
@@ -205,14 +198,13 @@ contract LegacyController is ILegacyController {
         onlyEnabledConverter
         onlyHarvester
     {
-        if (_toToken != address(token)) {
-            uint256 _amount = token.balanceOf(address(this));
-            token.safeTransfer(address(converter), _amount);
-            converter.convert(address(token), _toToken, _amount, _expected);
-        }
-        IERC20(_toToken).safeApprove(address(vault), 0);
-        IERC20(_toToken).safeApprove(address(vault), type(uint256).max);
-        vault.deposit(_toToken, IERC20(_toToken).balanceOf(address(this)));
+        address _token = vault.getToken();
+        uint256 _amount = token.balanceOf(address(this));
+        token.safeTransfer(address(converter), _amount);
+        converter.convert(address(token), _token, _amount, _expected);
+        IERC20(_token).safeApprove(address(vault), 0);
+        IERC20(_token).safeApprove(address(vault), type(uint256).max);
+        vault.deposit(IERC20(_token).balanceOf(address(this)));
     }
 
     /**
@@ -252,14 +244,6 @@ contract LegacyController is ILegacyController {
      */
     modifier onlyStrategist() {
         require(msg.sender == manager.strategist(), "!strategist");
-        _;
-    }
-
-    /**
-     * @notice Reverts if the given token is not the stored token
-     */
-    modifier onlyToken(address _token) {
-        require(_token == address(token), "!_token");
         _;
     }
 }

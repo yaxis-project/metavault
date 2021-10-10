@@ -12,7 +12,7 @@ describe('StablesConverter', () => {
     let converter, dai, t3crv, usdc, usdt, stableSwap3Pool, manager;
 
     beforeEach(async () => {
-        await deployments.fixture(['v3', 'NativeStrategyCurve3Crv']);
+        await deployments.fixture('test');
         [deployer, , , user] = await ethers.getSigners();
         const Manager = await deployments.get('Manager');
         manager = await ethers.getContractAt('Manager', Manager.address);

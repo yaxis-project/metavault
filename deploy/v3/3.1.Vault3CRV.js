@@ -1,29 +1,25 @@
 module.exports = async ({ getChainId, getNamedAccounts, deployments }) => {
     const { deploy, execute } = deployments;
     const chainId = await getChainId();
-    let { DAI, deployer, USDC, USDT } = await getNamedAccounts();
+    let { deployer, T3CRV } = await getNamedAccounts();
     const Controller = await deployments.get('Controller');
     const Manager = await deployments.get('Manager');
     const Minter = await deployments.get('Minter');
     const GaugeProxy = await deployments.get('GaugeProxy');
 
     if (chainId != '1') {
-        const dai = await deployments.get('DAI');
-        const usdc = await deployments.get('USDC');
-        const usdt = await deployments.get('USDT');
-        DAI = dai.address;
-        USDC = usdc.address;
-        USDT = usdt.address;
+        const t3crv = await deployments.get('T3CRV');
+        T3CRV = t3crv.address;
     }
 
-    const Vault = await deploy('VaultStables', {
+    const Vault = await deploy('Vault3CRV', {
         contract: 'Vault',
         from: deployer,
         log: true,
-        args: ['yAxis Stablecoin Canonical Vault', 'CV:S', Manager.address]
+        args: ['yAxis 3CRV Canonical Vault', 'CV:3CRV', Manager.address]
     });
 
-    const Gauge = await deploy('VaultStablesGauge', {
+    const Gauge = await deploy('Vault3CRVGauge', {
         contract: 'LiquidityGaugeV2',
         from: deployer,
         log: true,
@@ -46,29 +42,19 @@ module.exports = async ({ getChainId, getNamedAccounts, deployments }) => {
             Vault.address,
             true
         );
-        await execute('Manager', { from: deployer, log: true }, 'setAllowedToken', DAI, true);
-        await execute('Manager', { from: deployer, log: true }, 'setAllowedToken', USDC, true);
-        await execute('Manager', { from: deployer, log: true }, 'setAllowedToken', USDT, true);
         await execute(
             'Manager',
             { from: deployer, log: true },
-            'addToken',
-            Vault.address,
-            DAI
+            'setAllowedToken',
+            T3CRV,
+            true
         );
         await execute(
             'Manager',
             { from: deployer, log: true },
             'addToken',
             Vault.address,
-            USDC
-        );
-        await execute(
-            'Manager',
-            { from: deployer, log: true },
-            'addToken',
-            Vault.address,
-            USDT
+            T3CRV
         );
         await execute(
             'Manager',
@@ -77,12 +63,7 @@ module.exports = async ({ getChainId, getNamedAccounts, deployments }) => {
             Vault.address,
             Controller.address
         );
-        await execute(
-            'VaultStables',
-            { from: deployer, log: true },
-            'setGauge',
-            Gauge.address
-        );
+        await execute('Vault3CRV', { from: deployer, log: true }, 'setGauge', Gauge.address);
     }
 };
 

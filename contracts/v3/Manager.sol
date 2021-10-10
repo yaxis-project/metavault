@@ -61,8 +61,8 @@ contract Manager is IManager {
 
     // vault => controller
     mapping(address => address) public override controllers;
-    // vault => tokens[]
-    mapping(address => address[]) public override tokens;
+    // vault => token
+    mapping(address => address) internal tokens;
     // token => vault
     mapping(address => address) public override vaults;
 
@@ -429,10 +429,10 @@ contract Manager is IManager {
     {
         require(allowedTokens[_token], "!allowedTokens");
         require(allowedVaults[_vault], "!allowedVaults");
-        require(tokens[_vault].length < MAX_TOKENS, ">tokens");
+        require(tokens[_vault] == address(0), "!_vault");
         require(vaults[_token] == address(0), "!_token");
         vaults[_token] = _vault;
-        tokens[_vault].push(_token);
+        tokens[_vault] = _token;
         emit TokenAdded(_vault, _token);
     }
 
@@ -469,25 +469,11 @@ contract Manager is IManager {
         notHalted
         onlyStrategist
     {
-        uint256 k = tokens[_vault].length;
-        uint256 index;
-        bool found;
-
-        for (uint i = 0; i < k; i++) {
-            if (tokens[_vault][i] == _token) {
-                index = i;
-                found = true;
-                break;
-            }
-        }
-
-        // TODO: Verify added check
-        if (found) {
-            tokens[_vault][index] = tokens[_vault][k-1];
-            tokens[_vault].pop();
-            delete vaults[_token];
-            emit TokenRemoved(_vault, _token);
-        }
+        require(tokens[_vault] == _token, "!_token");
+        require(vaults[_token] == _vault, "!_vault");
+        delete tokens[_vault];
+        delete vaults[_token];
+        emit TokenRemoved(_vault, _token);
     }
 
     /**
@@ -530,13 +516,13 @@ contract Manager is IManager {
      * @notice Returns an array of token addresses for a given vault
      * @param _vault The address of the vault
      */
-    function getTokens(
+    function getToken(
         address _vault
     )
         external
         view
         override
-        returns (address[] memory)
+        returns (address)
     {
         return tokens[_vault];
     }

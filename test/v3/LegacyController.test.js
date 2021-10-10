@@ -123,12 +123,6 @@ describe('LegacyController', () => {
                 await legacyController.withdrawFee(t3crv.address, ether('1000'))
             ).to.be.equal(ether('1'));
         });
-
-        it('should revert if given token is not 3CRV', async () => {
-            await expect(
-                legacyController.withdrawFee(ethers.constants.AddressZero, 1)
-            ).to.be.revertedWith('!_token');
-        });
     });
 
     describe('earn', () => {
@@ -171,11 +165,9 @@ describe('LegacyController', () => {
         describe('when withdrawing from a strategy', () => {
             beforeEach(async () => {
                 expect(await strategy.balanceOf()).to.be.equal(0);
-                await harvester.connect(deployer).legacyEarn(dai.address, 1);
+                await harvester.connect(deployer).legacyEarn(1);
                 await expect(
-                    harvester
-                        .connect(deployer)
-                        .earn(strategy.address, vault.address, dai.address)
+                    harvester.connect(deployer).earn(strategy.address, vault.address)
                 ).to.emit(vault, 'Earn');
                 expect(await strategy.balanceOf()).to.be.above(ether('900'));
             });
