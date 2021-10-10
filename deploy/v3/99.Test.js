@@ -186,6 +186,11 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
             Manager.address
         ]
     });
+    await deployments.deploy('GeneralConverter', {
+        from: deployer,
+        args: [3, T3CRV.address, StableSwap.address, Manager.address]
+    });
+
     const MetaVault = await deployments.deploy('MetaVault', {
         from: deployer,
         args: [
@@ -210,7 +215,7 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
         from: deployer,
         args: [T3CRV.address]
     });
-    const Minter = await deployments.deploy('MockCurveMinter', {
+    const CRVMinter = await deployments.deploy('MockCurveMinter', {
         from: deployer,
         args: [CRV.address]
     });
@@ -218,10 +223,49 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
         from: deployer,
         args: ['0x0000000000000000000000000000000000000000']
     });
+    const VaultToken = await deployments.deploy('VaultToken', {
+        from: deployer,
+        args: ['VaultStables', 'CV:S', Manager.address]
+    });
     await deployments.deploy('VaultStables', {
         contract: 'Vault',
         from: deployer,
-        args: ['Vault: Stables', 'MV:S', Manager.address]
+        args: [DAI.address, VaultToken.address, Manager.address]
+    });
+    const MinterWrapper = await deployments.deploy('MinterWrapper', {
+        from: deployer,
+        log: true,
+        args: [YAXIS.address]
+    });
+    const VotingEscrow = await deployments.deploy('VotingEscrow', {
+        from: deployer,
+        log: true,
+        args: [YAXIS.address, 'Vote-escrowed YAXIS', 'veYAXIS', 'veYAXIS_1.0.0']
+    });
+    const GaugeController = await deployments.deploy('GaugeController', {
+        from: deployer,
+        log: true,
+        args: [YAXIS.address, VotingEscrow.address]
+    });
+    const Minter = await deployments.deploy('Minter', {
+        from: deployer,
+        log: true,
+        args: [MinterWrapper.address, GaugeController.address]
+    });
+    const GaugeProxy = await deployments.deploy('GaugeProxy', {
+        from: deployer,
+        log: true,
+        args: [deployer, deployer]
+    });
+    await deployments.deploy('VaultStablesGauge', {
+        contract: 'LiquidityGaugeV2',
+        from: deployer,
+        log: true,
+        args: [VaultToken.address, Minter.address, GaugeProxy.address]
+    });
+    await deployments.deploy('VaultHelper', {
+        from: deployer,
+        log: true
     });
     await deployments.deploy('NativeStrategyCurve3Crv', {
         from: deployer,
@@ -234,7 +278,7 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
             USDC.address,
             USDT.address,
             Gauge.address,
-            Minter.address,
+            CRVMinter.address,
             StableSwap.address,
             Controller.address,
             Manager.address,

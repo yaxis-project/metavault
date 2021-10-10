@@ -4,22 +4,52 @@ pragma solidity 0.6.12;
 import "../vendor/LinkToken/token/LinkERC20.sol";
 import "../vendor/LinkToken/ERC677Token.sol";
 
+import "./interfaces/IManager.sol";
+import "./interfaces/IVaultToken.sol";
+
 /**
  * @notice Vault Token
  * @dev Contract has been copied from:
  * https://github.com/smartcontractkit/LinkToken/blob/master/contracts/v0.6/LinkToken.sol
  * with modification made to specify name and symbol, deploys with 0 total supply
  */
-contract VaultToken is LinkERC20, ERC677Token {
+contract VaultToken is IVaultToken, LinkERC20, ERC677Token {
+
+    IManager public immutable manager;
 
     constructor(
         string memory _name,
-        string memory _symbol
+        string memory _symbol,
+        address _manager
     )
         public
         ERC20(_name, _symbol)
     // solhint-disable-next-line no-empty-blocks
-    {}
+    {
+        manager = IManager(_manager);
+    }
+
+    function mint(
+        address _account,
+        uint256 _amount
+    )
+        external
+        override
+        onlyVault
+    {
+        _mint(_account, _amount);
+    }
+
+    function burn(
+        address _account,
+        uint256 _amount
+    )
+        external
+        override
+        onlyVault
+    {
+        _burn(_account, _amount);
+    }
 
     /**
      * @dev Moves tokens `amount` from `sender` to `recipient`.
@@ -71,6 +101,11 @@ contract VaultToken is LinkERC20, ERC677Token {
 
     modifier validAddress(address _recipient) {
         require(_recipient != address(this), "!validAddress");
+        _;
+    }
+
+    modifier onlyVault() {
+        require(manager.allowedVaults(msg.sender), "!vault");
         _;
     }
 }

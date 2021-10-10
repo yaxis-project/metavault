@@ -7,12 +7,12 @@ const { deployments, ethers } = hardhat;
 const { parseEther } = ethers.utils;
 const ether = parseEther;
 
-describe('StablesConverter', () => {
+describe('GeneralConverter', () => {
     let deployer, user;
-    let converter, dai, t3crv, usdc, usdt, stableSwap3Pool, manager;
+    let converter, dai, t3crv, usdc, usdt, swapPool, manager;
 
     beforeEach(async () => {
-        await deployments.fixture('test');
+        await deployments.fixture(['v3', 'NativeStrategyCurve3Crv']);
         [deployer, , , user] = await ethers.getSigners();
         const Manager = await deployments.get('Manager');
         manager = await ethers.getContractAt('Manager', Manager.address);
@@ -25,29 +25,22 @@ describe('StablesConverter', () => {
         const USDT = await deployments.get('USDT');
         usdt = await ethers.getContractAt('MockERC20', USDT.address);
         const MockStableSwap3Pool = await deployments.get('MockStableSwap3Pool');
-        stableSwap3Pool = await ethers.getContractAt(
+        swapPool = await ethers.getContractAt(
             'MockStableSwap3Pool',
             MockStableSwap3Pool.address
         );
 
-        const Converter = await deployments.deploy('StablesConverter', {
+        const Converter = await deployments.deploy('GeneralConverter', {
             from: deployer.address,
-            args: [
-                dai.address,
-                usdc.address,
-                usdt.address,
-                t3crv.address,
-                stableSwap3Pool.address,
-                manager.address
-            ]
+            args: [3, t3crv.address, swapPool.address, manager.address]
         });
-        converter = await ethers.getContractAt('StablesConverter', Converter.address);
+        converter = await ethers.getContractAt('GeneralConverter', Converter.address);
     });
 
     it('should deploy with expected state', async () => {
         expect(await converter.manager()).to.equal(manager.address);
-        expect(await converter.stableSwap3Pool()).to.equal(stableSwap3Pool.address);
-        expect(await converter.token3CRV()).to.equal(t3crv.address);
+        expect(await converter.swapPool()).to.equal(swapPool.address);
+        expect(await converter.tokenCRV()).to.equal(t3crv.address);
         expect(await converter.tokens(0)).to.equal(dai.address);
         expect(await converter.tokens(1)).to.equal(usdc.address);
         expect(await converter.tokens(2)).to.equal(usdt.address);
@@ -100,18 +93,11 @@ describe('StablesConverter', () => {
         beforeEach(async () => {
             const AlwaysAccess = await ethers.getContractFactory('AlwaysAccess');
             alwaysAccess = await AlwaysAccess.deploy(true);
-            const Converter = await deployments.deploy('StablesConverter', {
+            const Converter = await deployments.deploy('GeneralConverter', {
                 from: deployer.address,
-                args: [
-                    dai.address,
-                    usdc.address,
-                    usdt.address,
-                    t3crv.address,
-                    stableSwap3Pool.address,
-                    alwaysAccess.address
-                ]
+                args: [3, t3crv.address, swapPool.address, alwaysAccess.address]
             });
-            newConverter = await ethers.getContractAt('StablesConverter', Converter.address);
+            newConverter = await ethers.getContractAt('GeneralConverter', Converter.address);
 
             await dai.faucet(ether('1000'));
             await usdc.faucet(ether('1000'));
