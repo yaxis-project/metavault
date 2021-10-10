@@ -1,5 +1,4 @@
-module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
-    const { ethers } = require('hardhat');
+module.exports = async ({ getNamedAccounts, deployments }) => {
     const { deploy, execute } = deployments;
     let {
         CRV,
