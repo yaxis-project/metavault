@@ -55,8 +55,8 @@ module.exports = {
         convex3poolVault: {
             1: '0xF403C135812408BFbE8713b5A23a04b3D48AAE31'
         },
-        convexMIMpoolVault: {
-            1: '0x2DfB14E32e2F8156ec15a2c21c3A6c053af52Be8'
+        convexBoost: {
+            1: '0xF403C135812408BFbE8713b5A23a04b3D48AAE31'
         },
         DAI: {
             1: '0x6B175474E89094C44Da98b954EedeAC495271d0F'
@@ -115,6 +115,15 @@ module.exports = {
         MIMCRV: {
             1: '0x5a6A4D54456819380173272A5E8E9B9904BdF41B'
         },
+        LINKCRV: {
+            1: '0xcee60cFa923170e4f8204AE08B4fA6A3F5656F3a'
+        },
+        ALETHCRV: {
+            1: '0xC4C319E2D4d66CcA4464C0c2B32c9Bd23ebe784e'
+        },
+        PBTCCRV: {
+            1: '0xDE5331AC4B3630f94853Ff322B66407e0D6331E8'
+        },
         minter: {
             1: '0xd061D61a4d941c39E5453435B6345Dc261C2fcE0'
         },
@@ -146,6 +155,15 @@ module.exports = {
         },
         stableSwapMIMPool: {
             1: '0x5a6A4D54456819380173272A5E8E9B9904BdF41B'
+        },
+        stableSwapLINKPool: {
+            1: '0xF178C0b5Bb7e7aBF4e12A4838C7b7c5bA2C623c0'
+        },
+        stableSwapALETHPool: {
+            1: '0xC4C319E2D4d66CcA4464C0c2B32c9Bd23ebe784e'
+        },
+        stableSwapPBTCPool: {
+            1: '0x7F55DDe206dbAD629C080068923b36fe9D6bDBeF'
         },
         stakingPool: {
             default: 2,

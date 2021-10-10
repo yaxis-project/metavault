@@ -9,7 +9,7 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
         MIMCRV,
         WETH,
         deployer,
-        convexMIMpoolVault,
+        convexBoost,
         stableSwapMIMPool,
         unirouter
     } = await getNamedAccounts();
@@ -18,7 +18,7 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
     const Manager = await deployments.get('Manager');
     const Vault = await deployments.get('Vault3CRV');
     const name = 'Convex: MIMCRV';
-    let pid = 9;
+    let pid = 40;
 
     if (chainId != '1') {
         const mim = await deployments.get('MIM');
@@ -55,15 +55,9 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
         });
 
         const mockConvexVault = await deployments.get('MockConvexVault');
-        convexMIMpoolVault = mockConvexVault.address;
+        convexBoost = mockConvexVault.address;
 
-        await execute(
-            'CVX',
-            { from: deployer },
-            'mint',
-            convexMIMpoolVault,
-            '10000000000000000000'
-        );
+        await execute('CVX', { from: deployer }, 'mint', convexBoost, '10000000000000000000');
 
         await execute(
             'MockConvexVault',
@@ -94,7 +88,7 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
             MIM,
             T3CRV,
             pid,
-            convexMIMpoolVault,
+            convexBoost,
             stableSwapMIMPool,
             Controller.address,
             Manager.address,
