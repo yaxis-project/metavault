@@ -167,13 +167,12 @@ contract Harvester is IHarvester {
 
     function earn(
         address _strategy,
-        IVault _vault,
-        address _token
+        address _vault
     )
         external
         onlyHarvester
     {
-        _vault.earn(_token, _strategy);
+        IVault(_vault).earn(_strategy);
     }
 
     /**
@@ -225,17 +224,15 @@ contract Harvester is IHarvester {
 
     /**
      * @notice Earns tokens in the LegacyController to the v3 vault
-     * @param _token The address of the token
      * @param _expected The expected amount to deposit after conversion
      */
     function legacyEarn(
-        address _token,
         uint256 _expected
     )
         external
         onlyHarvester
     {
-        legacyController.legacyDeposit(_token, _expected);
+        legacyController.legacyDeposit(_expected);
     }
 
     /**

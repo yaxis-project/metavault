@@ -4,7 +4,7 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
     let { DAI, USDC, USDT, T3CRV, deployer, stableSwap3Pool } = await getNamedAccounts();
     const chainId = await getChainId();
     const Manager = await deployments.get('Manager');
-    const Vault = await deployments.get('VaultStables');
+    const Vault = await deployments.get('Vault3CRV');
 
     if (chainId != '1') {
         const dai = await deployments.get('DAI');

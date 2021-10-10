@@ -79,8 +79,7 @@ describe('Controller', () => {
         context('when the strategy is allowed', () => {
             beforeEach(async () => {
                 await manager.connect(deployer).setAllowedStrategy(strategyCrv.address, true);
-                await manager.connect(deployer).setAllowedToken(dai.address, true);
-                await manager.addToken(vault.address, dai.address);
+                await manager.addVault(vault.address);
             });
 
             it('should revert if called by an address other than the strategist', async () => {
@@ -189,8 +188,7 @@ describe('Controller', () => {
             await controller.connect(deployer).setConverter(vault.address, converter.address);
             await manager.connect(deployer).setHarvester(harvester.address);
             await manager.connect(deployer).setAllowedStrategy(strategyCrv.address, true);
-            await manager.connect(deployer).setAllowedToken(dai.address, true);
-            await manager.addToken(vault.address, dai.address);
+            await manager.addVault(vault.address);
         });
 
         it('should revert if called by an address other than the strategist', async () => {
@@ -298,8 +296,7 @@ describe('Controller', () => {
         context('when the strategy is allowed', () => {
             beforeEach(async () => {
                 await manager.connect(deployer).setAllowedStrategy(strategyCrv.address, true);
-                await manager.connect(deployer).setAllowedToken(dai.address, true);
-                await manager.addToken(vault.address, dai.address);
+                await manager.addVault(vault.address);
                 await controller.addStrategy(vault.address, strategyCrv.address, 0, 86400);
             });
 
@@ -337,8 +334,7 @@ describe('Controller', () => {
             await manager.connect(deployer).setAllowedController(controller.address, true);
             await manager.connect(deployer).setController(vault.address, controller.address);
             await manager.connect(deployer).setAllowedStrategy(strategyCrv.address, true);
-            await manager.connect(deployer).setAllowedToken(dai.address, true);
-            await manager.addToken(vault.address, dai.address);
+            await manager.addVault(vault.address);
         });
 
         it('should revert if called by an address other than the strategist', async () => {
@@ -376,10 +372,8 @@ describe('Controller', () => {
                 await controller.addStrategy(vault.address, strategyCrv.address, 0, 86400);
                 await dai.connect(user).faucet(1000);
                 await dai.connect(user).approve(vault.address, ethers.constants.MaxUint256);
-                await vault.connect(user).deposit(dai.address, 1000);
-                await harvester
-                    .connect(deployer)
-                    .earn(strategyCrv.address, vault.address, dai.address);
+                await vault.connect(user).deposit(1000);
+                await harvester.connect(deployer).earn(strategyCrv.address, vault.address);
             });
 
             it('should set the cap and withdraw excess tokens', async () => {
@@ -523,8 +517,7 @@ describe('Controller', () => {
                     .setConverter(vault.address, converter.address);
                 await manager.connect(deployer).setHarvester(harvester.address);
                 await manager.connect(deployer).setAllowedStrategy(strategyCrv.address, true);
-                await manager.connect(deployer).setAllowedToken(dai.address, true);
-                await manager.addToken(vault.address, dai.address);
+                await manager.addVault(vault.address);
                 await controller.addStrategy(vault.address, strategyCrv.address, 0, 86400);
                 await t3crv.connect(user).faucet(1000);
                 await t3crv.connect(user).transfer(strategyCrv.address, 1000);
@@ -573,14 +566,13 @@ describe('Controller', () => {
                 await manager.connect(deployer).setHarvester(harvester.address);
                 await harvester.connect(deployer).setHarvester(deployer.address, true);
                 await manager.connect(deployer).setAllowedStrategy(strategyCrv.address, true);
-                await manager.connect(deployer).setAllowedToken(dai.address, true);
-                await manager.addToken(vault.address, dai.address);
+                await manager.addVault(vault.address);
                 await manager.setController(vault.address, controller.address);
                 await controller.addStrategy(vault.address, strategyCrv.address, 0, 86400);
                 await dai.connect(user).faucet(1000);
                 await dai.connect(user).approve(vault.address, ethers.constants.MaxUint256);
-                await vault.connect(user).deposit(dai.address, 1000);
-                await harvester.earn(strategyCrv.address, vault.address, dai.address);
+                await vault.connect(user).deposit(1000);
+                await harvester.earn(strategyCrv.address, vault.address);
             });
 
             it('should withdraw tokens sent directly', async () => {
@@ -625,14 +617,13 @@ describe('Controller', () => {
                     .connect(deployer)
                     .setConverter(vault.address, converter.address);
                 await manager.connect(deployer).setAllowedStrategy(strategyCrv.address, true);
-                await manager.connect(deployer).setAllowedToken(dai.address, true);
-                await manager.addToken(vault.address, dai.address);
+                await manager.addVault(vault.address);
                 await manager.setController(vault.address, controller.address);
                 await controller.addStrategy(vault.address, strategyCrv.address, 0, 86400);
                 await dai.connect(user).faucet(1000000);
                 await dai.connect(user).approve(vault.address, ethers.constants.MaxUint256);
-                await vault.connect(user).deposit(dai.address, 1000000);
-                await harvester.earn(strategyCrv.address, vault.address, dai.address);
+                await vault.connect(user).deposit(1000000);
+                await harvester.earn(strategyCrv.address, vault.address);
 
                 await crv.faucet(ether('1000'));
                 await weth.faucet(ether('2000'));
@@ -676,19 +667,12 @@ describe('Controller', () => {
                 await manager.connect(deployer).setHarvester(harvester.address);
                 await harvester.connect(deployer).setHarvester(deployer.address, true);
                 await manager.connect(deployer).setAllowedStrategy(strategyCrv.address, true);
-                await manager.connect(deployer).setAllowedToken(dai.address, true);
-                await manager.connect(deployer).setAllowedToken(t3crv.address, true);
-                await manager.addToken(vault.address, dai.address);
-                await manager.addToken(vault.address, t3crv.address);
+                await manager.addVault(vault.address);
                 await manager.setController(vault.address, controller.address);
                 await controller.addStrategy(vault.address, strategyCrv.address, 0, 86400);
                 await dai.connect(user).faucet(1000);
                 await dai.connect(user).approve(vault.address, ethers.constants.MaxUint256);
-                await vault.connect(user).deposit(dai.address, 1000);
-
-                await t3crv.connect(user).faucet(1000);
-                await t3crv.connect(user).approve(vault.address, ethers.constants.MaxUint256);
-                await vault.connect(user).deposit(t3crv.address, 1000);
+                await vault.connect(user).deposit(1000);
             });
 
             it('should revert if called by an address other than the vault', async () => {
@@ -723,27 +707,24 @@ describe('Controller', () => {
                 await manager.connect(deployer).setHarvester(harvester.address);
                 await harvester.connect(deployer).setHarvester(deployer.address, true);
                 await manager.connect(deployer).setAllowedStrategy(strategyCrv.address, true);
-                await manager.connect(deployer).setAllowedToken(dai.address, true);
-                await manager.addToken(vault.address, dai.address);
+                await manager.addVault(vault.address);
                 await manager.setController(vault.address, controller.address);
                 await controller.addStrategy(vault.address, strategyCrv.address, 0, 86400);
                 await dai.connect(user).faucet(1000);
                 await dai.connect(user).approve(vault.address, ethers.constants.MaxUint256);
-                await vault.connect(user).deposit(dai.address, 1000);
+                await vault.connect(user).deposit(1000);
             });
 
             it('should withdraw from vault', async () => {
                 expect(await dai.balanceOf(user.address)).to.be.equal(0);
-                await vault.connect(user).withdraw(1000, dai.address);
+                await vault.connect(user).withdraw(1000);
                 expect(await dai.balanceOf(user.address)).to.be.at.least(999);
             });
 
             it('should withdraw from strategies', async () => {
-                await harvester
-                    .connect(deployer)
-                    .earn(strategyCrv.address, vault.address, dai.address);
+                await harvester.connect(deployer).earn(strategyCrv.address, vault.address);
                 expect(await dai.balanceOf(user.address)).to.be.equal(0);
-                await vault.connect(user).withdraw(1000, dai.address);
+                await vault.connect(user).withdraw(1000);
                 expect(await dai.balanceOf(user.address)).to.be.at.least(998);
             });
 
@@ -760,8 +741,7 @@ describe('Controller', () => {
             await manager.connect(deployer).setHarvester(harvester.address);
             await harvester.connect(deployer).setHarvester(deployer.address, true);
             await manager.connect(deployer).setAllowedStrategy(strategyCrv.address, true);
-            await manager.connect(deployer).setAllowedToken(dai.address, true);
-            await manager.addToken(vault.address, dai.address);
+            await manager.addVault(vault.address);
             await controller.addStrategy(vault.address, strategyCrv.address, 0, 86400);
         });
 
