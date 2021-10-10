@@ -166,8 +166,6 @@ describe('GeneralConvexStrategy with 3 tokens', () => {
     let deployer, treasury, user;
     let dai,
         t3crv,
-        usdc,
-        usdt,
         stableSwapPool,
         manager,
         convexStrategy,
@@ -193,10 +191,6 @@ describe('GeneralConvexStrategy with 3 tokens', () => {
         weth = await ethers.getContractAt('MockERC20', WETH.address);
         const DAI = await deployments.get('DAI');
         dai = await ethers.getContractAt('MockERC20', DAI.address);
-        const USDC = await deployments.get('USDC');
-        usdc = await ethers.getContractAt('MockERC20', USDC.address);
-        const USDT = await deployments.get('USDT');
-        usdt = await ethers.getContractAt('MockERC20', USDT.address);
         const ConvexVault = await deployments.get('MockConvexVault');
         convexVault = await ethers.getContractAt('MockConvexVault', ConvexVault.address);
         const MockStableSwap3Pool = await deployments.get('MockStableSwap3Pool');
