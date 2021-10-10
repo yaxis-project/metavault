@@ -9,7 +9,16 @@ const ether = parseEther;
 
 describe('VaultHelper', () => {
     let deployer, treasury, user;
-    let dai, usdc, usdt, manager, vault, controller, gauge, gaugeController, vaultHelper;
+    let dai,
+        usdc,
+        usdt,
+        manager,
+        vault,
+        vaultToken,
+        controller,
+        gauge,
+        gaugeController,
+        vaultHelper;
 
     beforeEach(async () => {
         await deployments.fixture('test');
@@ -24,6 +33,8 @@ describe('VaultHelper', () => {
         manager = await ethers.getContractAt('Manager', Manager.address);
         const Controller = await deployments.get('Controller');
         controller = await ethers.getContractAt('Controller', Controller.address);
+        const VaultToken = await deployments.get('VaultToken');
+        vaultToken = await ethers.getContractAt('VaultToken', VaultToken.address);
         const Vault = await deployments.get('VaultStables');
         vault = await ethers.getContractAt('Vault', Vault.address);
         const Gauge = await deployments.get('VaultStablesGauge');
@@ -42,13 +53,14 @@ describe('VaultHelper', () => {
         await usdc.connect(user).approve(VaultHelper.address, ethers.constants.MaxUint256);
         await usdt.connect(user).approve(VaultHelper.address, ethers.constants.MaxUint256);
         await gauge.connect(user).approve(VaultHelper.address, ethers.constants.MaxUint256);
-        await vault.connect(user).approve(VaultHelper.address, ethers.constants.MaxUint256);
+        await vaultToken
+            .connect(user)
+            .approve(VaultHelper.address, ethers.constants.MaxUint256);
         await manager.setAllowedVault(vault.address, true);
         await manager.setGovernance(treasury.address);
         await manager.connect(treasury).setAllowedController(controller.address, true);
         await manager.setController(vault.address, controller.address);
-        await manager.connect(treasury).setAllowedToken(dai.address, true);
-        await manager.addToken(vault.address, dai.address);
+        await manager.addVault(vault.address);
         await gaugeController['add_type(string,uint256)']('vault', ether('1'));
         await gaugeController['add_gauge(address,int128,uint256)'](
             gauge.address,
@@ -61,10 +73,10 @@ describe('VaultHelper', () => {
     describe('depositVault', () => {
         context('when the gauge is set', () => {
             it('should give gauge tokens to the user', async () => {
-                expect(await vault.balanceOf(user.address)).to.be.equal(0);
+                expect(await vaultToken.balanceOf(user.address)).to.be.equal(0);
                 expect(await gauge.balanceOf(user.address)).to.be.equal(0);
                 await vaultHelper.connect(user).depositVault(vault.address, ether('100'));
-                expect(await vault.balanceOf(user.address)).to.be.equal(0);
+                expect(await vaultToken.balanceOf(user.address)).to.be.equal(0);
                 expect(await gauge.balanceOf(user.address)).to.be.equal(ether('100'));
             });
         });
@@ -75,10 +87,10 @@ describe('VaultHelper', () => {
             });
 
             it('should give vault tokens to the user', async () => {
-                expect(await vault.balanceOf(user.address)).to.be.equal(0);
+                expect(await vaultToken.balanceOf(user.address)).to.be.equal(0);
                 expect(await gauge.balanceOf(user.address)).to.be.equal(0);
                 await vaultHelper.connect(user).depositVault(vault.address, ether('100'));
-                expect(await vault.balanceOf(user.address)).to.be.equal(ether('100'));
+                expect(await vaultToken.balanceOf(user.address)).to.be.equal(ether('100'));
                 expect(await gauge.balanceOf(user.address)).to.be.equal(0);
             });
         });
@@ -94,7 +106,7 @@ describe('VaultHelper', () => {
             it('should withdraw from the gauge and vault', async () => {
                 await vaultHelper.connect(user).withdrawVault(vault.address, ether('100'));
                 expect(await gauge.balanceOf(user.address)).to.be.equal(0);
-                expect(await vault.balanceOf(user.address)).to.be.equal(0);
+                expect(await vaultToken.balanceOf(user.address)).to.be.equal(0);
                 expect(await dai.balanceOf(user.address)).to.be.equal(ether('99999999.9'));
             });
         });
@@ -103,13 +115,13 @@ describe('VaultHelper', () => {
             beforeEach(async () => {
                 await vault.connect(deployer).setGauge(ethers.constants.AddressZero);
                 await vaultHelper.connect(user).depositVault(vault.address, ether('100'));
-                expect(await vault.balanceOf(user.address)).to.be.equal(ether('100'));
+                expect(await vaultToken.balanceOf(user.address)).to.be.equal(ether('100'));
             });
 
             it('should withdraw from the vault', async () => {
                 await vaultHelper.connect(user).withdrawVault(vault.address, ether('100'));
                 expect(await gauge.balanceOf(user.address)).to.be.equal(0);
-                expect(await vault.balanceOf(user.address)).to.be.equal(0);
+                expect(await vaultToken.balanceOf(user.address)).to.be.equal(0);
                 expect(await dai.balanceOf(user.address)).to.be.equal(ether('99999999.9'));
             });
         });

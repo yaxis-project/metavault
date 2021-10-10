@@ -48,22 +48,15 @@ describe('Harvester', () => {
             'LegacyController',
             LegacyController.address
         );
-        const Harvester = await deployments.deploy('Harvester', {
-            from: deployer.address,
-            args: [manager.address, controller.address, legacyController.address]
-        });
+        const Harvester = await deployments.get('Harvester');
         harvester = await ethers.getContractAt('Harvester', Harvester.address);
-
         const StrategyCrv = await deployments.get('NativeStrategyCurve3Crv');
         strategyCrv = await ethers.getContractAt(
             'NativeStrategyCurve3Crv',
             StrategyCrv.address,
             deployer
         );
-        const Vault = await deployments.deploy('Vault', {
-            from: deployer.address,
-            args: ['Vault: Stables', 'MV:S', manager.address]
-        });
+        const Vault = await deployments.get('VaultStables');
         vault = await ethers.getContractAt('Vault', Vault.address);
 
         await manager.setAllowedVault(vault.address, true);
@@ -75,8 +68,7 @@ describe('Harvester', () => {
         await controller.connect(deployer).setConverter(vault.address, converter.address);
         await manager.connect(treasury).setHarvester(harvester.address);
         await manager.connect(treasury).setAllowedStrategy(strategyCrv.address, true);
-        await manager.connect(treasury).setAllowedToken(dai.address, true);
-        await manager.addToken(vault.address, dai.address);
+        await manager.addVault(vault.address);
         await harvester.setHarvester(deployer.address, true);
     });
 

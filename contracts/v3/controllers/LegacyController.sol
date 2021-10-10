@@ -118,7 +118,7 @@ contract LegacyController is ILegacyController {
         returns (uint256)
     {
         return token.balanceOf(address(this))
-                    .add(IERC20(address(vault)).balanceOf(address(this)));
+                    .add(IERC20(vault.getLPToken()).balanceOf(address(this)));
     }
 
     /**

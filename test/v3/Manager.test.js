@@ -268,51 +268,14 @@ describe('Manager', () => {
         });
     });
 
-    describe('setAllowedToken', () => {
-        let token;
-
-        beforeEach(async () => {
-            const Token = await ethers.getContractFactory('MockERC20');
-            token = await Token.deploy('Token', 'TKN', 18);
-            await manager.connect(deployer).setGovernance(treasury.address);
-        });
-
-        it('should revert when called by non-governance address', async () => {
-            await expect(
-                manager.connect(deployer).setAllowedToken(token.address, true)
-            ).to.be.revertedWith('!governance');
-        });
-
-        it('should revert if the manager is halted', async () => {
-            await manager.connect(deployer).setHalted();
-            await expect(
-                manager.connect(deployer).setAllowedToken(token.address, true)
-            ).to.be.revertedWith('halted');
-        });
-
-        it('should set the allowed token when called by governance', async () => {
-            await expect(manager.connect(treasury).setAllowedToken(token.address, true))
-                .to.emit(manager, 'AllowedToken')
-                .withArgs(token.address, true);
-            expect(await manager.allowedTokens(token.address)).to.be.equal(true);
-        });
-
-        it('should unset the allowed token when called by governance', async () => {
-            await manager.connect(treasury).setAllowedToken(token.address, true);
-            expect(await manager.allowedTokens(token.address)).to.be.equal(true);
-            await expect(manager.connect(treasury).setAllowedToken(token.address, false))
-                .to.emit(manager, 'AllowedToken')
-                .withArgs(token.address, false);
-            expect(await manager.allowedTokens(token.address)).to.be.equal(false);
-        });
-    });
-
     describe('setAllowedVault', () => {
-        let vault;
+        let vault, vaultToken;
 
         beforeEach(async () => {
+            const VaultToken = await ethers.getContractFactory('VaultToken');
             const Vault = await ethers.getContractFactory('Vault');
-            vault = await Vault.deploy('Vault', 'V', manager.address);
+            vaultToken = await VaultToken.deploy('Vault', 'V', manager.address);
+            vault = await Vault.deploy(t3crv.address, vaultToken.address, manager.address);
             await manager.connect(deployer).setGovernance(treasury.address);
         });
 
@@ -325,8 +288,14 @@ describe('Manager', () => {
         it('should revert if the vault manager is not this manager', async () => {
             const FakeManager = await ethers.getContractFactory('Manager');
             const fakeManager = await FakeManager.deploy(yaxis.address);
+            const NewVaultToken = await ethers.getContractFactory('VaultToken');
+            vaultToken = await NewVaultToken.deploy('Bad Vault', 'BV', fakeManager.address);
             const NewVault = await ethers.getContractFactory('Vault');
-            const newVault = await NewVault.deploy('Bad Vault', 'BV', fakeManager.address);
+            const newVault = await NewVault.deploy(
+                t3crv.address,
+                vaultToken.address,
+                fakeManager.address
+            );
             await expect(
                 manager.connect(treasury).setAllowedVault(newVault.address, true)
             ).to.be.revertedWith('!manager');
@@ -689,61 +658,36 @@ describe('Manager', () => {
         });
     });
 
-    describe('addToken', () => {
-        let vault;
+    describe('addVault', () => {
+        let vault, vaultToken;
 
         beforeEach(async () => {
+            const VaultToken = await ethers.getContractFactory('VaultToken');
             const Vault = await ethers.getContractFactory('Vault');
-            vault = await Vault.deploy('Vault', 'VLT', manager.address);
+            vaultToken = await VaultToken.deploy('Vault', 'V', manager.address);
+            vault = await Vault.deploy(t3crv.address, vaultToken.address, manager.address);
             await manager.connect(deployer).setGovernance(treasury.address);
             await manager.connect(treasury).setAllowedVault(vault.address, true);
-            await manager.connect(treasury).setAllowedToken(dai.address, true);
         });
 
         it('should revert when called by non-strategist address', async () => {
             await expect(
-                manager
-                    .connect(user)
-                    .addToken(ethers.constants.AddressZero, ethers.constants.AddressZero)
+                manager.connect(user).addVault(ethers.constants.AddressZero)
             ).to.be.revertedWith('!strategist');
         });
 
         it('should revert if the manager is halted', async () => {
             await manager.connect(deployer).setHalted();
             await expect(
-                manager
-                    .connect(deployer)
-                    .addToken(ethers.constants.AddressZero, ethers.constants.AddressZero)
+                manager.connect(deployer).addVault(ethers.constants.AddressZero)
             ).to.be.revertedWith('halted');
         });
 
-        it('should revert if token is not allowed', async () => {
-            await expect(
-                manager
-                    .connect(deployer)
-                    .addToken(ethers.constants.AddressZero, ethers.constants.AddressZero)
-            ).to.be.revertedWith('!allowedTokens');
-        });
-
         it('should revert if vault is not allowed', async () => {
+            await manager.connect(treasury).setAllowedVault(vault.address, false);
             await expect(
-                manager.connect(deployer).addToken(ethers.constants.AddressZero, dai.address)
+                manager.connect(deployer).addVault(ethers.constants.AddressZero)
             ).to.be.revertedWith('!allowedVaults');
-        });
-
-        it('should add tokens within the maximum number', async () => {
-            await expect(manager.connect(deployer).addToken(vault.address, dai.address))
-                .to.emit(manager, 'TokenAdded')
-                .withArgs(vault.address, dai.address);
-        });
-
-        it('should revert if the token is already added', async () => {
-            await expect(manager.connect(deployer).addToken(vault.address, dai.address))
-                .to.emit(manager, 'TokenAdded')
-                .withArgs(vault.address, dai.address);
-            await expect(
-                manager.connect(deployer).addToken(vault.address, dai.address)
-            ).to.be.revertedWith('!_vault');
         });
     });
 
@@ -775,54 +719,56 @@ describe('Manager', () => {
         });
     });
 
-    describe('removeToken', () => {
-        let vault;
+    describe('removeVault', () => {
+        let vault, vaultToken;
 
         beforeEach(async () => {
+            const VaultToken = await ethers.getContractFactory('VaultToken');
             const Vault = await ethers.getContractFactory('Vault');
-            vault = await Vault.deploy('Vault', 'VLT', manager.address);
+            vaultToken = await VaultToken.deploy('Vault', 'V', manager.address);
+            vault = await Vault.deploy(t3crv.address, vaultToken.address, manager.address);
             await manager.connect(deployer).setGovernance(treasury.address);
             await manager.connect(treasury).setAllowedVault(vault.address, true);
-            await manager.connect(treasury).setAllowedToken(dai.address, true);
-            await manager.connect(deployer).addToken(vault.address, dai.address);
+            await manager.connect(deployer).addVault(vault.address);
         });
 
         it('should revert when called by non-strategist address', async () => {
             await expect(
-                manager
-                    .connect(user)
-                    .removeToken(ethers.constants.AddressZero, ethers.constants.AddressZero)
+                manager.connect(user).removeVault(ethers.constants.AddressZero)
             ).to.be.revertedWith('!strategist');
         });
 
         it('should revert if the manager is halted', async () => {
             await manager.connect(deployer).setHalted();
             await expect(
-                manager
-                    .connect(deployer)
-                    .removeToken(ethers.constants.AddressZero, ethers.constants.AddressZero)
+                manager.connect(deployer).removeVault(ethers.constants.AddressZero)
             ).to.be.revertedWith('halted');
         });
 
-        it('should remove token', async () => {
-            await expect(manager.connect(deployer).removeToken(vault.address, dai.address))
-                .to.emit(manager, 'TokenRemoved')
-                .withArgs(vault.address, dai.address);
+        it('should remove vault', async () => {
+            await expect(manager.connect(deployer).removeVault(vault.address))
+                .to.emit(manager, 'VaultRemoved')
+                .withArgs(vault.address);
         });
 
-        it('should revert if the token is not added', async () => {
+        it('should revert if the vault is not added', async () => {
+            await expect(manager.connect(deployer).removeVault(vault.address))
+                .to.emit(manager, 'VaultRemoved')
+                .withArgs(vault.address);
             await expect(
-                manager.connect(deployer).removeToken(vault.address, usdc.address)
-            ).to.be.revertedWith('!_token');
+                manager.connect(deployer).removeVault(vault.address)
+            ).to.be.revertedWith('!_vault');
         });
     });
 
     describe('setController', () => {
-        let vault, newController;
+        let vault, vaultToken, newController;
 
         beforeEach(async () => {
+            const VaultToken = await ethers.getContractFactory('VaultToken');
             const Vault = await ethers.getContractFactory('Vault');
-            vault = await Vault.deploy('Vault', 'VLT', manager.address);
+            vaultToken = await VaultToken.deploy('Vault', 'V', manager.address);
+            vault = await Vault.deploy(t3crv.address, vaultToken.address, manager.address);
             await manager.connect(deployer).setGovernance(treasury.address);
             await manager.connect(treasury).setAllowedVault(vault.address, true);
             const NewController = await ethers.getContractFactory('Controller');

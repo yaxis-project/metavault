@@ -218,10 +218,14 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
         from: deployer,
         args: ['0x0000000000000000000000000000000000000000']
     });
-    const Vault = await deployments.deploy('VaultStables', {
+    const VaultToken = await deployments.deploy('VaultToken', {
+        from: deployer,
+        args: ['VaultStables', 'CV:S', Manager.address]
+    });
+    await deployments.deploy('VaultStables', {
         contract: 'Vault',
         from: deployer,
-        args: ['Vault: Stables', 'MV:S', Manager.address]
+        args: [DAI.address, VaultToken.address, Manager.address]
     });
     const MinterWrapper = await deployments.deploy('MinterWrapper', {
         from: deployer,
@@ -252,7 +256,7 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
         contract: 'LiquidityGaugeV2',
         from: deployer,
         log: true,
-        args: [Vault.address, Minter.address, GaugeProxy.address]
+        args: [VaultToken.address, Minter.address, GaugeProxy.address]
     });
     await deployments.deploy('VaultHelper', {
         from: deployer,

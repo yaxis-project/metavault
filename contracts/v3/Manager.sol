@@ -56,15 +56,12 @@ contract Manager is IManager {
     mapping(address => bool) public override allowedControllers;
     mapping(address => bool) public override allowedConverters;
     mapping(address => bool) public override allowedStrategies;
-    mapping(address => bool) public override allowedTokens;
     mapping(address => bool) public override allowedVaults;
 
     // vault => controller
     mapping(address => address) public override controllers;
     // vault => token
     mapping(address => address) internal tokens;
-    // token => vault
-    mapping(address => address) public override vaults;
 
     event AllowedController(
         address indexed _controller,
@@ -76,10 +73,6 @@ contract Manager is IManager {
     );
     event AllowedStrategy(
         address indexed _strategy,
-        bool _allowed
-    );
-    event AllowedToken(
-        address indexed _token,
         bool _allowed
     );
     event AllowedVault(
@@ -100,13 +93,12 @@ contract Manager is IManager {
     event SetStrategist(
         address indexed _strategist
     );
-    event TokenAdded(
+    event VaultAdded(
         address indexed _vault,
         address indexed _token
     );
-    event TokenRemoved(
-        address indexed _vault,
-        address indexed _token
+    event VaultRemoved(
+        address indexed _vault
     );
 
     /**
@@ -184,23 +176,6 @@ contract Manager is IManager {
         require(address(IStrategy(_strategy).manager()) == address(this), "!manager");
         allowedStrategies[_strategy] = _allowed;
         emit AllowedStrategy(_strategy, _allowed);
-    }
-
-    /**
-     * @notice Sets the permission for the given token
-     * @param _token The address of the token
-     * @param _allowed The status of if it is allowed
-     */
-    function setAllowedToken(
-        address _token,
-        bool _allowed
-    )
-        external
-        notHalted
-        onlyGovernance
-    {
-        allowedTokens[_token] = _allowed;
-        emit AllowedToken(_token, _allowed);
     }
 
     /**
@@ -416,24 +391,20 @@ contract Manager is IManager {
     /**
      * @notice Adds a token to be able to be deposited for a given vault
      * @param _vault The address of the vault
-     * @param _token The address of the token
      */
-    function addToken(
-        address _vault,
-        address _token
+    function addVault(
+        address _vault
     )
         external
         override
         notHalted
         onlyStrategist
     {
-        require(allowedTokens[_token], "!allowedTokens");
         require(allowedVaults[_vault], "!allowedVaults");
         require(tokens[_vault] == address(0), "!_vault");
-        require(vaults[_token] == address(0), "!_token");
-        vaults[_token] = _vault;
+        address _token = IVault(_vault).getToken();
         tokens[_vault] = _token;
-        emit TokenAdded(_vault, _token);
+        emit VaultAdded(_vault, _token);
     }
 
     /**
@@ -458,22 +429,19 @@ contract Manager is IManager {
     /**
      * @notice Removes a token from being able to be deposited for a given vault
      * @param _vault The address of the vault
-     * @param _token The address of the token
      */
-    function removeToken(
-        address _vault,
-        address _token
+    function removeVault(
+        address _vault
     )
         external
         override
         notHalted
         onlyStrategist
     {
-        require(tokens[_vault] == _token, "!_token");
-        require(vaults[_token] == _vault, "!_vault");
+        require(tokens[_vault] != address(0), "!_vault");
         delete tokens[_vault];
-        delete vaults[_token];
-        emit TokenRemoved(_vault, _token);
+        delete allowedVaults[_vault];
+        emit VaultRemoved(_vault);
     }
 
     /**

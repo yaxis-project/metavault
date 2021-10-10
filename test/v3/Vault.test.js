@@ -9,7 +9,7 @@ const ether = parseEther;
 
 describe('Vault', () => {
     let deployer, treasury, user;
-    let dai, vault, manager, controller, harvester, strategyCrv, converter;
+    let dai, vault, vaultToken, manager, controller, harvester, strategyCrv, converter;
 
     beforeEach(async () => {
         await deployments.fixture('test');
@@ -29,6 +29,8 @@ describe('Vault', () => {
             deployer
         );
         converter = await deployments.get('StablesConverter');
+        const VaultToken = await deployments.get('VaultToken');
+        vaultToken = await ethers.getContractAt('VaultToken', VaultToken.address);
         const Vault = await deployments.get('VaultStables');
         vault = await ethers.getContractAt('Vault', Vault.address);
 
@@ -39,8 +41,6 @@ describe('Vault', () => {
     });
 
     it('should deploy with expected state', async () => {
-        expect(await vault.name()).to.equal('Vault: Stables');
-        expect(await vault.symbol()).to.equal('MV:S');
         expect(await vault.manager()).to.equal(manager.address);
         expect(await vault.min()).to.equal(9500);
         expect(await vault.totalDepositCap()).to.equal(ether('10000000'));
@@ -100,9 +100,8 @@ describe('Vault', () => {
             await manager.connect(treasury).setAllowedConverter(converter.address, true);
             await controller.connect(deployer).setConverter(vault.address, converter.address);
             await manager.connect(treasury).setAllowedStrategy(strategyCrv.address, true);
-            await manager.connect(treasury).setAllowedToken(dai.address, true);
-            await expect(manager.addToken(vault.address, dai.address))
-                .to.emit(manager, 'TokenAdded')
+            await expect(manager.addVault(vault.address))
+                .to.emit(manager, 'VaultAdded')
                 .withArgs(vault.address, dai.address);
             await manager.setController(vault.address, controller.address);
             await manager.connect(treasury).setHarvester(harvester.address);
@@ -153,7 +152,7 @@ describe('Vault', () => {
         it('should revert when the vault is not set up', async () => {
             const NewVault = await deployments.deploy('Vault', {
                 from: deployer.address,
-                args: ['Vault: Stables', 'MV:S2', manager.address]
+                args: [vaultToken.address, dai.address, manager.address]
             });
             const newVault = await ethers.getContractAt('Vault', NewVault.address);
             await dai.connect(user).approve(NewVault.address, ethers.utils.parseEther('1000'));
@@ -162,12 +161,11 @@ describe('Vault', () => {
 
         context('when the vault is set up', () => {
             beforeEach(async () => {
-                await manager.connect(treasury).setAllowedToken(dai.address, true);
                 await manager.connect(treasury).setAllowedVault(vault.address, true);
                 await manager.connect(treasury).setAllowedController(controller.address, true);
                 await manager.setController(vault.address, controller.address);
-                await expect(manager.addToken(vault.address, dai.address))
-                    .to.emit(manager, 'TokenAdded')
+                await expect(manager.addVault(vault.address))
+                    .to.emit(manager, 'VaultAdded')
                     .withArgs(vault.address, dai.address);
             });
 
@@ -187,24 +185,23 @@ describe('Vault', () => {
             });
 
             it('should deposit single token', async () => {
-                expect(await vault.balanceOf(user.address)).to.equal(0);
+                expect(await vaultToken.balanceOf(user.address)).to.equal(0);
                 await expect(vault.connect(user).deposit(ether('1000')))
                     .to.emit(vault, 'Deposit')
                     .withArgs(user.address, ether('1000'));
-                expect(await vault.balanceOf(user.address)).to.equal(ether('1000'));
-                expect(await vault.totalSupply()).to.equal(ether('1000'));
+                expect(await vaultToken.balanceOf(user.address)).to.equal(ether('1000'));
+                expect(await vaultToken.totalSupply()).to.equal(ether('1000'));
             });
         });
     });
 
     describe('withdraw', () => {
         beforeEach(async () => {
-            await manager.connect(treasury).setAllowedToken(dai.address, true);
             await manager.connect(treasury).setAllowedVault(vault.address, true);
             await manager.connect(treasury).setAllowedController(controller.address, true);
             await manager.connect(deployer).setController(vault.address, controller.address);
-            await expect(manager.connect(deployer).addToken(vault.address, dai.address))
-                .to.emit(manager, 'TokenAdded')
+            await expect(manager.connect(deployer).addVault(vault.address))
+                .to.emit(manager, 'VaultAdded')
                 .withArgs(vault.address, dai.address);
         });
 
@@ -249,12 +246,11 @@ describe('Vault', () => {
 
     describe('withdrawAll', () => {
         beforeEach(async () => {
-            await manager.connect(treasury).setAllowedToken(dai.address, true);
             await manager.connect(treasury).setAllowedVault(vault.address, true);
             await manager.connect(treasury).setAllowedController(controller.address, true);
             await manager.connect(deployer).setController(vault.address, controller.address);
-            await expect(manager.connect(deployer).addToken(vault.address, dai.address))
-                .to.emit(manager, 'TokenAdded')
+            await expect(manager.connect(deployer).addVault(vault.address))
+                .to.emit(manager, 'VaultAdded')
                 .withArgs(vault.address, dai.address);
         });
 
@@ -283,7 +279,7 @@ describe('Vault', () => {
         it('should get balance with minimum amount on-hand', async () => {
             await dai.connect(user).faucet(1000);
             await dai.connect(user).transfer(vault.address, 1000);
-            expect(await vault.available(dai.address)).to.equal(1000 * 0.95);
+            expect(await vault.available()).to.equal(1000 * 0.95);
         });
     });
 });

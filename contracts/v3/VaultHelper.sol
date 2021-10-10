@@ -32,18 +32,19 @@ contract VaultHelper {
     {
         require(_amount > 0, "!_amount");
         address _token = IVault(_vault).getToken();
+        address _vaultToken = IVault(_vault).getLPToken();
         IERC20(_token).safeTransferFrom(msg.sender, address(this), _amount);
         IERC20(_token).safeApprove(_vault, 0);
         IERC20(_token).safeApprove(_vault, _amount);
         uint256 _shares = IVault(_vault).deposit(_amount);
         address _gauge = IVault(_vault).gauge();
         if (_gauge != address(0)) {
-            IERC20(_vault).safeApprove(_gauge, 0);
-            IERC20(_vault).safeApprove(_gauge, _shares);
+            IERC20(_vaultToken).safeApprove(_gauge, 0);
+            IERC20(_vaultToken).safeApprove(_gauge, _shares);
             ILiquidityGaugeV2(_gauge).deposit(_shares);
             IERC20(_gauge).safeTransfer(msg.sender, _shares);
         } else {
-            IERC20(_vault).safeTransfer(msg.sender, _shares);
+            IERC20(_vaultToken).safeTransfer(msg.sender, _shares);
         }
     }
 
@@ -55,13 +56,14 @@ contract VaultHelper {
     {
         address _gauge = IVault(_vault).gauge();
         address _token = IVault(_vault).getToken();
+        address _vaultToken = IVault(_vault).getLPToken();
         if (_gauge != address(0)) {
             IERC20(_gauge).safeTransferFrom(msg.sender, address(this), _amount);
             ILiquidityGaugeV2(_gauge).withdraw(_amount);
-            IVault(_vault).withdraw(IERC20(_vault).balanceOf(address(this)));
+            IVault(_vault).withdraw(IERC20(_vaultToken).balanceOf(address(this)));
             IERC20(_token).safeTransfer(msg.sender, IERC20(_token).balanceOf(address(this)));
         } else {
-            IERC20(_vault).safeTransferFrom(msg.sender, address(this), _amount);
+            IERC20(_vaultToken).safeTransferFrom(msg.sender, address(this), _amount);
             IVault(_vault).withdraw(_amount);
             IERC20(_token).safeTransfer(msg.sender, IERC20(_token).balanceOf(address(this)));
         }

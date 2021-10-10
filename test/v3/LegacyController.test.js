@@ -9,8 +9,7 @@ const ether = parseEther;
 
 describe('LegacyController', () => {
     let deployer, user;
-    let dai,
-        t3crv,
+    let t3crv,
         vault,
         manager,
         metavault,
@@ -25,8 +24,6 @@ describe('LegacyController', () => {
         [deployer, , , user] = await ethers.getSigners();
         const T3CRV = await deployments.get('T3CRV');
         t3crv = await ethers.getContractAt('MockERC20', T3CRV.address);
-        const DAI = await deployments.get('DAI');
-        dai = await ethers.getContractAt('MockERC20', DAI.address);
         const Manager = await deployments.get('Manager');
         manager = await ethers.getContractAt('Manager', Manager.address);
         const Harvester = await deployments.get('Harvester');
@@ -50,16 +47,12 @@ describe('LegacyController', () => {
         const Strategy = await deployments.get('NativeStrategyCurve3Crv');
         strategy = await ethers.getContractAt('NativeStrategyCurve3Crv', Strategy.address);
 
-        const Vault = await deployments.deploy('Vault', {
-            from: deployer.address,
-            args: ['Vault: Stables', 'MV:S', manager.address]
-        });
+        const Vault = await deployments.get('VaultStables');
         vault = await ethers.getContractAt('Vault', Vault.address);
 
         await manager.connect(deployer).setAllowedVault(vault.address, true);
         await manager.connect(deployer).setAllowedStrategy(Strategy.address, true);
-        await manager.connect(deployer).setAllowedToken(dai.address, true);
-        await manager.addToken(vault.address, dai.address);
+        await manager.addVault(vault.address);
         await manager.connect(deployer).setAllowedConverter(converter.address, true);
         await manager.connect(deployer).setAllowedController(legacyController.address, true);
         await manager.connect(deployer).setAllowedController(controller.address, true);

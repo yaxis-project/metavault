@@ -411,7 +411,7 @@ contract Controller is IController {
         override
         notHalted
         onlyStrategy(_strategy)
-        onlyVault(_token)
+        onlyVault()
     {
         // get the want token of the strategy
         address _want = IStrategy(_strategy).want();
@@ -444,12 +444,12 @@ contract Controller is IController {
     )
         external
         override
-        onlyVault(_token)
+        onlyVault()
     {
         (
             address[] memory _strategies,
             uint256[] memory _amounts
-        ) = getBestStrategyWithdraw(_token, _amount);
+        ) = getBestStrategyWithdraw(msg.sender, _amount);
         for (uint i = 0; i < _strategies.length; i++) {
             // getBestStrategyWithdraw will return arrays larger than needed
             // if this happens, simply exit the loop
@@ -573,11 +573,11 @@ contract Controller is IController {
      * from this function will always be the same length as the amount of strategies for
      * a token. Check that _strategies[i] != address(0) when consuming to know when to
      * break out of the loop.
-     * @param _token The address of the token
+     * @param _vault The address of the vault
      * @param _amount The amount that will be withdrawn
      */
     function getBestStrategyWithdraw(
-        address _token,
+        address _vault,
         uint256 _amount
     )
         internal
@@ -588,7 +588,6 @@ contract Controller is IController {
         )
     {
         // get the length of strategies for a single token
-        address _vault = manager.vaults(_token);
         uint256 k = _vaultDetails[_vault].strategies.length;
         // initialize fixed-length memory arrays
         _strategies = new address[](k);
@@ -675,8 +674,8 @@ contract Controller is IController {
     /**
      * @notice Reverts if the caller is not the vault for the given token
      */
-    modifier onlyVault(address _token) {
-        require(msg.sender == manager.vaults(_token), "!vault");
+    modifier onlyVault() {
+        require(manager.allowedVaults(msg.sender), "!vault");
         _;
     }
 }
