@@ -24,7 +24,7 @@ describe('Harvester', () => {
         unirouter;
 
     beforeEach(async () => {
-        await deployments.fixture(['v3', 'NativeStrategyCurve3Crv']);
+        await deployments.fixture('test');
         [deployer, treasury, , user] = await ethers.getSigners();
         const T3CRV = await deployments.get('T3CRV');
         t3crv = await ethers.getContractAt('MockERC20', T3CRV.address);
@@ -48,26 +48,28 @@ describe('Harvester', () => {
             'LegacyController',
             LegacyController.address
         );
-        const Harvester = await deployments.deploy('Harvester', {
-            from: deployer.address,
-            args: [manager.address, controller.address, legacyController.address]
-        });
+        const Harvester = await deployments.get('Harvester');
         harvester = await ethers.getContractAt('Harvester', Harvester.address);
-
         const StrategyCrv = await deployments.get('NativeStrategyCurve3Crv');
         strategyCrv = await ethers.getContractAt(
             'NativeStrategyCurve3Crv',
             StrategyCrv.address,
             deployer
         );
-        const Vault = await deployments.deploy('Vault', {
-            from: deployer.address,
-            args: ['Vault: Stables', 'MV:S', manager.address]
-        });
+        const Vault = await deployments.get('VaultStables');
         vault = await ethers.getContractAt('Vault', Vault.address);
 
         await manager.setAllowedVault(vault.address, true);
         await manager.setGovernance(treasury.address);
+        await manager.connect(treasury).setAllowedController(controller.address, true);
+        await manager.connect(treasury).setAllowedController(legacyController.address, true);
+        await manager.setController(vault.address, controller.address);
+        await manager.connect(treasury).setAllowedConverter(converter.address, true);
+        await controller.connect(deployer).setConverter(vault.address, converter.address);
+        await manager.connect(treasury).setHarvester(harvester.address);
+        await manager.connect(treasury).setAllowedStrategy(strategyCrv.address, true);
+        await manager.addVault(vault.address);
+        await harvester.setHarvester(deployer.address, true);
     });
 
     it('should deploy with expected state', async () => {
@@ -77,13 +79,6 @@ describe('Harvester', () => {
     });
 
     describe('addStrategy', () => {
-        beforeEach(async () => {
-            await controller.connect(deployer).setConverter(vault.address, converter.address);
-            await manager.connect(treasury).setAllowedStrategy(strategyCrv.address, true);
-            await manager.connect(treasury).setAllowedToken(dai.address, true);
-            await manager.addToken(vault.address, dai.address);
-        });
-
         it('should revert when called by an address other than controller', async () => {
             await expect(
                 harvester.connect(user).addStrategy(vault.address, strategyCrv.address, 1)
@@ -99,10 +94,6 @@ describe('Harvester', () => {
 
     describe('removeStrategy', () => {
         beforeEach(async () => {
-            await controller.connect(deployer).setConverter(vault.address, converter.address);
-            await manager.connect(treasury).setAllowedStrategy(strategyCrv.address, true);
-            await manager.connect(treasury).setAllowedToken(dai.address, true);
-            await manager.addToken(vault.address, dai.address);
             await controller.addStrategy(vault.address, strategyCrv.address, 0, 86400);
         });
 
@@ -171,46 +162,34 @@ describe('Harvester', () => {
 
     describe('earn', () => {
         beforeEach(async () => {
-            await controller.connect(deployer).setConverter(vault.address, converter.address);
-            await manager.connect(treasury).setAllowedStrategy(strategyCrv.address, true);
-            await manager.connect(treasury).setAllowedToken(dai.address, true);
-            await manager.addToken(vault.address, dai.address);
-            await manager.setController(vault.address, controller.address);
             await controller.addStrategy(vault.address, strategyCrv.address, 0, 86400);
-            await harvester.setHarvester(deployer.address, true);
             await dai.connect(user).faucet(1000);
             await dai.connect(user).approve(vault.address, ethers.constants.MaxUint256);
-            await vault.connect(user).deposit(dai.address, 1000);
+            await vault.connect(user).deposit(1000);
         });
 
         it('should revert when called by an address other than the harvester', async () => {
             await expect(
-                harvester.connect(user).earn(strategyCrv.address, vault.address, dai.address)
+                harvester.connect(user).earn(strategyCrv.address, vault.address)
             ).to.be.revertedWith('!harvester');
         });
 
         it('should pass when called by the harvester', async () => {
-            await harvester.earn(strategyCrv.address, vault.address, dai.address);
+            await harvester.earn(strategyCrv.address, vault.address);
         });
     });
 
     describe('harvest', () => {
         beforeEach(async () => {
-            await controller.connect(deployer).setConverter(vault.address, converter.address);
-            await manager.connect(treasury).setAllowedStrategy(strategyCrv.address, true);
-            await manager.connect(treasury).setAllowedToken(dai.address, true);
-            await manager.addToken(vault.address, dai.address);
-            await manager.setController(vault.address, controller.address);
             await controller.addStrategy(vault.address, strategyCrv.address, 0, 86400);
             await dai.connect(user).faucet(1000);
             await dai.connect(user).approve(vault.address, ethers.constants.MaxUint256);
-            await vault.connect(user).deposit(dai.address, 1000);
-            await harvester.earn(strategyCrv.address, vault.address, dai.address);
-            await harvester.setHarvester(deployer.address, true);
+            await vault.connect(user).deposit(1000);
+            await harvester.earn(strategyCrv.address, vault.address);
             await dai.connect(user).faucet(1000);
             await dai.connect(user).approve(vault.address, ethers.constants.MaxUint256);
-            await vault.connect(user).deposit(dai.address, 1000);
-            await harvester.earn(strategyCrv.address, vault.address, dai.address);
+            await vault.connect(user).deposit(1000);
+            await harvester.earn(strategyCrv.address, vault.address);
             await crv.faucet(ether('1000'));
             await weth.faucet(ether('2000'));
             await dai.faucet(ether('1000'));
@@ -234,21 +213,15 @@ describe('Harvester', () => {
 
     describe('harvestNextStrategy', () => {
         beforeEach(async () => {
-            await controller.connect(deployer).setConverter(vault.address, converter.address);
-            await manager.connect(treasury).setAllowedStrategy(strategyCrv.address, true);
-            await manager.connect(treasury).setAllowedToken(dai.address, true);
-            await manager.addToken(vault.address, dai.address);
-            await manager.setController(vault.address, controller.address);
             await controller.addStrategy(vault.address, strategyCrv.address, 0, 86400);
             await dai.connect(user).faucet(1000);
             await dai.connect(user).approve(vault.address, ethers.constants.MaxUint256);
-            await vault.connect(user).deposit(dai.address, 1000);
-            await harvester.earn(strategyCrv.address, vault.address, dai.address);
-            await harvester.setHarvester(deployer.address, true);
+            await vault.connect(user).deposit(1000);
+            await harvester.earn(strategyCrv.address, vault.address);
             await dai.connect(user).faucet(1000);
             await dai.connect(user).approve(vault.address, ethers.constants.MaxUint256);
-            await vault.connect(user).deposit(dai.address, 1000);
-            await harvester.earn(strategyCrv.address, vault.address, dai.address);
+            await vault.connect(user).deposit(1000);
+            await harvester.earn(strategyCrv.address, vault.address);
             await crv.faucet(ether('1000'));
             await weth.faucet(ether('2000'));
             await dai.faucet(ether('1000'));
@@ -280,19 +253,8 @@ describe('Harvester', () => {
         });
     });
 
-    describe('earn', () => {
+    describe('legacyEarn', () => {
         beforeEach(async () => {
-            await manager.connect(treasury).setAllowedVault(vault.address, true);
-            await manager.connect(treasury).setAllowedToken(t3crv.address, true);
-            await manager.connect(treasury).setAllowedConverter(converter.address, true);
-            await manager
-                .connect(treasury)
-                .setAllowedController(legacyController.address, true);
-            await manager.addToken(vault.address, t3crv.address);
-            await manager.connect(treasury).setHarvester(harvester.address);
-            await manager.setController(vault.address, controller.address);
-            await controller.connect(deployer).setConverter(vault.address, converter.address);
-            await harvester.setHarvester(deployer.address, true);
             await t3crv.connect(user).faucet(ether('100000'));
             await t3crv.connect(user).transfer(legacyController.address, ether('1000'));
             await legacyController.connect(deployer).setConverter(converter.address);
@@ -301,13 +263,13 @@ describe('Harvester', () => {
         });
 
         it('should revert when called by an address other than the harvester', async () => {
-            await expect(
-                harvester.connect(user).legacyEarn(t3crv.address, 0)
-            ).to.be.revertedWith('!harvester');
+            await expect(harvester.connect(user).legacyEarn(0)).to.be.revertedWith(
+                '!harvester'
+            );
         });
 
         it('should pass when called by the harvester', async () => {
-            await harvester.legacyEarn(t3crv.address, 0);
+            await harvester.connect(deployer).legacyEarn(0);
         });
     });
 });

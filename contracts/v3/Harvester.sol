@@ -39,11 +39,6 @@ contract Harvester is IHarvester {
     mapping(address => bool) public isHarvester;
 
     /**
-     * @notice Logged when a controller is set
-     */
-    event ControllerSet(address indexed controller);
-
-    /**
      * @notice Logged when harvest is called for a strategy
      */
     event Harvest(
@@ -65,11 +60,6 @@ contract Harvester is IHarvester {
      * @notice Logged when a strategy is removed for a vault
      */
     event StrategyRemoved(address indexed vault, address indexed strategy, uint256 timeout);
-
-    /**
-     * @notice Logged when a vault manger is set
-     */
-    event VaultManagerSet(address indexed manager);
 
     /**
      * @param _manager The address of the yAxisMetaVaultManager contract
@@ -177,13 +167,12 @@ contract Harvester is IHarvester {
 
     function earn(
         address _strategy,
-        IVault _vault,
-        address _token
+        address _vault
     )
         external
         onlyHarvester
     {
-        _vault.earn(_token, _strategy);
+        IVault(_vault).earn(_strategy);
     }
 
     /**
@@ -235,17 +224,15 @@ contract Harvester is IHarvester {
 
     /**
      * @notice Earns tokens in the LegacyController to the v3 vault
-     * @param _token The address of the token
      * @param _expected The expected amount to deposit after conversion
      */
     function legacyEarn(
-        address _token,
         uint256 _expected
     )
         external
         onlyHarvester
     {
-        legacyController.legacyDeposit(_token, _expected);
+        legacyController.legacyDeposit(_expected);
     }
 
     /**
@@ -282,12 +269,9 @@ contract Harvester is IHarvester {
         returns (bool)
     {
         Strategy storage strategy = strategies[_vault];
-        if (strategy.addresses.length == 0 ||
-            // solhint-disable-next-line not-rely-on-time
-            strategy.lastCalled > block.timestamp.sub(strategy.timeout)) {
-            return false;
-        }
-        return true;
+        // only can harvest if there are strategies, and when sufficient time has elapsed
+        // solhint-disable-next-line not-rely-on-time
+        return (strategy.addresses.length > 0 && strategy.lastCalled <= block.timestamp.sub(strategy.timeout));
     }
 
     /**

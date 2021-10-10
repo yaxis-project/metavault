@@ -40,6 +40,7 @@ contract MinterWrapper is Ownable {
         onlyOwner
     {
         require(minter == address(0), "minter");
+        require(_minter != address(0), "!_minter");
         minter = _minter;
     }
 

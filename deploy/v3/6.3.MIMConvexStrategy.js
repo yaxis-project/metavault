@@ -4,32 +4,29 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
     let {
         CRV,
         CVX,
-        DAI,
-        USDC,
-        USDT,
+        MIM,
         T3CRV,
+        MIMCRV,
         WETH,
         deployer,
-        convex3poolVault,
-        stableSwap3Pool,
+        convexMIMpoolVault,
+        stableSwapMIMPool,
         unirouter
     } = await getNamedAccounts();
     const chainId = await getChainId();
     const Controller = await deployments.get('Controller');
     const Manager = await deployments.get('Manager');
     const Vault = await deployments.get('Vault3CRV');
-    const name = 'Convex: 3CRV';
+    const name = 'Convex: MIMCRV';
     let pid = 9;
 
     if (chainId != '1') {
-        const dai = await deployments.get('DAI');
-        DAI = dai.address;
-        const usdc = await deployments.get('USDC');
-        USDC = usdc.address;
-        const usdt = await deployments.get('USDT');
-        USDT = usdt.address;
+        const mim = await deployments.get('MIM');
+        MIM = mim.address;
         const t3crv = await deployments.get('T3CRV');
         T3CRV = t3crv.address;
+        const mim3crv = await deployments.get('MIM3CRV');
+        MIMCRV = mim3crv.address;
         const weth = await deployments.get('WETH');
         WETH = weth.address;
         await deploy('CRV', {
@@ -58,13 +55,13 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
         });
 
         const mockConvexVault = await deployments.get('MockConvexVault');
-        convex3poolVault = mockConvexVault.address;
+        convexMIMpoolVault = mockConvexVault.address;
 
         await execute(
             'CVX',
             { from: deployer },
             'mint',
-            convex3poolVault,
+            convexMIMpoolVault,
             '10000000000000000000'
         );
 
@@ -72,34 +69,33 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
             'MockConvexVault',
             { from: deployer, log: true },
             'addPool(address,address,uint256)',
-            T3CRV,
-            T3CRV,
+            MIMCRV,
+            MIMCRV,
             0
         );
 
-        const mockStableSwap3Pool = await deployments.get('MockStableSwap3Pool');
-        stableSwap3Pool = mockStableSwap3Pool.address;
+        const mockStableSwap2Pool = await deployments.get('MockStableSwap2Pool');
+        stableSwapMIMPool = mockStableSwap2Pool.address;
         const router = await deployments.get('MockUniswapRouter');
         unirouter = router.address;
 
         pid = 0;
     }
 
-    const Strategy = await deploy('ConvexStrategy', {
+    const Strategy = await deploy('MIMConvexStrategy', {
         from: deployer,
         log: true,
         args: [
             name,
-            T3CRV,
+            MIMCRV,
             CRV,
             CVX,
             WETH,
-            DAI,
-            USDC,
-            USDT,
+            MIM,
+            T3CRV,
             pid,
-            convex3poolVault,
-            stableSwap3Pool,
+            convexMIMpoolVault,
+            stableSwapMIMPool,
             Controller.address,
             Manager.address,
             unirouter
@@ -126,4 +122,4 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
     }
 };
 
-module.exports.tags = ['v3-strategies', 'ConvexStrategy'];
+module.exports.tags = ['v3-strategies', 'MIMConvexStrategy'];

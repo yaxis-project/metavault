@@ -75,6 +75,7 @@ contract StablesConverter is IConverter {
         external
         onlyStrategist
     {
+        _token.safeApprove(_spender, 0);
         _token.safeApprove(_spender, _amount);
     }
 
@@ -132,17 +133,20 @@ contract StablesConverter is IConverter {
                 }
             }
         } else if (_input == address(token3CRV)) { // convert from 3CRV
+            // A temporary cache, used to save gas.
+            IERC20 _token;
             for (uint8 i = 0; i < 3; i++) {
-                if (_output == address(tokens[i])) {
-                    uint256 _before = tokens[i].balanceOf(address(this));
+                _token = tokens[i];
+                if (_output == address(_token)) {
+                    uint256 _before = _token.balanceOf(address(this));
                     stableSwap3Pool.remove_liquidity_one_coin(
                         _inputAmount,
                         i,
                         _estimatedOutput
                     );
-                    uint256 _after = tokens[i].balanceOf(address(this));
+                    uint256 _after = _token.balanceOf(address(this));
                     _outputAmount = _after.sub(_before);
-                    tokens[i].safeTransfer(msg.sender, _outputAmount);
+                    _token.safeTransfer(msg.sender, _outputAmount);
                     return _outputAmount;
                 }
             }
