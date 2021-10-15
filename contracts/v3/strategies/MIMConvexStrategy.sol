@@ -129,8 +129,16 @@ contract MIMConvexStrategy is BaseStrategy {
             _swapTokens(cvx, crv, _cvxBalance, 1);
         }
 
-        uint256 _remainingWeth = _payHarvestFees(crv, _estimatedWETH, _estimatedYAXIS);
+        uint256 _extraRewardsLength = crvRewards.extraRewardsLength();
+        for (uint256 i = 0; i < _extraRewardsLength; i++) {
+            address _rewardToken = IConvexRewards(crvRewards.extraRewards(i)).rewardToken();
+            uint256 _extraRewardBalance = IERC20(_rewardToken).balanceOf(address(this));
+            if (_extraRewardBalance > 0) {
+                _swapTokens(_rewardToken, crv, _extraRewardBalance, 1);
+            }
+        }
 
+        uint256 _remainingWeth = _payHarvestFees(crv, _estimatedWETH, _estimatedYAXIS);
         if (_remainingWeth > 0) {
             (address _token, ) = getMostPremium(); // stablecoin we want to convert to
             _swapTokens(weth, _token, _remainingWeth, 1);

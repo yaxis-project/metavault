@@ -13,6 +13,7 @@ contract MockConvexBaseRewardPool {
     IERC20 public rewardToken;
 
     uint256 public pid;
+    uint256 public extraRewardsLength;
 
     constructor(
         uint256 pid_,
@@ -23,6 +24,7 @@ contract MockConvexBaseRewardPool {
     ) public {
         pid = pid_;
         rewardToken = IERC20(rewardToken_);
+        extraRewardsLength = 0;
     }
 
     function stakeFor(
