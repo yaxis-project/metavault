@@ -151,7 +151,7 @@ contract GeneralConvexStrategy is BaseStrategy {
             address _rewardToken = IConvexRewards(crvRewards.extraRewards(i)).rewardToken();
             uint256 _extraRewardBalance = IERC20(_rewardToken).balanceOf(address(this));
             if (_extraRewardBalance > 0) {
-                _swapTokens(_rewardToken, crv, _extraRewardBalance, 1);
+                _swapTokens(_rewardToken, weth, _extraRewardBalance, 1);
             }
         }
 
