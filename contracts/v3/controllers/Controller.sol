@@ -374,8 +374,12 @@ contract Controller is IController {
      */
     function harvestStrategy(
         address _strategy,
-        uint256 _estimatedWETH,
-        uint256 _estimatedYAXIS
+        uint256 _estimatedCRVWETH,
+        uint256 _estimatedCVXWETH,
+        uint256 _estimatedYAXIS,
+        uint256[] memory _estimatedExtraWETH,
+        uint256 _estimatedToken,
+        uint256 _estimatedWant
     )
         external
         override
@@ -384,7 +388,7 @@ contract Controller is IController {
         onlyStrategy(_strategy)
     {
         uint256 _before = IStrategy(_strategy).balanceOf();
-        IStrategy(_strategy).harvest(_estimatedWETH, _estimatedYAXIS);
+        IStrategy(_strategy).harvest(_estimatedCRVWETH, _estimatedCVXWETH, _estimatedYAXIS, _estimatedExtraWETH, _estimatedToken, _estimatedWant);
         uint256 _after = IStrategy(_strategy).balanceOf();
         address _vault = _vaultStrategies[_strategy];
         _vaultDetails[_vault].balance = _vaultDetails[_vault].balance.add(_after.sub(_before));
@@ -411,7 +415,7 @@ contract Controller is IController {
         override
         notHalted
         onlyStrategy(_strategy)
-        onlyVault()
+        onlyVault(_token)
     {
         // get the want token of the strategy
         address _want = IStrategy(_strategy).want();
@@ -444,12 +448,12 @@ contract Controller is IController {
     )
         external
         override
-        onlyVault()
+        onlyVault(_token)
     {
         (
             address[] memory _strategies,
             uint256[] memory _amounts
-        ) = getBestStrategyWithdraw(msg.sender, _amount);
+        ) = getBestStrategyWithdraw(_token, _amount);
         for (uint i = 0; i < _strategies.length; i++) {
             // getBestStrategyWithdraw will return arrays larger than needed
             // if this happens, simply exit the loop
@@ -573,11 +577,11 @@ contract Controller is IController {
      * from this function will always be the same length as the amount of strategies for
      * a token. Check that _strategies[i] != address(0) when consuming to know when to
      * break out of the loop.
-     * @param _vault The address of the vault
+     * @param _token The address of the token
      * @param _amount The amount that will be withdrawn
      */
     function getBestStrategyWithdraw(
-        address _vault,
+        address _token,
         uint256 _amount
     )
         internal
@@ -588,6 +592,7 @@ contract Controller is IController {
         )
     {
         // get the length of strategies for a single token
+        address _vault = manager.vaults(_token);
         uint256 k = _vaultDetails[_vault].strategies.length;
         // initialize fixed-length memory arrays
         _strategies = new address[](k);
@@ -674,8 +679,8 @@ contract Controller is IController {
     /**
      * @notice Reverts if the caller is not the vault for the given token
      */
-    modifier onlyVault() {
-        require(manager.allowedVaults(msg.sender), "!vault");
+    modifier onlyVault(address _token) {
+        require(msg.sender == manager.vaults(_token), "!vault");
         _;
     }
 }
