@@ -35,5 +35,7 @@ interface IConvexRewards {
 
     function extraRewards(uint256 _pid) external view returns (address);
 
+    function earned(address account) external view returns (uint256);
+
     function rewardToken() external view returns (address);
 }
