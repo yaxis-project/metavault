@@ -7,7 +7,7 @@ import "@openzeppelin/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
 import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 
-import "../interfaces/IStableSwap3Pool.sol";
+import "../interfaces/IStableSwapPool.sol";
 import "../interfaces/ISwap.sol";
 import "../interfaces/IManager.sol";
 import "../interfaces/IStrategy.sol";
@@ -104,6 +104,17 @@ abstract contract BaseStrategy is IStrategy {
         IERC20(weth).safeApprove(address(_router), type(uint256).max);
     }
 
+    // For when a strategy needs to switch between different routers for swapping reward tokens
+    function setRouterInternal(
+        address _router
+    )
+        internal
+    {
+        router = ISwap(_router);
+        IERC20(weth).safeApprove(address(_router), 0);
+        IERC20(weth).safeApprove(address(_router), type(uint256).max);
+    }
+
     /**
      * CONTROLLER-ONLY FUNCTIONS
      */
@@ -123,14 +134,18 @@ abstract contract BaseStrategy is IStrategy {
      * @notice Harvest funds in the strategy's pool
      */
     function harvest(
-        uint256 _estimatedWETH,
-        uint256 _estimatedYAXIS
+        uint256 _estimatedCRVWETH,
+        uint256 _estimatedCVXWETH,
+        uint256 _estimatedYAXIS,
+        uint256[] memory _estimatedExtraWETH,
+        uint256 _estimatedToken,
+        uint256 _estimatedWant
     )
         external
         override
         onlyController
     {
-        _harvest(_estimatedWETH, _estimatedYAXIS);
+        _harvest(_estimatedCRVWETH, _estimatedCVXWETH, _estimatedYAXIS, _estimatedExtraWETH, _estimatedToken, _estimatedWant);
     }
 
     /**
@@ -249,8 +264,12 @@ abstract contract BaseStrategy is IStrategy {
         virtual;
 
     function _harvest(
-        uint256 _estimatedWETH,
-        uint256 _estimatedYAXIS
+        uint256 _estimatedCRVWETH,
+        uint256 _estimatedCVXWETH,
+        uint256 _estimatedYAXIS,
+        uint256[] memory _estimatedExtraWETH,
+        uint256 _estimatedToken,
+        uint256 _estimatedWant
     )
         internal
         virtual;
@@ -280,6 +299,7 @@ abstract contract BaseStrategy is IStrategy {
             // pay the treasury with YAX
             if (treasuryFee > 0 && treasury != address(0)) {
                 _fee = _wethBal.mul(treasuryFee).div(ONE_HUNDRED_PERCENT);
+                setRouterInternal(0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D); // Set router to UniswapV2 to swap WETH -> YAXIS
                 _swapTokens(weth, yaxis, _fee, _estimatedYAXIS);
                 IERC20(yaxis).safeTransfer(treasury, IERC20(yaxis).balanceOf(address(this)));
             }
