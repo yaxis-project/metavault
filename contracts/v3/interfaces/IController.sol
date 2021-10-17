@@ -9,7 +9,7 @@ interface IController {
     function converter(address _vault) external view returns (address);
     function earn(address _strategy, address _token, uint256 _amount) external;
     function investEnabled() external view returns (bool);
-    function harvestStrategy(address _strategy, uint256 _estimatedWETH, uint256 _estimatedYAXIS) external;
+    function harvestStrategy(address _strategy, uint256 _estimatedCRvWETH, uint256 _estimatedCVXWETH, uint256 _estimatedYAXIS, uint256[] memory _estimatedExtraWETH, uint256 _estimatedToken, uint256 _estimatedWant) external;
     function manager() external view returns (IManager);
     function strategies() external view returns (uint256);
     function withdraw(address _token, uint256 _amount) external;
