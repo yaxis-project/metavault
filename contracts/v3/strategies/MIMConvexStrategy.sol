@@ -3,22 +3,22 @@
 pragma solidity 0.6.12;
 
 import '../interfaces/IConvexVault.sol';
-import '../interfaces/IStableSwap2Pool.sol';
+import '../interfaces/IStableSwapPool.sol';
 import './BaseStrategy.sol';
 
 contract MIMConvexStrategy is BaseStrategy {
     // used for Crv -> weth -> [mim/3crv] -> mimCrv route
-    address public immutable crv;
-    address public immutable cvx;
+    address public immutable override crv;
+    address public immutable override cvx;
 
     address public immutable mim;
-    address public immutable crv3;
+    address public immutable override crv3;
 
     uint256 public immutable pid;
     IConvexVault public immutable convexVault;
     address public immutable mimCvxDepositLP;
-    IConvexRewards public immutable crvRewards;
-    IStableSwap2Pool public immutable stableSwap2Pool;
+    IConvexRewards public immutable override crvRewards;
+    IStableSwapPool public immutable override stableSwapPool;
 
     /**
      * @param _name The strategy name
@@ -30,7 +30,7 @@ contract MIMConvexStrategy is BaseStrategy {
      * @param _crv3 The address of 3CRV
      * @param _pid The pool id of convex
      * @param _convexVault The address of the convex vault
-     * @param _stableSwap2Pool The address of the stable swap pool
+     * @param _stableSwapPool The address of the stable swap pool
      * @param _controller The address of the controller
      * @param _manager The address of the manager
      * @param _router The address of the router for swapping tokens
@@ -45,7 +45,7 @@ contract MIMConvexStrategy is BaseStrategy {
         address _crv3,
         uint256 _pid,
         IConvexVault _convexVault,
-        IStableSwap2Pool _stableSwap2Pool,
+        IStableSwapPool _stableSwapPool,
         address _controller,
         address _manager,
         address _router
@@ -55,7 +55,7 @@ contract MIMConvexStrategy is BaseStrategy {
         require(address(_mim) != address(0), '!_mim');
         require(address(_crv3) != address(0), '!_crv3');
         require(address(_convexVault) != address(0), '!_convexVault');
-        require(address(_stableSwap2Pool) != address(0), '!_stableSwap2Pool');
+        require(address(_stableSwapPool) != address(0), '!_stableSwapPool');
 
         (, address _token, , address _crvRewards, , ) = _convexVault.poolInfo(_pid);
         crv = _crv;
@@ -66,7 +66,7 @@ contract MIMConvexStrategy is BaseStrategy {
         convexVault = _convexVault;
         mimCvxDepositLP = _token;
         crvRewards = IConvexRewards(_crvRewards);
-        stableSwap2Pool = _stableSwap2Pool;
+        stableSwapPool = _stableSwapPool;
         // Required to overcome "Stack Too Deep" error
         _setApprovals(
             _want,
@@ -75,7 +75,7 @@ contract MIMConvexStrategy is BaseStrategy {
             _mim,
             _crv3,
             address(_convexVault),
-            address(_stableSwap2Pool)
+            address(_stableSwapPool)
         );
     }
 
@@ -86,14 +86,14 @@ contract MIMConvexStrategy is BaseStrategy {
         address _mim,
         address _crv3,
         address _convexVault,
-        address _stableSwap2Pool
+        address _stableSwapPool
     ) internal {
         IERC20(_want).safeApprove(address(_convexVault), type(uint256).max);
         IERC20(_crv).safeApprove(address(router), type(uint256).max);
         IERC20(_cvx).safeApprove(address(router), type(uint256).max);
-        IERC20(_mim).safeApprove(address(_stableSwap2Pool), type(uint256).max);
-        IERC20(_crv3).safeApprove(address(_stableSwap2Pool), type(uint256).max);
-        IERC20(_want).safeApprove(address(_stableSwap2Pool), type(uint256).max);
+        IERC20(_mim).safeApprove(address(_stableSwapPool), type(uint256).max);
+        IERC20(_crv3).safeApprove(address(_stableSwapPool), type(uint256).max);
+        IERC20(_want).safeApprove(address(_stableSwapPool), type(uint256).max);
     }
 
     function _deposit() internal override {
@@ -106,27 +106,23 @@ contract MIMConvexStrategy is BaseStrategy {
         crvRewards.getReward(address(this), true);
     }
 
-    function _addLiquidity() internal {
+    function _addLiquidity(uint256 _estimatedWant) internal {
         uint256[2] memory amounts;
         amounts[0] = IERC20(mim).balanceOf(address(this));
         amounts[1] = IERC20(crv3).balanceOf(address(this));
-        stableSwap2Pool.add_liquidity(amounts, 1);
+        stableSwapPool.add_liquidity(amounts, _estimatedWant);
     }
 
-    function getMostPremium() public view returns (address, uint256) {
-        // both MIM and 3CRV have 18 decimals
-        if (stableSwap2Pool.balances(0) > stableSwap2Pool.balances(1)) {
-            return (crv3, 1);
-        }
-
-        return (mim, 0); // If they're somehow equal, we just want MIM
+    function getMostPremium() public view override returns (address, uint256) {
+        // 3CRV has 18 decimals
+        return (crv3, 1);
     }
 
-    function _harvest(uint256 _estimatedWETH, uint256 _estimatedYAXIS) internal override {
+    function _harvest(uint256 _estimatedCRVWETH, uint256 _estimatedCVXWETH, uint256 _estimatedYAXIS, uint256[] memory _estimatedExtraWETH, uint256 _estimatedToken, uint256 _estimatedWant) internal override {
         _claimReward();
         uint256 _cvxBalance = IERC20(cvx).balanceOf(address(this));
         if (_cvxBalance > 0) {
-            _swapTokens(cvx, crv, _cvxBalance, 1);
+            _swapTokens(cvx, weth, _cvxBalance, _estimatedCVXWETH);
         }
 
         uint256 _extraRewardsLength = crvRewards.extraRewardsLength();
@@ -134,15 +130,16 @@ contract MIMConvexStrategy is BaseStrategy {
             address _rewardToken = IConvexRewards(crvRewards.extraRewards(i)).rewardToken();
             uint256 _extraRewardBalance = IERC20(_rewardToken).balanceOf(address(this));
             if (_extraRewardBalance > 0) {
-                _swapTokens(_rewardToken, weth, _extraRewardBalance, 1);
+                _swapTokens(_rewardToken, weth, _extraRewardBalance, _estimatedExtraWETH[i]);
             }
         }
 
-        uint256 _remainingWeth = _payHarvestFees(crv, _estimatedWETH, _estimatedYAXIS);
+        uint256 _remainingWeth = _payHarvestFees(crv, _estimatedCRVWETH, _estimatedYAXIS);
+        setRouterInternal(0xd9e1cE17f2641f24aE83637ab66a2cca9C378B9F); // Set router back to Sushiswap after _payHarvestFees
         if (_remainingWeth > 0) {
             (address _token, ) = getMostPremium(); // stablecoin we want to convert to
-            _swapTokens(weth, _token, _remainingWeth, 1);
-            _addLiquidity();
+            _swapTokens(weth, _token, _remainingWeth, _estimatedToken);
+            _addLiquidity(_estimatedWant);
             _deposit();
         }
     }
