@@ -6,24 +6,22 @@ import '@openzeppelin/contracts/math/SafeMath.sol';
 
 import '../interfaces/IConvexVault.sol';
 import '../interfaces/ExtendedIERC20.sol';
-import '../interfaces/IStableSwapPool.sol';
 import '../interfaces/IStableSwap2Pool.sol';
+import '../interfaces/IWETH.sol';
 import './BaseStrategy.sol';
 
-contract GeneralConvexStrategy is BaseStrategy {
+contract ETHConvexStrategy is BaseStrategy {
     using SafeMath for uint8;
 
     address public immutable crv;
     address public immutable cvx;
+    address public immutable aleth;
 
     uint256 public immutable pid;
     IConvexVault public immutable convexVault;
     address public immutable cvxDepositLP;
     IConvexRewards public immutable crvRewards;
-    address public immutable stableSwapPool;
-
-    address[] public tokens;
-    uint8[] public decimalMultiples;
+    IStableSwap2Pool public immutable stableSwapPool;
 
     /**
      * @param _name The strategy name
@@ -31,8 +29,8 @@ contract GeneralConvexStrategy is BaseStrategy {
      * @param _crv The address of CRV
      * @param _cvx The address of CVX
      * @param _weth The address of WETH
+     * @param _aleth The address of alternative ETH
      * @param _pid The pool id of convex
-     * @param _coinCount The number of coins in the pool
      * @param _convexVault The address of the convex vault
      * @param _stableSwapPool The address of the stable swap pool
      * @param _controller The address of the controller
@@ -45,39 +43,35 @@ contract GeneralConvexStrategy is BaseStrategy {
         address _crv,
         address _cvx,
         address _weth,
+        address _aleth,
         uint256 _pid,
-        uint256 _coinCount,
         IConvexVault _convexVault,
         address _stableSwapPool,
         address _controller,
         address _manager,
         address _router
     ) public BaseStrategy(_name, _controller, _manager, _want, _weth, _router) {
-        require(_coinCount == 2 || _coinCount == 3, '_coinCount should be 2 or 3');
         require(address(_crv) != address(0), '!_crv');
         require(address(_cvx) != address(0), '!_cvx');
+        require(address(_aleth) != address(0), '!_aleth');
         require(address(_convexVault) != address(0), '!_convexVault');
         require(address(_stableSwapPool) != address(0), '!_stableSwapPool');
 
         (, address _token, , address _crvRewards, , ) = _convexVault.poolInfo(_pid);
         crv = _crv;
         cvx = _cvx;
+        aleth = _aleth;
         pid = _pid;
         convexVault = _convexVault;
         cvxDepositLP = _token;
         crvRewards = IConvexRewards(_crvRewards);
-        stableSwapPool = _stableSwapPool;
-
-        for (uint256 i = 0; i < _coinCount; i++) {
-            tokens.push(IStableSwapPool(_stableSwapPool).coins(i));
-            decimalMultiples.push(18 - ExtendedIERC20(tokens[i]).decimals());
-            IERC20(tokens[i]).safeApprove(_stableSwapPool, type(uint256).max);
-        }
+        stableSwapPool = IStableSwap2Pool(_stableSwapPool);
 
         IERC20(_want).safeApprove(address(_convexVault), type(uint256).max);
         IERC20(_crv).safeApprove(address(_router), type(uint256).max);
         IERC20(_cvx).safeApprove(address(_router), type(uint256).max);
         IERC20(_want).safeApprove(address(_stableSwapPool), type(uint256).max);
+        IERC20(_aleth).safeApprove(_stableSwapPool, type(uint256).max);
     }
 
     function _deposit() internal override {
@@ -89,54 +83,22 @@ contract GeneralConvexStrategy is BaseStrategy {
     }
 
     function _addLiquidity() internal {
-        if (tokens.length == 2) {
-            uint256[2] memory amounts;
-            amounts[0] = IERC20(tokens[0]).balanceOf(address(this));
-            amounts[1] = IERC20(tokens[1]).balanceOf(address(this));
-            IStableSwap2Pool(stableSwapPool).add_liquidity(amounts, 1);
-            return;
-        }
-
-        uint256[3] memory amounts;
-        amounts[0] = IERC20(tokens[0]).balanceOf(address(this));
-        amounts[1] = IERC20(tokens[1]).balanceOf(address(this));
-        amounts[2] = IERC20(tokens[2]).balanceOf(address(this));
-        IStableSwap3Pool(stableSwapPool).add_liquidity(amounts, 1);
+        uint256[2] memory amounts;
+        amounts[0] = address(this).balance;
+        amounts[1] = IERC20(aleth).balanceOf(address(this));
+        stableSwapPool.add_liquidity(amounts, 1);
+        return;
     }
 
     function getMostPremium() public view returns (address, uint256) {
-        uint256 balance0 = IStableSwap3Pool(stableSwapPool).balances(0).mul(
-            10**(decimalMultiples[0])
-        );
-        uint256 balance1 = IStableSwap3Pool(stableSwapPool).balances(1).mul(
-            10**(decimalMultiples[1])
-        );
+        uint256 balance0 = address(this).balance;
+        uint256 balance1 = stableSwapPool.balances(1);
 
-        if (tokens.length == 2) {
-            if (balance0 > balance1) {
-                return (tokens[1], 1);
-            }
-
-            return (tokens[0], 0);
+        if (balance0 > balance1) {
+            return (aleth, 1);
         }
 
-        uint256 balance2 = IStableSwap3Pool(stableSwapPool).balances(2).mul(
-            10**(decimalMultiples[2])
-        );
-
-        if (balance0 < balance1 && balance0 < balance2) {
-            return (tokens[0], 0);
-        }
-
-        if (balance1 < balance0 && balance1 < balance2) {
-            return (tokens[1], 1);
-        }
-
-        if (balance2 < balance0 && balance2 < balance1) {
-            return (tokens[2], 2);
-        }
-
-        return (tokens[0], 0);
+        return (address(0), 0);
     }
 
     function _harvest(uint256 _estimatedWETH, uint256 _estimatedYAXIS) internal override {
@@ -158,7 +120,11 @@ contract GeneralConvexStrategy is BaseStrategy {
         uint256 _remainingWeth = _payHarvestFees(crv, _estimatedWETH, _estimatedYAXIS);
         if (_remainingWeth > 0) {
             (address _targetCoin, ) = getMostPremium();
-            _swapTokens(weth, _targetCoin, _remainingWeth, 1);
+            if (_targetCoin != address(0)) {
+                _swapTokens(weth, _targetCoin, _remainingWeth, 1);
+            } else {
+                IWETH(weth).withdraw(_remainingWeth);
+            }
             _addLiquidity();
 
             if (balanceOfWant() > 0) {
