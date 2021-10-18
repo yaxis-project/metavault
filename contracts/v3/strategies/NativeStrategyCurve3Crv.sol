@@ -35,10 +35,10 @@ contract NativeStrategyCurve3Crv is BaseStrategy {
         IStableSwap3Pool _stableSwap3Pool,
         address _controller,
         address _manager,
-        address _router
+        address[] memory _routerArray
     )
         public
-        BaseStrategy(_name, _controller, _manager, _want, _weth, _router)
+        BaseStrategy(_name, _controller, _manager, _want, _weth, _routerArray)
     {
         crv = _crv;
         dai = _dai;
@@ -48,7 +48,7 @@ contract NativeStrategyCurve3Crv is BaseStrategy {
         gauge = _gauge;
         crvMintr = _crvMintr;
         IERC20(_want).safeApprove(address(_gauge), type(uint256).max);
-        IERC20(_crv).safeApprove(address(_router), type(uint256).max);
+        IERC20(_crv).safeApprove(address(_routerArray[0]), type(uint256).max);
         IERC20(_dai).safeApprove(address(_stableSwap3Pool), type(uint256).max);
         IERC20(_usdc).safeApprove(address(_stableSwap3Pool), type(uint256).max);
         IERC20(_usdt).safeApprove(address(_stableSwap3Pool), type(uint256).max);
@@ -116,6 +116,7 @@ contract NativeStrategyCurve3Crv is BaseStrategy {
     {
         _claimReward();
         uint256 _remainingWeth = _payHarvestFees(crv, _estimatedWETH, _estimatedYAXIS);
+        setRouterInternal(0); // Set router to routerArray[0] == Sushiswap router
 
         if (_remainingWeth > 0) {
             (address _stableCoin,) = getMostPremium(); // stablecoin we want to convert to
