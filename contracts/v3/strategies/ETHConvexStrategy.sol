@@ -35,7 +35,7 @@ contract ETHConvexStrategy is BaseStrategy {
      * @param _stableSwapPool The address of the stable swap pool
      * @param _controller The address of the controller
      * @param _manager The address of the manager
-     * @param _router The address of the router for swapping tokens
+     * @param _routerArray The addresses of routers for swapping tokens
      */
     constructor(
         string memory _name,
@@ -49,8 +49,8 @@ contract ETHConvexStrategy is BaseStrategy {
         address _stableSwapPool,
         address _controller,
         address _manager,
-        address _router
-    ) public BaseStrategy(_name, _controller, _manager, _want, _weth, _router) {
+        address[] memory _routerArray
+    ) public BaseStrategy(_name, _controller, _manager, _want, _weth, _routerArray) {
         require(address(_crv) != address(0), '!_crv');
         require(address(_cvx) != address(0), '!_cvx');
         require(address(_aleth) != address(0), '!_aleth');
@@ -68,8 +68,10 @@ contract ETHConvexStrategy is BaseStrategy {
         stableSwapPool = IStableSwap2Pool(_stableSwapPool);
 
         IERC20(_want).safeApprove(address(_convexVault), type(uint256).max);
-        IERC20(_crv).safeApprove(address(_router), type(uint256).max);
-        IERC20(_cvx).safeApprove(address(_router), type(uint256).max);
+        for(uint i=0; i<_routerArray.length; i++) {
+            IERC20(_crv).safeApprove(address(_routerArray[i]), type(uint256).max);
+            IERC20(_cvx).safeApprove(address(_routerArray[i]), type(uint256).max);
+        }
         IERC20(_want).safeApprove(address(_stableSwapPool), type(uint256).max);
         IERC20(_aleth).safeApprove(_stableSwapPool, type(uint256).max);
     }
@@ -85,27 +87,15 @@ contract ETHConvexStrategy is BaseStrategy {
     function _addLiquidity() internal {
         uint256[2] memory amounts;
         amounts[0] = address(this).balance;
-        amounts[1] = IERC20(aleth).balanceOf(address(this));
         stableSwapPool.add_liquidity(amounts, 1);
         return;
-    }
-
-    function getMostPremium() public view returns (address, uint256) {
-        uint256 balance0 = address(this).balance;
-        uint256 balance1 = stableSwapPool.balances(1);
-
-        if (balance0 > balance1) {
-            return (aleth, 1);
-        }
-
-        return (address(0), 0);
     }
 
     function _harvest(uint256 _estimatedWETH, uint256 _estimatedYAXIS) internal override {
         _claimReward();
         uint256 _cvxBalance = IERC20(cvx).balanceOf(address(this));
         if (_cvxBalance > 0) {
-            _swapTokens(cvx, crv, _cvxBalance, 1);
+            _swapTokens(cvx, weth, _cvxBalance, 1);
         }
 
         uint256 _extraRewardsLength = crvRewards.extraRewardsLength();
@@ -118,18 +108,13 @@ contract ETHConvexStrategy is BaseStrategy {
         }
 
         uint256 _remainingWeth = _payHarvestFees(crv, _estimatedWETH, _estimatedYAXIS);
+        setRouterInternal(0); // Set router to routerArray[0] == Sushiswap router
         if (_remainingWeth > 0) {
-            (address _targetCoin, ) = getMostPremium();
-            if (_targetCoin != address(0)) {
-                _swapTokens(weth, _targetCoin, _remainingWeth, 1);
-            } else {
-                IWETH(weth).withdraw(_remainingWeth);
-            }
-            _addLiquidity();
-
-            if (balanceOfWant() > 0) {
-                _deposit();
-            }
+            IWETH(weth).withdraw(_remainingWeth);
+        }
+        _addLiquidity();
+        if (balanceOfWant() > 0) {
+            _deposit();
         }
     }
 
