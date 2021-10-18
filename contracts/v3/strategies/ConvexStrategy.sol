@@ -35,8 +35,8 @@ contract ConvexStrategy is BaseStrategy {
         IStableSwap3Pool _stableSwap3Pool,
         address _controller,
         address _manager,
-        address _router
-    ) public BaseStrategy(_name, _controller, _manager, _want, _weth, _router) {
+        address[] memory _routerArray
+    ) public BaseStrategy(_name, _controller, _manager, _want, _weth, _routerArray) {
         (, address _token, , address _crvRewards, , ) = _convexVault.poolInfo(_pid);
         crv = _crv;
         cvx = _cvx;
@@ -57,7 +57,7 @@ contract ConvexStrategy is BaseStrategy {
             _usdc,
             _usdt,
             address(_convexVault),
-            _router,
+            _routerArray,
             address(_stableSwap3Pool)
         );
     }
@@ -70,12 +70,14 @@ contract ConvexStrategy is BaseStrategy {
         address _usdc,
         address _usdt,
         address _convexVault,
-        address _router,
+        address[] memory _routerArray,
         address _stableSwap3Pool
     ) internal {
         IERC20(_want).safeApprove(address(_convexVault), type(uint256).max);
-        IERC20(_crv).safeApprove(address(_router), type(uint256).max);
-        IERC20(_cvx).safeApprove(address(_router), type(uint256).max);
+            for(uint i=0; i<_routerArray.length; i++) {
+                IERC20(_crv).safeApprove(address(_routerArray[i]), type(uint256).max);
+                IERC20(_cvx).safeApprove(address(_routerArray[i]), type(uint256).max);
+            }
         IERC20(_dai).safeApprove(address(_stableSwap3Pool), type(uint256).max);
         IERC20(_usdc).safeApprove(address(_stableSwap3Pool), type(uint256).max);
         IERC20(_usdt).safeApprove(address(_stableSwap3Pool), type(uint256).max);
@@ -130,6 +132,7 @@ contract ConvexStrategy is BaseStrategy {
         }
 
         uint256 _remainingWeth = _payHarvestFees(crv, _estimatedWETH, _estimatedYAXIS);
+        setRouterInternal(0); // Set router to routerArray[0] == Sushiswap router
 
         if (_remainingWeth > 0) {
             (address _stableCoin, ) = getMostPremium(); // stablecoin we want to convert to
