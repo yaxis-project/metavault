@@ -3,8 +3,11 @@
 pragma solidity 0.6.12;
 
 import '../interfaces/IConvexVault.sol';
+import '../interfaces/ICurvePool.sol';
 import '../interfaces/IStableSwap2Pool.sol';
+import '../interfaces/IStableSwap3Pool.sol';
 import './BaseStrategy.sol';
+import '../interfaces/ExtendedIERC20.sol';
 
 contract MIMConvexStrategy is BaseStrategy {
     // used for Crv -> weth -> [mim/3crv] -> mimCrv route
@@ -33,7 +36,7 @@ contract MIMConvexStrategy is BaseStrategy {
      * @param _stableSwap2Pool The address of the stable swap pool
      * @param _controller The address of the controller
      * @param _manager The address of the manager
-     * @param _router The address of the router for swapping tokens
+     * @param _routerArray The address array of routers for swapping tokens
      */
     constructor(
         string memory _name,
@@ -48,8 +51,8 @@ contract MIMConvexStrategy is BaseStrategy {
         IStableSwap2Pool _stableSwap2Pool,
         address _controller,
         address _manager,
-        address _router
-    ) public BaseStrategy(_name, _controller, _manager, _want, _weth, _router) {
+        address[] memory _routerArray
+    ) public BaseStrategy(_name, _controller, _manager, _want, _weth, _routerArray) {
         require(address(_crv) != address(0), '!_crv');
         require(address(_cvx) != address(0), '!_cvx');
         require(address(_mim) != address(0), '!_mim');
@@ -75,7 +78,8 @@ contract MIMConvexStrategy is BaseStrategy {
             _mim,
             _crv3,
             address(_convexVault),
-            address(_stableSwap2Pool)
+            address(_stableSwap2Pool),
+            _routerArray
         );
     }
 
@@ -86,11 +90,14 @@ contract MIMConvexStrategy is BaseStrategy {
         address _mim,
         address _crv3,
         address _convexVault,
-        address _stableSwap2Pool
+        address _stableSwap2Pool,
+        address[] memory _routerArray
     ) internal {
         IERC20(_want).safeApprove(address(_convexVault), type(uint256).max);
-        IERC20(_crv).safeApprove(address(router), type(uint256).max);
-        IERC20(_cvx).safeApprove(address(router), type(uint256).max);
+        for(uint i=0; i<_routerArray.length; i++) {
+            IERC20(_crv).safeApprove(address(_routerArray[i]), type(uint256).max);
+            IERC20(_cvx).safeApprove(address(_routerArray[i]), type(uint256).max);
+        }
         IERC20(_mim).safeApprove(address(_stableSwap2Pool), type(uint256).max);
         IERC20(_crv3).safeApprove(address(_stableSwap2Pool), type(uint256).max);
         IERC20(_want).safeApprove(address(_stableSwap2Pool), type(uint256).max);
@@ -108,25 +115,43 @@ contract MIMConvexStrategy is BaseStrategy {
 
     function _addLiquidity() internal {
         uint256[2] memory amounts;
-        amounts[0] = IERC20(mim).balanceOf(address(this));
         amounts[1] = IERC20(crv3).balanceOf(address(this));
         stableSwap2Pool.add_liquidity(amounts, 1);
     }
 
+    function _addLiquidity3CRV() internal {
+        uint256[3] memory amounts;
+        (address targetCoin, uint256 targetIndex) = getMostPremium();
+        amounts[targetIndex] = IERC20(targetCoin).balanceOf(address(this));
+        IStableSwap3Pool(crv3).add_liquidity(amounts, 1);
+    }
+
     function getMostPremium() public view returns (address, uint256) {
-        // both MIM and 3CRV have 18 decimals
-        if (stableSwap2Pool.balances(0) > stableSwap2Pool.balances(1)) {
-            return (crv3, 1);
+        ICurvePool stablePool = ICurvePool(crv3);
+        uint256 daiBalance = stablePool.balances(0);
+        uint256 usdcBalance = (stablePool.balances(1)).mul(10**18).div(ExtendedIERC20(stablePool.coins(1)).decimals());
+        uint256 usdtBalance = (stablePool.balances(2)).mul(10**12); 
+
+        if (daiBalance <= usdcBalance && daiBalance <= usdtBalance) {
+            return (stablePool.coins(0), 0);
         }
 
-        return (mim, 0); // If they're somehow equal, we just want MIM
+        if (usdcBalance <= daiBalance && usdcBalance <= usdtBalance) {
+            return (stablePool.coins(1), 1);
+        }
+
+        if (usdtBalance <= daiBalance && usdtBalance <= usdcBalance) {
+            return (stablePool.coins(2), 2);
+        }
+
+        return (stablePool.coins(0), 0); // If they're somehow equal, we just want DAI
     }
 
     function _harvest(uint256 _estimatedWETH, uint256 _estimatedYAXIS) internal override {
         _claimReward();
         uint256 _cvxBalance = IERC20(cvx).balanceOf(address(this));
         if (_cvxBalance > 0) {
-            _swapTokens(cvx, crv, _cvxBalance, 1);
+            _swapTokens(cvx, weth, _cvxBalance, 1);
         }
 
         uint256 _extraRewardsLength = crvRewards.extraRewardsLength();
@@ -139,9 +164,11 @@ contract MIMConvexStrategy is BaseStrategy {
         }
 
         uint256 _remainingWeth = _payHarvestFees(crv, _estimatedWETH, _estimatedYAXIS);
+        setRouterInternal(0); // Set router to routerArray[0] == Sushiswap router
         if (_remainingWeth > 0) {
             (address _token, ) = getMostPremium(); // stablecoin we want to convert to
             _swapTokens(weth, _token, _remainingWeth, 1);
+            _addLiquidity3CRV();
             _addLiquidity();
             _deposit();
         }
