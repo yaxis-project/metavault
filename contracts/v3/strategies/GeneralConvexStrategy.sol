@@ -37,7 +37,7 @@ contract GeneralConvexStrategy is BaseStrategy {
      * @param _stableSwapPool The address of the stable swap pool
      * @param _controller The address of the controller
      * @param _manager The address of the manager
-     * @param _router The address of the router for swapping tokens
+     * @param _routerArray The addresses of routers for swapping tokens
      */
     constructor(
         string memory _name,
@@ -51,8 +51,8 @@ contract GeneralConvexStrategy is BaseStrategy {
         address _stableSwapPool,
         address _controller,
         address _manager,
-        address _router
-    ) public BaseStrategy(_name, _controller, _manager, _want, _weth, _router) {
+        address[] memory _routerArray
+    ) public BaseStrategy(_name, _controller, _manager, _want, _weth, _routerArray) {
         require(_coinCount == 2 || _coinCount == 3, '_coinCount should be 2 or 3');
         require(address(_crv) != address(0), '!_crv');
         require(address(_cvx) != address(0), '!_cvx');
@@ -75,8 +75,10 @@ contract GeneralConvexStrategy is BaseStrategy {
         }
 
         IERC20(_want).safeApprove(address(_convexVault), type(uint256).max);
-        IERC20(_crv).safeApprove(address(_router), type(uint256).max);
-        IERC20(_cvx).safeApprove(address(_router), type(uint256).max);
+        for(uint i=0; i<_routerArray.length; i++) {
+            IERC20(_crv).safeApprove(address(_routerArray[i]), type(uint256).max);
+            IERC20(_cvx).safeApprove(address(_routerArray[i]), type(uint256).max);
+        }
         IERC20(_want).safeApprove(address(_stableSwapPool), type(uint256).max);
     }
 
@@ -143,7 +145,7 @@ contract GeneralConvexStrategy is BaseStrategy {
         _claimReward();
         uint256 _cvxBalance = IERC20(cvx).balanceOf(address(this));
         if (_cvxBalance > 0) {
-            _swapTokens(cvx, crv, _cvxBalance, 1);
+            _swapTokens(cvx, weth, _cvxBalance, 1);
         }
 
         uint256 _extraRewardsLength = crvRewards.extraRewardsLength();
@@ -156,6 +158,7 @@ contract GeneralConvexStrategy is BaseStrategy {
         }
 
         uint256 _remainingWeth = _payHarvestFees(crv, _estimatedWETH, _estimatedYAXIS);
+        setRouterInternal(0); // Set router to routerArray[0] == needed router
         if (_remainingWeth > 0) {
             (address _targetCoin, ) = getMostPremium();
             _swapTokens(weth, _targetCoin, _remainingWeth, 1);
