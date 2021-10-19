@@ -20,6 +20,7 @@ contract ConvexStrategy is BaseStrategy {
     address public immutable cvxDepositLP;
     IConvexRewards public immutable crvRewards;
     IStableSwap3Pool public immutable stableSwap3Pool;
+    address[] public routerArray;
 
     constructor(
         string memory _name,
@@ -35,8 +36,8 @@ contract ConvexStrategy is BaseStrategy {
         IStableSwap3Pool _stableSwap3Pool,
         address _controller,
         address _manager,
-        address[] memory _routerArray
-    ) public BaseStrategy(_name, _controller, _manager, _want, _weth, _routerArray) {
+        address[] memory _routerArray // [0]=Sushiswap, [1]=Uniswap
+    ) public BaseStrategy(_name, _controller, _manager, _want, _weth, _routerArray[0]) {
         (, address _token, , address _crvRewards, , ) = _convexVault.poolInfo(_pid);
         crv = _crv;
         cvx = _cvx;
@@ -128,11 +129,11 @@ contract ConvexStrategy is BaseStrategy {
         _claimReward();
         uint256 _cvxBalance = IERC20(cvx).balanceOf(address(this));
         if (_cvxBalance > 0) {
-            _swapTokens(cvx, crv, _cvxBalance, 1);
+            _swapTokens(cvx, weth, _cvxBalance, 1);
         }
-
-        uint256 _remainingWeth = _payHarvestFees(crv, _estimatedWETH, _estimatedYAXIS);
-        setRouterInternal(0); // Set router to routerArray[0] == Sushiswap router
+        // routerArray[1] sets router to Uniswap to swap WETH->YAXIS
+        uint256 _remainingWeth = _payHarvestFees(crv, _estimatedWETH, _estimatedYAXIS, routerArray[1]);
+        setRouterInternal(routerArray[0]); // Set router to routerArray[0] == Sushiswap router
 
         if (_remainingWeth > 0) {
             (address _stableCoin, ) = getMostPremium(); // stablecoin we want to convert to
