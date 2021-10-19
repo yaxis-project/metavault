@@ -23,6 +23,8 @@ contract MIMConvexStrategy is BaseStrategy {
     IConvexRewards public immutable crvRewards;
     IStableSwap2Pool public immutable stableSwap2Pool;
 
+    address[] public routerArray;
+
     /**
      * @param _name The strategy name
      * @param _want The desired token of the strategy
@@ -52,7 +54,7 @@ contract MIMConvexStrategy is BaseStrategy {
         address _controller,
         address _manager,
         address[] memory _routerArray
-    ) public BaseStrategy(_name, _controller, _manager, _want, _weth, _routerArray) {
+    ) public BaseStrategy(_name, _controller, _manager, _want, _weth, _routerArray[0]) {
         require(address(_crv) != address(0), '!_crv');
         require(address(_cvx) != address(0), '!_cvx');
         require(address(_mim) != address(0), '!_mim');
@@ -163,8 +165,8 @@ contract MIMConvexStrategy is BaseStrategy {
             }
         }
 
-        uint256 _remainingWeth = _payHarvestFees(crv, _estimatedWETH, _estimatedYAXIS);
-        setRouterInternal(0); // Set router to routerArray[0] == Sushiswap router
+        uint256 _remainingWeth = _payHarvestFees(crv, _estimatedWETH, _estimatedYAXIS, routerArray[1]);
+        setRouterInternal(routerArray[0]); // Set router to routerArray[0] == Sushiswap router
         if (_remainingWeth > 0) {
             (address _token, ) = getMostPremium(); // stablecoin we want to convert to
             _swapTokens(weth, _token, _remainingWeth, 1);
