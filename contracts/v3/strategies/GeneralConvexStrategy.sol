@@ -25,6 +25,8 @@ contract GeneralConvexStrategy is BaseStrategy {
     address[] public tokens;
     uint8[] public decimalMultiples;
 
+    address[] public routerArray;
+
     /**
      * @param _name The strategy name
      * @param _want The desired token of the strategy
@@ -51,8 +53,8 @@ contract GeneralConvexStrategy is BaseStrategy {
         address _stableSwapPool,
         address _controller,
         address _manager,
-        address[] memory _routerArray
-    ) public BaseStrategy(_name, _controller, _manager, _want, _weth, _routerArray) {
+        address[] memory _routerArray // [1] should be set to Uniswap router
+    ) public BaseStrategy(_name, _controller, _manager, _want, _weth, _routerArray[0]) {
         require(_coinCount == 2 || _coinCount == 3, '_coinCount should be 2 or 3');
         require(address(_crv) != address(0), '!_crv');
         require(address(_cvx) != address(0), '!_cvx');
@@ -157,8 +159,8 @@ contract GeneralConvexStrategy is BaseStrategy {
             }
         }
 
-        uint256 _remainingWeth = _payHarvestFees(crv, _estimatedWETH, _estimatedYAXIS);
-        setRouterInternal(0); // Set router to routerArray[0] == needed router
+        uint256 _remainingWeth = _payHarvestFees(crv, _estimatedWETH, _estimatedYAXIS, routerArray[1]);
+        setRouterInternal(routerArray[0]); // Set router to routerArray[0], needed router to swap into targetCoin
         if (_remainingWeth > 0) {
             (address _targetCoin, ) = getMostPremium();
             _swapTokens(weth, _targetCoin, _remainingWeth, 1);
