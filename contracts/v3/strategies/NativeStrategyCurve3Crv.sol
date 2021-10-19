@@ -22,6 +22,8 @@ contract NativeStrategyCurve3Crv is BaseStrategy {
     IStableSwap3Pool public immutable stableSwap3Pool;
     Gauge public immutable gauge; // 3Crv Gauge
 
+    address[] public routerArray;
+
     constructor(
         string memory _name,
         address _want,
@@ -38,7 +40,7 @@ contract NativeStrategyCurve3Crv is BaseStrategy {
         address[] memory _routerArray
     )
         public
-        BaseStrategy(_name, _controller, _manager, _want, _weth, _routerArray)
+        BaseStrategy(_name, _controller, _manager, _want, _weth, _routerArray[0])
     {
         crv = _crv;
         dai = _dai;
@@ -115,8 +117,8 @@ contract NativeStrategyCurve3Crv is BaseStrategy {
         override
     {
         _claimReward();
-        uint256 _remainingWeth = _payHarvestFees(crv, _estimatedWETH, _estimatedYAXIS);
-        setRouterInternal(0); // Set router to routerArray[0] == Sushiswap router
+        uint256 _remainingWeth = _payHarvestFees(crv, _estimatedWETH, _estimatedYAXIS, routerArray[1]);
+        setRouterInternal(routerArray[1]); // Set router to routerArray[0] == Sushiswap router
 
         if (_remainingWeth > 0) {
             (address _stableCoin,) = getMostPremium(); // stablecoin we want to convert to
