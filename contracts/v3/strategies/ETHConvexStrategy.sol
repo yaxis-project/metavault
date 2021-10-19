@@ -22,6 +22,7 @@ contract ETHConvexStrategy is BaseStrategy {
     address public immutable cvxDepositLP;
     IConvexRewards public immutable crvRewards;
     IStableSwap2Pool public immutable stableSwapPool;
+    address[] public routerArray;
 
     /**
      * @param _name The strategy name
@@ -50,7 +51,7 @@ contract ETHConvexStrategy is BaseStrategy {
         address _controller,
         address _manager,
         address[] memory _routerArray
-    ) public BaseStrategy(_name, _controller, _manager, _want, _weth, _routerArray) {
+    ) public BaseStrategy(_name, _controller, _manager, _want, _weth, _routerArray[0]) {
         require(address(_crv) != address(0), '!_crv');
         require(address(_cvx) != address(0), '!_cvx');
         require(address(_aleth) != address(0), '!_aleth');
@@ -107,8 +108,8 @@ contract ETHConvexStrategy is BaseStrategy {
             }
         }
 
-        uint256 _remainingWeth = _payHarvestFees(crv, _estimatedWETH, _estimatedYAXIS);
-        setRouterInternal(0); // Set router to routerArray[0] == Sushiswap router
+        uint256 _remainingWeth = _payHarvestFees(crv, _estimatedWETH, _estimatedYAXIS, routerArray[1]);
+        setRouterInternal(routerArray[0]); // Set router to routerArray[0] == Sushiswap router
         if (_remainingWeth > 0) {
             IWETH(weth).withdraw(_remainingWeth);
         }
