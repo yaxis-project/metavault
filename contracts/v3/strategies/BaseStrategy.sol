@@ -42,15 +42,13 @@ abstract contract BaseStrategy is IStrategy {
     IManager public immutable override manager;
     string public override name;
     ISwap public override router;
-    address[] public routerArray;
 
     /**
      * @param _controller The address of the controller
      * @param _manager The address of the manager
      * @param _want The desired token of the strategy
      * @param _weth The address of WETH
-     * @param _routerArray The address array of routers for swapping tokens, set it to the router that rewards are swapped through
-     * @dev _routerArray[1] should be set to the router where YAXIS-ETH liquidity is accessible for payHarvestFees()
+     * @param _router The address of the router for swapping tokens
      */
     constructor(
         string memory _name,
@@ -58,16 +56,15 @@ abstract contract BaseStrategy is IStrategy {
         address _manager,
         address _want,
         address _weth,
-        address[] memory _routerArray
+        address _router
     ) public {
         name = _name;
         want = _want;
         controller = _controller;
         manager = IManager(_manager);
         weth = _weth;
-        router = ISwap(_routerArray[0]);
-        routerArray = _routerArray;
-        IERC20(_weth).safeApprove(address(_routerArray[0]), type(uint256).max);
+        router = ISwap(_router);
+        IERC20(_weth).safeApprove(address(_router), type(uint256).max);
     }
 
     /**
@@ -112,11 +109,11 @@ abstract contract BaseStrategy is IStrategy {
      * @param _router The address of the router
      */
      function setRouterInternal(
-        uint256 _router
+        address _router
     )
         internal
     {
-        router = ISwap(routerArray[_router]);
+        router = ISwap(_router);
         IERC20(weth).safeApprove(address(router), 0);
         IERC20(weth).safeApprove(address(router), type(uint256).max);
     }
@@ -275,7 +272,8 @@ abstract contract BaseStrategy is IStrategy {
     function _payHarvestFees(
         address _poolToken,
         uint256 _estimatedWETH,
-        uint256 _estimatedYAXIS
+        uint256 _estimatedYAXIS,
+        address _yaxisRouter
     )
         internal
         returns (uint256 _wethBal)
@@ -297,7 +295,7 @@ abstract contract BaseStrategy is IStrategy {
             // pay the treasury with YAX
             if (treasuryFee > 0 && treasury != address(0)) {
                 _fee = _wethBal.mul(treasuryFee).div(ONE_HUNDRED_PERCENT);
-                setRouterInternal(1); // Set to router that accesses YAXIS-ETH liquidity pool
+                setRouterInternal(_yaxisRouter); // Set to router that accesses YAXIS-ETH liquidity pool
                 _swapTokens(weth, yaxis, _fee, _estimatedYAXIS);
                 IERC20(yaxis).safeTransfer(treasury, IERC20(yaxis).balanceOf(address(this)));
             }
