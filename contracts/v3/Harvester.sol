@@ -10,7 +10,6 @@ import "./interfaces/IHarvester.sol";
 import "./interfaces/ILegacyController.sol";
 import "./interfaces/IManager.sol";
 import "./interfaces/IStrategy.sol";
-import "./interfaces/IStrategyExtended.sol";
 import "./interfaces/ISwap.sol";
 
 /**
