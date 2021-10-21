@@ -10,6 +10,7 @@ import "./interfaces/IHarvester.sol";
 import "./interfaces/ILegacyController.sol";
 import "./interfaces/IManager.sol";
 import "./interfaces/IStrategy.sol";
+import "./interfaces/IStrategyExtended.sol";
 import "./interfaces/ISwap.sol";
 
 /**
@@ -27,7 +28,7 @@ contract Harvester is IHarvester {
     IController public immutable controller;
     ILegacyController public immutable legacyController;
 
-    uint256 public slippage;
+    uint256 public override slippage;
 
     struct Strategy {
         uint256 timeout;
@@ -184,13 +185,12 @@ contract Harvester is IHarvester {
     function harvest(
         IController _controller,
         address _strategy,
-        uint256 _estimatedWETH,
-        uint256 _estimatedYAXIS
+        uint256[] memory _estimates
     )
         public
         onlyHarvester
     {
-        _controller.harvestStrategy(_strategy, _estimatedWETH, _estimatedYAXIS);
+        _controller.harvestStrategy(_strategy, _estimates);
         emit Harvest(address(_controller), _strategy);
     }
 
@@ -201,14 +201,13 @@ contract Harvester is IHarvester {
      */
     function harvestNextStrategy(
         address _vault,
-        uint256 _estimatedWETH,
-        uint256 _estimatedYAXIS
+        uint256[] memory _estimates
     )
         external
     {
         require(canHarvest(_vault), "!canHarvest");
         address strategy = strategies[_vault].addresses[0];
-        harvest(controller, strategy, _estimatedWETH, _estimatedYAXIS);
+        harvest(controller, strategy, _estimates);
         uint256 k = strategies[_vault].addresses.length;
         if (k > 1) {
             address[] memory _strategies = new address[](k);
@@ -283,28 +282,9 @@ contract Harvester is IHarvester {
     )
         public
         view
-        returns (uint256 _estimatedWETH, uint256 _estimatedYAXIS)
+        returns (uint256[] memory _estimates)
     {
-        ISwap _router = IStrategy(_strategy).router();
-        address[] memory _path;
-        _path[0] = IStrategy(_strategy).want();
-        _path[1] = IStrategy(_strategy).weth();
-        uint256[] memory _amounts = _router.getAmountsOut(
-            IStrategy(_strategy).balanceOfPool(),
-            _path
-        );
-        _estimatedWETH = _amounts[1];
-        uint256 _slippage = slippage;
-        if (_slippage > 0) {
-            _estimatedWETH = _estimatedWETH.mul(_slippage).div(ONE_HUNDRED_PERCENT);
-        }
-        _path[0] = manager.yaxis();
-        uint256 _fee = _estimatedWETH.mul(manager.treasuryFee()).div(ONE_HUNDRED_PERCENT);
-        _amounts = _router.getAmountsOut(_fee, _path);
-        _estimatedYAXIS = _amounts[1];
-        if (_slippage > 0) {
-            _estimatedYAXIS = _estimatedYAXIS.mul(_slippage).div(ONE_HUNDRED_PERCENT);
-        }
+        _estimates = IStrategyExtended(_strategy).getEstimates();
     }
 
     /**
