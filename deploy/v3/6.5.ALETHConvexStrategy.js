@@ -16,7 +16,9 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
     const name = 'Convex: ALETHCRV';
     let pid = 49;
 
-    const Strategy = await deploy('GeneralConvexStrategy', {
+
+    const Strategy = await deploy('ALETHConvexStrategy', {
+        contract: 'GeneralConvexStrategy',
         from: deployer,
         log: true,
         args: [

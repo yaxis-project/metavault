@@ -1,0 +1,35 @@
+{
+  "language": "Solidity",
+  "sources": {
+    "contracts/mock/MockERC20NonStandard.sol": {
+      "content": "// SPDX-License-Identifier: MIT\n\npragma solidity 0.6.12;\n\ncontract MockERC20NonStandard {\n    string private _name;\n    string private _symbol;\n    uint8 private _decimals;\n\n    address private _owner;\n\n    uint internal _totalSupply;\n\n    mapping(address => uint)                   private _balance;\n    mapping(address => mapping(address => uint)) private _allowance;\n\n    modifier _onlyOwner_() {\n        require(msg.sender == _owner, \"ERR_NOT_OWNER\");\n        _;\n    }\n\n    event Approval(address indexed src, address indexed dst, uint amt);\n    event Transfer(address indexed src, address indexed dst, uint amt);\n\n    // Math\n    function add(uint a, uint b) internal pure returns (uint c) {\n        require((c = a + b) >= a);\n    }\n\n    function sub(uint a, uint b) internal pure returns (uint c) {\n        require((c = a - b) <= a);\n    }\n\n    constructor(\n        string memory name,\n        string memory symbol,\n        uint8 decimals\n    ) public {\n        _name = name;\n        _symbol = symbol;\n        _decimals = decimals;\n        _owner = msg.sender;\n    }\n\n    function name() public view returns (string memory) {\n        return _name;\n    }\n\n    function symbol() public view returns (string memory) {\n        return _symbol;\n    }\n\n    function decimals() public view returns (uint8) {\n        return _decimals;\n    }\n\n    function _move(address src, address dst, uint amt) internal {\n        require(_balance[src] >= amt, \"!bal\");\n        _balance[src] = sub(_balance[src], amt);\n        _balance[dst] = add(_balance[dst], amt);\n        emit Transfer(src, dst, amt);\n    }\n\n    function _push(address to, uint amt) internal {\n        _move(address(this), to, amt);\n    }\n\n    function _pull(address from, uint amt) internal {\n        _move(from, address(this), amt);\n    }\n\n    function _mint(address dst, uint amt) internal {\n        _balance[dst] = add(_balance[dst], amt);\n        _totalSupply = add(_totalSupply, amt);\n        emit Transfer(address(0), dst, amt);\n    }\n\n    function _burn(address dst, uint amt) internal {\n        _balance[dst] = sub(_balance[dst], amt);\n        _totalSupply = sub(_totalSupply, amt);\n        emit Transfer(dst, address(0), amt);\n    }\n\n    function allowance(address src, address dst) external view returns (uint) {\n        return _allowance[src][dst];\n    }\n\n    function balanceOf(address whom) public view returns (uint) {\n        return _balance[whom];\n    }\n\n    function faucet(uint256 amt) public {\n        _mint(msg.sender, amt);\n    }\n\n    function totalSupply() public view returns (uint) {\n        return _totalSupply;\n    }\n\n    function approve(address dst, uint amt) external {\n        _allowance[msg.sender][dst] = amt;\n        emit Approval(msg.sender, dst, amt);\n    }\n\n    function mint(address dst, uint256 amt) public _onlyOwner_ {\n        _mint(dst, amt);\n    }\n\n    function burn(uint amt) public {\n        require(_balance[msg.sender] >= amt, \"!bal\");\n        _burn(msg.sender, amt);\n    }\n\n    function burnFrom(address src, uint amt) public _onlyOwner_ {\n        require(_balance[src] >= amt, \"!bal\");\n        _burn(src, amt);\n    }\n\n    function transfer(address dst, uint amt) external {\n        _move(msg.sender, dst, amt);\n    }\n\n    function transferFrom(address src, address dst, uint amt) external {\n        require(msg.sender == src || amt <= _allowance[src][msg.sender], \"!spender\");\n        _move(src, dst, amt);\n        if (msg.sender != src && _allowance[src][msg.sender] != uint256(- 1)) {\n            _allowance[src][msg.sender] = sub(_allowance[src][msg.sender], amt);\n            emit Approval(msg.sender, dst, _allowance[src][msg.sender]);\n        }\n    }\n\n    function transferOwnership(address newOwner) external _onlyOwner_ {\n        _owner = newOwner;\n    }\n}\n"
+    }
+  },
+  "settings": {
+    "optimizer": {
+      "enabled": true,
+      "runs": 200
+    },
+    "outputSelection": {
+      "*": {
+        "*": [
+          "abi",
+          "evm.bytecode",
+          "evm.deployedBytecode",
+          "evm.methodIdentifiers",
+          "metadata",
+          "devdoc",
+          "userdoc",
+          "storageLayout",
+          "evm.gasEstimates"
+        ],
+        "": [
+          "ast"
+        ]
+      }
+    },
+    "metadata": {
+      "useLiteralContent": true
+    }
+  }
+}
