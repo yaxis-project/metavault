@@ -248,7 +248,7 @@ contract Vault is IVault {
         override
         returns (uint256 _balance)
     {
-        return balanceOfThis().add(IController(manager.controllers(address(this))).balanceOf());
+        return balanceOfThis().add(_normalizeDecimals(IController(manager.controllers(address(this))).balanceOf()));
     }
 
     /**
