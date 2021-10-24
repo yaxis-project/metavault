@@ -16,7 +16,8 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
     const name = 'Convex: LINKCRV';
     let pid = 30;
 
-    const Strategy = await deploy('GeneralConvexStrategy', {
+    const Strategy = await deploy('LINKConvexStrategy', {
+        contract: 'GeneralConvexStrategy',
         from: deployer,
         log: true,
         args: [
