@@ -38,7 +38,6 @@ module.exports = async ({ getChainId, getNamedAccounts, deployments }) => {
         log: true,
         args: [VaultToken.address, Minter.address, GaugeProxy.address]
     });
-    
 
     if (Gauge.newlyDeployed) {
         await execute(

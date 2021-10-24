@@ -27,7 +27,6 @@ module.exports = async ({ getChainId, getNamedAccounts, deployments }) => {
         args: [WETH, VaultToken.address, Manager.address]
     });
 
-
     const Gauge = await deploy('VaultWETHGauge', {
         contract: 'LiquidityGaugeV2',
         from: deployer,
