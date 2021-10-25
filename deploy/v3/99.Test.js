@@ -282,7 +282,7 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
             StableSwap.address,
             Controller.address,
             Manager.address,
-            Router.address
+            [Router.address, Router.address]
         ]
     });
 };
