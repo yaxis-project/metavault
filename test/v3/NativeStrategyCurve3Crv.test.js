@@ -67,7 +67,7 @@ describe('NativeStrategyCurve3Crv', () => {
                 stableSwap3Pool.address,
                 controller.address,
                 manager.address,
-                unirouter.address
+                [unirouter.address, unirouter.address]
             ]
         });
         nativeStrategyCurve3Crv = await ethers.getContractAt(
@@ -125,7 +125,7 @@ describe('NativeStrategyCurve3Crv', () => {
     describe('setRouter', () => {
         it('should revert if called by an address other than governance', async () => {
             await expect(
-                nativeStrategyCurve3Crv.connect(user).setRouter(ethers.constants.AddressZero)
+                nativeStrategyCurve3Crv.connect(user).setRouter([ethers.constants.AddressZero], [dai.address])
             ).to.be.revertedWith('!governance');
         });
 
@@ -133,7 +133,7 @@ describe('NativeStrategyCurve3Crv', () => {
             expect(await nativeStrategyCurve3Crv.router()).to.equal(unirouter.address);
             await nativeStrategyCurve3Crv
                 .connect(treasury)
-                .setRouter(ethers.constants.AddressZero);
+                .setRouter([ethers.constants.AddressZero], [dai.address]);
             expect(await nativeStrategyCurve3Crv.router()).to.equal(
                 ethers.constants.AddressZero
             );
@@ -148,7 +148,7 @@ describe('NativeStrategyCurve3Crv', () => {
 
     describe('deposit', () => {
         it('should revert if called by an address other than controller', async () => {
-            await expect(nativeStrategyCurve3Crv.harvest(0, 0)).to.be.revertedWith(
+            await expect(nativeStrategyCurve3Crv.harvest([0, 0, 0, 0, 0, 0, 0, 0])).to.be.revertedWith(
                 '!controller'
             );
         });
