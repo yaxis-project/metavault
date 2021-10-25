@@ -57,7 +57,7 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
         const mockMinter = await deployments.get('MockCurveMinter');
         minter = mockMinter.address;
         const router = await deployments.get('MockUniswapRouter');
-        unirouter = router.address;
+        unirouter = [router.address, router.address];
         if (deployedMinter.newlyDeployed) {
             await execute(
                 'CRV',
