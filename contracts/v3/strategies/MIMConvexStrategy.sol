@@ -97,7 +97,9 @@ contract MIMConvexStrategy is BaseStrategy {
     ) internal {
         IERC20(_want).safeApprove(address(_convexVault), type(uint256).max);
         for(uint i=0; i<_routerArray.length; i++) {
+            IERC20(_crv).safeApprove(address(_routerArray[i]), 0);
             IERC20(_crv).safeApprove(address(_routerArray[i]), type(uint256).max);
+            IERC20(_cvx).safeApprove(address(_routerArray[i]), 0);
             IERC20(_cvx).safeApprove(address(_routerArray[i]), type(uint256).max);
         }
         IERC20(_mim).safeApprove(address(_stableSwap2Pool), type(uint256).max);
