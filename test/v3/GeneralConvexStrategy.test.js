@@ -61,7 +61,7 @@ describe('GeneralConvexStrategy with 2 tokens', () => {
                 stableSwapPool.address,
                 controller.address,
                 manager.address,
-                unirouter.address
+                [unirouter.address, unirouter.address]
             ]
         });
         convexStrategy = await ethers.getContractAt(
@@ -110,13 +110,13 @@ describe('GeneralConvexStrategy with 2 tokens', () => {
     describe('setRouter', () => {
         it('should revert if called by an address other than governance', async () => {
             await expect(
-                convexStrategy.connect(user).setRouter(ethers.constants.AddressZero)
+                convexStrategy.connect(user).setRouter([ethers.constants.AddressZero], [weth.address])
             ).to.be.revertedWith('!governance');
         });
 
         it('should set router when called by governance', async () => {
             expect(await convexStrategy.router()).to.equal(unirouter.address);
-            await convexStrategy.connect(treasury).setRouter(ethers.constants.AddressZero);
+            await convexStrategy.connect(treasury).setRouter([ethers.constants.AddressZero], [weth.address]);
             expect(await convexStrategy.router()).to.equal(ethers.constants.AddressZero);
         });
     });
@@ -129,7 +129,7 @@ describe('GeneralConvexStrategy with 2 tokens', () => {
 
     describe('deposit', () => {
         it('should revert if called by an address other than controller', async () => {
-            await expect(convexStrategy.harvest(0, 0)).to.be.revertedWith('!controller');
+            await expect(convexStrategy.harvest([0, 0, 0, 0, 0, 0, 0, 0])).to.be.revertedWith('!controller');
         });
     });
 
@@ -218,7 +218,7 @@ describe('GeneralConvexStrategy with 3 tokens', () => {
                 stableSwapPool.address,
                 controller.address,
                 manager.address,
-                unirouter.address
+                [unirouter.address, unirouter.address]
             ]
         });
         convexStrategy = await ethers.getContractAt(
@@ -267,13 +267,13 @@ describe('GeneralConvexStrategy with 3 tokens', () => {
     describe('setRouter', () => {
         it('should revert if called by an address other than governance', async () => {
             await expect(
-                convexStrategy.connect(user).setRouter(ethers.constants.AddressZero)
+                convexStrategy.connect(user).setRouter([ethers.constants.AddressZero], [weth.address])
             ).to.be.revertedWith('!governance');
         });
 
         it('should set router when called by governance', async () => {
             expect(await convexStrategy.router()).to.equal(unirouter.address);
-            await convexStrategy.connect(treasury).setRouter(ethers.constants.AddressZero);
+            await convexStrategy.connect(treasury).setRouter([ethers.constants.AddressZero], [weth.address]);
             expect(await convexStrategy.router()).to.equal(ethers.constants.AddressZero);
         });
     });
@@ -286,7 +286,7 @@ describe('GeneralConvexStrategy with 3 tokens', () => {
 
     describe('deposit', () => {
         it('should revert if called by an address other than controller', async () => {
-            await expect(convexStrategy.harvest(0, 0)).to.be.revertedWith('!controller');
+            await expect(convexStrategy.harvest([0, 0, 0, 0, 0, 0, 0, 0])).to.be.revertedWith('!controller');
         });
     });
 
