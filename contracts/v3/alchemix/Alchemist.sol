@@ -11,7 +11,7 @@ import {SafeMath} from '@openzeppelin/contracts/math/SafeMath.sol';
 
 import {CDP} from './libraries/alchemist/CDP.sol';
 import {FixedPointMath} from './libraries/FixedPointMath.sol';
-import {Vault} from './libraries/alchemist/Vault.sol';
+import {AlchemistVault} from './libraries/alchemist/AlchemistVault.sol';
 import {ITransmuter} from './interfaces/ITransmuter.sol';
 import {IMintableERC20} from './interfaces/IMintableERC20.sol';
 import {IChainlink} from './interfaces/IChainlink.sol';
@@ -35,8 +35,8 @@ import 'hardhat/console.sol';
 contract Alchemist is ReentrancyGuard {
     using CDP for CDP.Data;
     using FixedPointMath for FixedPointMath.FixedDecimal;
-    using Vault for Vault.Data;
-    using Vault for Vault.List;
+    using AlchemistVault for AlchemistVault.Data;
+    using AlchemistVault for AlchemistVault.List;
     using SafeERC20 for IMintableERC20;
     using SafeMath for uint256;
     using Address for address;
@@ -157,7 +157,7 @@ contract Alchemist is ReentrancyGuard {
 
     /// @dev A list of all of the vaults. The last element of the list is the vault that is currently being used for
     /// deposits and withdraws. Vaults before the last element are considered inactive and are expected to be cleared.
-    Vault.List private _vaults;
+    AlchemistVault.List private _vaults;
 
     /// @dev The address of the link oracle.
     address public _linkGasOracle;
@@ -370,7 +370,7 @@ contract Alchemist is ReentrancyGuard {
     ///
     /// @return the amount of funds that were harvested from the vault.
     function harvest(uint256 _vaultId) external expectInitialized returns (uint256, uint256) {
-        Vault.Data storage _vault = _vaults.get(_vaultId);
+        AlchemistVault.Data storage _vault = _vaults.get(_vaultId);
 
         (uint256 _harvestedAmount, uint256 _decreasedValue) = _vault.harvest(address(this));
 
@@ -424,7 +424,7 @@ contract Alchemist is ReentrancyGuard {
         expectInitialized
         returns (uint256, uint256)
     {
-        Vault.Data storage _vault = _vaults.get(_vaultId);
+        AlchemistVault.Data storage _vault = _vaults.get(_vaultId);
         return _recallFunds(_vaultId, _vault.totalDeposited);
     }
 
@@ -449,7 +449,7 @@ contract Alchemist is ReentrancyGuard {
     ///
     /// @return the amount of tokens flushed to the active vault.
     function flushActiveVault() internal returns (uint256) {
-        Vault.Data storage _activeVault = _vaults.last();
+        AlchemistVault.Data storage _activeVault = _vaults.last();
         uint256 _depositedAmount = _activeVault.depositAll();
 
         emit FundsFlushed(_depositedAmount);
@@ -632,7 +632,7 @@ contract Alchemist is ReentrancyGuard {
     ///
     /// @return the vault adapter.
     function getVaultAdapter(uint256 _vaultId) external view returns (IVaultAdapter) {
-        Vault.Data storage _vault = _vaults.get(_vaultId);
+        AlchemistVault.Data storage _vault = _vaults.get(_vaultId);
         return _vault.adapter;
     }
 
@@ -642,7 +642,7 @@ contract Alchemist is ReentrancyGuard {
     ///
     /// @return the total amount of deposited tokens.
     function getVaultTotalDeposited(uint256 _vaultId) external view returns (uint256) {
-        Vault.Data storage _vault = _vaults.get(_vaultId);
+        AlchemistVault.Data storage _vault = _vaults.get(_vaultId);
         return _vault.totalDeposited;
     }
 
@@ -752,7 +752,7 @@ contract Alchemist is ReentrancyGuard {
         );
         require(_adapter.token() == token, 'Alchemist: token mismatch.');
 
-        _vaults.push(Vault.Data({adapter: _adapter, totalDeposited: 0}));
+        _vaults.push(AlchemistVault.Data({adapter: _adapter, totalDeposited: 0}));
 
         emit ActiveVaultUpdated(_adapter);
     }
@@ -772,7 +772,7 @@ contract Alchemist is ReentrancyGuard {
             'Alchemist: not an emergency, not governance, and user does not have permission to recall funds from active vault'
         );
 
-        Vault.Data storage _vault = _vaults.get(_vaultId);
+        AlchemistVault.Data storage _vault = _vaults.get(_vaultId);
         (uint256 _withdrawnAmount, uint256 _decreasedValue) = _vault.withdraw(
             address(this),
             _amount
@@ -809,7 +809,7 @@ contract Alchemist is ReentrancyGuard {
 
         // Pull the remaining funds from the active vault.
         if (_remainingAmount > 0) {
-            Vault.Data storage _activeVault = _vaults.last();
+            AlchemistVault.Data storage _activeVault = _vaults.last();
             (uint256 _withdrawAmount, uint256 _decreasedValue) = _activeVault.withdraw(
                 _recipient,
                 _remainingAmount
