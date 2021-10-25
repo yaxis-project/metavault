@@ -67,6 +67,7 @@ abstract contract BaseStrategy is IStrategy {
         routerArray = _routerArray;
         router = ISwap(_routerArray[0]);
         for(uint i=0; i<_routerArray.length; i++) {
+            IERC20(_weth).safeApprove(address(_routerArray[i]), 0);
             IERC20(_weth).safeApprove(address(_routerArray[i]), type(uint256).max);
         }
         
