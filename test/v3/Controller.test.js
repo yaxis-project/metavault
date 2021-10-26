@@ -646,8 +646,7 @@ describe('Controller', () => {
                         0,
                         0,
                         0
-                        ]
-                    )
+                    ])
                 )
                     .to.emit(controller, 'Harvest')
                     .withArgs(strategyCrv.address);
@@ -665,8 +664,7 @@ describe('Controller', () => {
                         0,
                         0,
                         0
-                        ]
-                    )
+                    ])
                 ).to.be.revertedWith('halted');
             });
         });
