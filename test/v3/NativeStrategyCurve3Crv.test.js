@@ -125,7 +125,9 @@ describe('NativeStrategyCurve3Crv', () => {
     describe('setRouter', () => {
         it('should revert if called by an address other than governance', async () => {
             await expect(
-                nativeStrategyCurve3Crv.connect(user).setRouter([ethers.constants.AddressZero], [dai.address])
+                nativeStrategyCurve3Crv
+                    .connect(user)
+                    .setRouter([ethers.constants.AddressZero], [dai.address])
             ).to.be.revertedWith('!governance');
         });
 
@@ -148,9 +150,9 @@ describe('NativeStrategyCurve3Crv', () => {
 
     describe('deposit', () => {
         it('should revert if called by an address other than controller', async () => {
-            await expect(nativeStrategyCurve3Crv.harvest([0, 0, 0, 0, 0, 0, 0, 0])).to.be.revertedWith(
-                '!controller'
-            );
+            await expect(
+                nativeStrategyCurve3Crv.harvest([0, 0, 0, 0, 0, 0, 0, 0])
+            ).to.be.revertedWith('!controller');
         });
     });
 
