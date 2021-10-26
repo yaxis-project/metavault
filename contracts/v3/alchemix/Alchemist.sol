@@ -14,7 +14,7 @@ import {FixedPointMath} from './libraries/FixedPointMath.sol';
 import {AlchemistVault} from './libraries/alchemist/AlchemistVault.sol';
 import {ITransmuter} from './interfaces/ITransmuter.sol';
 import {IMintableERC20} from './interfaces/IMintableERC20.sol';
-import {IChainlink} from './interfaces/IChainlink.sol';
+import {ICurveToken} from './interfaces/ICurveToken.sol';
 import {IVaultAdapter} from './interfaces/IVaultAdapter.sol';
 
 import 'hardhat/console.sol';
@@ -134,6 +134,9 @@ contract Alchemist is ReentrancyGuard {
 
     /// @dev The percent of each profitable harvest that will go to the rewards contract.
     uint256 public harvestFee;
+
+    /// @dev The percent of each profitable harvest that will go to the rewards contract.
+    uint256 public borrowFee;
 
     /// @dev The total amount the native token deposited into the system that is owned by external users.
     uint256 public totalDeposited;
@@ -281,6 +284,21 @@ contract Alchemist is ReentrancyGuard {
         emit HarvestFeeUpdated(_harvestFee);
     }
 
+    /// @dev Sets the borrow fee.
+    ///
+    /// This function reverts if the caller is not the current governance.
+    ///
+    /// @param _borrowFee the new borrow fee.
+    function setBorrowFee(uint256 _borrowFee) external onlyGov {
+        // Check that the borrow fee is within the acceptable range. Setting the borrow fee greater than 100% could
+        // potentially break internal logic when calculating the borrow fee.
+        require(_borrowFee <= PERCENT_RESOLUTION, 'Alchemist: borrow fee above maximum.');
+
+        borrowFee = _borrowFee;
+
+        emit HarvestFeeUpdated(_borrowFee);
+    }
+
     /// @dev Sets the collateralization limit.
     ///
     /// This function reverts if the caller is not the current governance or if the collateralization limit is outside
@@ -302,9 +320,8 @@ contract Alchemist is ReentrancyGuard {
         emit CollateralizationLimitUpdated(_limit);
     }
 
-    /// @dev Set oracle.
-    function setOracleAddress(address Oracle, uint256 peg) external onlyGov {
-        _linkGasOracle = Oracle;
+    /// @dev Set pegMinimum.
+    function setPegMinimum(uint256 peg) external onlyGov {
         pegMinimum = peg;
     }
 
@@ -529,7 +546,7 @@ contract Alchemist is ReentrancyGuard {
         external
         nonReentrant
         noContractAllowed
-        onLinkCheck
+        onPriceCheck
         expectInitialized
     {
         CDP.Data storage _cdp = _cdps[msg.sender];
@@ -559,7 +576,7 @@ contract Alchemist is ReentrancyGuard {
         external
         nonReentrant
         noContractAllowed
-        onLinkCheck
+        onPriceCheck
         expectInitialized
         returns (uint256, uint256)
     {
@@ -595,7 +612,7 @@ contract Alchemist is ReentrancyGuard {
         external
         nonReentrant
         noContractAllowed
-        onLinkCheck
+        onPriceCheck
         expectInitialized
     {
         CDP.Data storage _cdp = _cdps[msg.sender];
@@ -605,7 +622,9 @@ contract Alchemist is ReentrancyGuard {
 
         if (_totalCredit < _amount) {
             uint256 _remainingAmount = _amount.sub(_totalCredit);
-            _cdp.totalDebt = _cdp.totalDebt.add(_remainingAmount);
+            _cdp.totalDebt = _cdp.totalDebt.add(_remainingAmount).add(
+                _remainingAmount.mul(borrowFee).div(PERCENT_RESOLUTION)
+            );
             _cdp.totalCredit = 0;
 
             _cdp.checkHealth(_ctx, 'Alchemist: Loan-to-value ratio breached');
@@ -699,10 +718,12 @@ contract Alchemist is ReentrancyGuard {
     /// @dev Checks that parent token is on peg.
     ///
     /// This is used over a modifier limit of pegged interactions.
-    modifier onLinkCheck() {
+    modifier onPriceCheck() {
         if (pegMinimum > 0) {
-            uint256 oracleAnswer = uint256(IChainlink(_linkGasOracle).latestAnswer());
-            require(oracleAnswer > pegMinimum, 'off peg limitation');
+            require(
+                ICurveToken(address(token)).get_virtual_price() > pegMinimum,
+                'off peg limitation'
+            );
         }
         _;
     }
