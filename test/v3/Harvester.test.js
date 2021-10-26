@@ -202,12 +202,18 @@ describe('Harvester', () => {
 
         it('should revert when called by an address other than the harvester', async () => {
             await expect(
-                harvester.connect(user).harvest(controller.address, strategyCrv.address, [0, 0, 0, 0, 0, 0, 0, 0])
+                harvester
+                    .connect(user)
+                    .harvest(controller.address, strategyCrv.address, [0, 0, 0, 0, 0, 0, 0, 0])
             ).to.be.revertedWith('!harvester');
         });
 
         it('should pass when called by the harvester', async () => {
-            await harvester.harvest(controller.address, strategyCrv.address, [0, 0, 0, 0, 0, 0, 0, 0]);
+            await harvester.harvest(
+                controller.address,
+                strategyCrv.address,
+                [0, 0, 0, 0, 0, 0, 0, 0]
+            );
         });
     });
 
@@ -234,7 +240,10 @@ describe('Harvester', () => {
 
         it('should revert if vault does not exist', async () => {
             await expect(
-                harvester.harvestNextStrategy(ethers.constants.AddressZero, [0, 0, 0, 0, 0, 0, 0, 0])
+                harvester.harvestNextStrategy(
+                    ethers.constants.AddressZero,
+                    [0, 0, 0, 0, 0, 0, 0, 0]
+                )
             ).to.be.revertedWith('!canHarvest');
 
             // TODO: Also check if harvested within certain time
@@ -243,12 +252,18 @@ describe('Harvester', () => {
 
         it('should revert when called by an address other than the harvester', async () => {
             await expect(
-                harvester.connect(user).harvestNextStrategy(vault.address, [0, 0, 0, 0, 0, 0, 0, 0])
+                harvester
+                    .connect(user)
+                    .harvestNextStrategy(vault.address, [0, 0, 0, 0, 0, 0, 0, 0])
             ).to.be.revertedWith('!harvester');
         });
 
         it('should pass when called by the harvester', async () => {
-            await harvester.harvest(controller.address, strategyCrv.address, [0, 0, 0, 0, 0, 0, 0, 0]);
+            await harvester.harvest(
+                controller.address,
+                strategyCrv.address,
+                [0, 0, 0, 0, 0, 0, 0, 0]
+            );
             // TODO: Check that addresses in strategies decreases
         });
     });
