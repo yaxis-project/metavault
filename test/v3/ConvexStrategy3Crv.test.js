@@ -118,13 +118,17 @@ describe('ConvexStrategy3Crv', () => {
     describe('setRouter', () => {
         it('should revert if called by an address other than governance', async () => {
             await expect(
-                convexStrategy.connect(user).setRouter([ethers.constants.AddressZero], [dai.address])
+                convexStrategy
+                    .connect(user)
+                    .setRouter([ethers.constants.AddressZero], [dai.address])
             ).to.be.revertedWith('!governance');
         });
 
         it('should set router when called by governance', async () => {
             expect(await convexStrategy.router()).to.equal(unirouter.address);
-            await convexStrategy.connect(treasury).setRouter([ethers.constants.AddressZero], [dai.address]);
+            await convexStrategy
+                .connect(treasury)
+                .setRouter([ethers.constants.AddressZero], [dai.address]);
             expect(await convexStrategy.router()).to.equal(ethers.constants.AddressZero);
         });
     });
@@ -137,7 +141,9 @@ describe('ConvexStrategy3Crv', () => {
 
     describe('deposit', () => {
         it('should revert if called by an address other than controller', async () => {
-            await expect(convexStrategy.harvest([0, 0, 0, 0, 0, 0, 0, 0])).to.be.revertedWith('!controller');
+            await expect(convexStrategy.harvest([0, 0, 0, 0, 0, 0, 0, 0])).to.be.revertedWith(
+                '!controller'
+            );
         });
     });
 
