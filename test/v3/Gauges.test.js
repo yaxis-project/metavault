@@ -59,7 +59,7 @@ describe('Gauges', () => {
         expect(await gaugeController.future_admin()).to.be.equal(treasury.address);
         expect(await gaugeController.token()).to.be.equal(yaxis.address);
         expect(await gaugeController.voting_escrow()).to.be.equal(votingEscrow.address);
-        expect(await gaugeController.n_gauges()).to.be.equal(1);
+        expect(await gaugeController.n_gauges()).to.be.above(0);
         expect(await gaugeController.n_gauge_types()).to.be.equal(1);
         expect(await minter.token()).to.be.equal(minterWrapper.address);
         expect(await minter.controller()).to.be.equal(gaugeController.address);

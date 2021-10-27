@@ -16,7 +16,8 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
     const name = 'Convex: PBTC';
     let pid = 18;
 
-    const Strategy = await deploy('GeneralConvexStrategy', {
+    const Strategy = await deploy('BTCConvexStrategy', {
+        contract: 'GeneralConvexStrategy',
         from: deployer,
         log: true,
         args: [

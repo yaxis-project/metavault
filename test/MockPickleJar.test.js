@@ -6,7 +6,7 @@ const hardhat = require('hardhat');
 const { deployments, ethers } = hardhat;
 const { parseEther } = ethers.utils;
 const ether = parseEther;
-const { setupTestMetavault } = require('../helpers/setup');
+const { setupTestMetavault } = require('./helpers/setup');
 
 describe('MockPickleJar', () => {
     let user, t3crv, pickle, pjar, pchef;

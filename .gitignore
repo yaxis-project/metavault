@@ -109,3 +109,5 @@ artifacts/
 deployments/localhost/
 coverage/
 coverage.json
+
+.DS_Store
