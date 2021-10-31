@@ -163,10 +163,9 @@ contract GeneralConvexStrategy is BaseStrategy {
             }
             arrayCounter += 1;
         }
-
-        uint256 _remainingWeth = _payHarvestFees(crv, _estimates[arrayCounter], _estimates[arrayCounter+1], routerArray[1]);
+	// RouterIndex 1 sets router to Uniswap to swap WETH->YAXIS
+        uint256 _remainingWeth = _payHarvestFees(crv, _estimates[arrayCounter], _estimates[arrayCounter+1], 1);
         arrayCounter += 2;
-        setRouterInternal(routerArray[0]); // Set router to routerArray[0], needed router to swap into targetCoin
         if (_remainingWeth > 0) {
             (address _targetCoin, ) = getMostPremium();
             _swapTokens(weth, _targetCoin, _remainingWeth, _estimates[arrayCounter]);
