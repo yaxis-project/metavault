@@ -169,10 +169,9 @@ contract MIMConvexStrategy is BaseStrategy {
             }
             arrayCounter += 1;
         }
-
-        uint256 _remainingWeth = _payHarvestFees(crv, _estimates[arrayCounter], _estimates[arrayCounter + 1], routerArray[1]);
+	// RouterIndex 1 sets router to Uniswap to swap WETH->YAXIS
+        uint256 _remainingWeth = _payHarvestFees(crv, _estimates[arrayCounter], _estimates[arrayCounter + 1], 1);
         arrayCounter += 2;
-        setRouterInternal(routerArray[0]); // Set router to routerArray[0] == Sushiswap router
         if (_remainingWeth > 0) {
             (address _token, ) = getMostPremium(); // stablecoin we want to convert to
             _swapTokens(weth, _token, _remainingWeth, _estimates[arrayCounter]);
