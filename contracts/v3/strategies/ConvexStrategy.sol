@@ -135,9 +135,8 @@ contract ConvexStrategy is BaseStrategy {
         if (_cvxBalance > 0) {
             _swapTokens(cvx, weth, _cvxBalance, _estimates[0]);
         }
-        // routerArray[1] sets router to Uniswap to swap WETH->YAXIS
-        uint256 _remainingWeth = _payHarvestFees(crv, _estimates[1], _estimates[2], routerArray[1]);
-        setRouterInternal(routerArray[0]); // Set router to routerArray[0] == Sushiswap router
+        // RouterIndex 1 sets router to Uniswap to swap WETH->YAXIS
+        uint256 _remainingWeth = _payHarvestFees(crv, _estimates[1], _estimates[2], 1);
 
         if (_remainingWeth > 0) {
             (address _stableCoin, ) = getMostPremium(); // stablecoin we want to convert to
