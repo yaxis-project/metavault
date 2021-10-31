@@ -109,15 +109,30 @@ abstract contract BaseStrategy is IStrategy {
         require(msg.sender == manager.governance(), "!governance");
         routerArray = _routerArray;
         router = ISwap(_routerArray[0]);
+        address _router;
         for(uint i=0; i<_routerArray.length; i++) {
-            IERC20(weth).safeApprove(_routerArray[i], 0);
-            IERC20(weth).safeApprove(_routerArray[i], type(uint256).max);
+        _router = _routerArray[i];
+            IERC20(weth).safeApprove(_router, 0);
+            IERC20(weth).safeApprove(_router, type(uint256).max);
             for(uint j=0; j<_tokenArray.length; j++) {
-                IERC20(_tokenArray[j]).safeApprove(_routerArray[i], 0);
-                IERC20(_tokenArray[j]).safeApprove(_routerArray[i], type(uint256).max);
+                IERC20(_tokenArray[j]).safeApprove(_router, 0);
+                IERC20(_tokenArray[j]).safeApprove(_router, type(uint256).max);
             }
         }
 
+    }
+    
+    /**
+     * @notice Sets the default ISwap-compatible router
+     * @param _routerIndex Gets the address of the router from routerArray
+     */
+     function setDefaultRouter(
+        uint256 _routerIndex
+    )
+        external
+    {
+    	require(msg.sender == manager.governance(), "!governance");
+        router = ISwap(routerArray[_routerIndex]);
     }
 
     /**
@@ -273,7 +288,7 @@ abstract contract BaseStrategy is IStrategy {
         address _poolToken,
         uint256 _estimatedWETH,
         uint256 _estimatedYAXIS,
-        address _yaxisRouter
+        uint256 _routerIndex
     )
         internal
         returns (uint256 _wethBal)
@@ -295,8 +310,8 @@ abstract contract BaseStrategy is IStrategy {
             // pay the treasury with YAX
             if (treasuryFee > 0 && treasury != address(0)) {
                 _fee = _wethBal.mul(treasuryFee).div(ONE_HUNDRED_PERCENT);
-                setRouterInternal(_yaxisRouter); // Set to router that accesses YAXIS-ETH liquidity pool
-                _swapTokens(weth, yaxis, _fee, _estimatedYAXIS);
+
+                _swapTokensWithRouterIndex(weth, yaxis, _fee, _estimatedYAXIS, _routerIndex);
                 IERC20(yaxis).safeTransfer(treasury, IERC20(yaxis).balanceOf(address(this)));
             }
 
@@ -305,6 +320,28 @@ abstract contract BaseStrategy is IStrategy {
         }
     }
 
+    function _swapTokensWithRouterIndex(
+        address _input,
+        address _output,
+        uint256 _amount,
+        uint256 _expected,
+        uint256 _routerIndex
+    )
+        internal
+    {
+        address[] memory path = new address[](2);
+        path[0] = _input;
+        path[1] = _output;
+        ISwap(routerArray[_routerIndex]).swapExactTokensForTokens(
+            _amount,
+            _expected,
+            path,
+            address(this),
+            // The deadline is a hardcoded value that is far in the future.
+            1e10
+        );
+    }
+    
     function _swapTokens(
         address _input,
         address _output,
@@ -348,20 +385,6 @@ abstract contract BaseStrategy is IStrategy {
         _amount = _after.sub(_before);
 
         return _amount;
-    }
-
-    /**
-     * @notice Sets the address of the ISwap-compatible router internally, to be used by strategies that need it
-     * @param _router The address of the router
-     */
-     function setRouterInternal(
-        address _router
-    )
-        internal
-    {
-        router = ISwap(_router);
-        IERC20(weth).safeApprove(address(router), 0);
-        IERC20(weth).safeApprove(address(router), type(uint256).max);
     }
 
     /**
