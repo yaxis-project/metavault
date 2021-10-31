@@ -137,6 +137,7 @@ contract MetaVault is ERC20, IMetaVault {
      */
     function setMin(uint _min) external {
         require(msg.sender == governance, "!governance");
+        require(_min <= MAX, "!_min");
         min = _min;
     }
 
