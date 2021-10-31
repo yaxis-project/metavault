@@ -116,8 +116,8 @@ contract NativeStrategyCurve3Crv is BaseStrategy {
         override
     {
         _claimReward();
-        uint256 _remainingWeth = _payHarvestFees(crv, _estimates[0], _estimates[1], routerArray[1]);
-        setRouterInternal(routerArray[1]); // Set router to routerArray[0] == Sushiswap router
+        // RouterIndex 1 sets router to Uniswap to swap WETH->YAXIS
+        uint256 _remainingWeth = _payHarvestFees(crv, _estimates[0], _estimates[1], 1);
 
         if (_remainingWeth > 0) {
             (address _stableCoin,) = getMostPremium(); // stablecoin we want to convert to
