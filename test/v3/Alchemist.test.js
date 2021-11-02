@@ -37,14 +37,12 @@ describe('Alchemist', () => {
 
     describe('constructor', async () => {
         let deployer;
-        let governance;
         let sentinel;
         let token;
         let alUsd;
-        let alchemist;
 
         beforeEach(async () => {
-            [deployer, governance, sentinel, ...signers] = signers;
+            [deployer, sentinel, ...signers] = signers;
 
             token = await ERC20MockFactory.connect(deployer).deploy('Mock DAI', 'DAI', 18);
 

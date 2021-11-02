@@ -1,5 +1,4 @@
 module.exports = async ({ getNamedAccounts, deployments }) => {
-    const { ethers } = require('hardhat');
     const { deploy, execute } = deployments;
     let { deployer, MIMCRV } = await getNamedAccounts();
     const Vault = await deployments.get('Vault3CRV'); // TODO: need to use MIM Vault

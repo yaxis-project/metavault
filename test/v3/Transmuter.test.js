@@ -2,7 +2,7 @@ const chai = require('chai');
 const { solidity } = require('ethereum-waffle');
 const { ethers } = require('hardhat');
 const { BigNumber, utils } = require('ethers');
-const { getAddress, parseEther } = require('ethers/lib/utils');
+const { parseEther } = require('ethers/lib/utils');
 const { MAXIMUM_U256, mineBlocks } = require('../helpers/utils');
 
 chai.use(solidity);
@@ -18,7 +18,6 @@ let VaultAdapterMockFactory;
 describe('Transmuter', () => {
     let deployer;
     let depositor;
-    let signers;
     let alchemist;
     let governance;
     let minter;
@@ -45,10 +44,6 @@ describe('Transmuter', () => {
     });
 
     beforeEach(async () => {
-        signers = await ethers.getSigners();
-    });
-
-    beforeEach(async () => {
         [
             deployer,
             rewards,
@@ -57,8 +52,7 @@ describe('Transmuter', () => {
             minter,
             governance,
             mockAlchemist,
-            user,
-            ...signers
+            user
         ] = await ethers.getSigners();
 
         token = await ERC20MockFactory.connect(deployer).deploy('Mock DAI', 'DAI', 18);
