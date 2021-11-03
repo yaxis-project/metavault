@@ -622,9 +622,15 @@ contract Alchemist is ReentrancyGuard {
 
         if (_totalCredit < _amount) {
             uint256 _remainingAmount = _amount.sub(_totalCredit);
-            _cdp.totalDebt = _cdp.totalDebt.add(_remainingAmount).add(
-                _remainingAmount.mul(borrowFee).div(PERCENT_RESOLUTION)
-            );
+
+            if (borrowFee > 0) {
+                uint256 _borrowFeeAmount = _remainingAmount.mul(borrowFee).div(
+                    PERCENT_RESOLUTION
+                );
+                _cdp.totalDebt = _cdp.totalDebt.add(_borrowFeeAmount);
+                xtoken.mint(rewards, _borrowFeeAmount);
+            }
+            _cdp.totalDebt = _cdp.totalDebt.add(_remainingAmount);
             _cdp.totalCredit = 0;
 
             _cdp.checkHealth(_ctx, 'Alchemist: Loan-to-value ratio breached');
