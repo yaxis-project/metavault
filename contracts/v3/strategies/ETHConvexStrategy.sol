@@ -68,9 +68,31 @@ contract ETHConvexStrategy is BaseStrategy {
         cvxDepositLP = _token;
         crvRewards = IConvexRewards(_crvRewards);
         stableSwapPool = IStableSwap2Pool(_stableSwapPool);
-
-        IERC20(_want).safeApprove(address(_convexVault), type(uint256).max);
-        for(uint i=0; i<_routerArray.length; i++) {
+        
+        _setApprovals(
+        	_crv,
+        	_cvx,
+        	_want,
+        	address(_convexVault),
+        	_stableSwapPool,
+        	_aleth,
+        	_routerArray
+        );
+    }
+    
+    function _setApprovals(
+    	address _crv,
+    	address _cvx,
+    	address _want,
+    	address _convexVault,
+    	address _stableSwapPool,
+    	address _aleth,
+    	address[] memory _routerArray
+    ) internal {
+   	IERC20(_want).safeApprove(address(_convexVault), type(uint256).max);
+        uint256 _routerArrayLength = _routerArray.length;
+        for(uint i=0; i<_routerArrayLength; i++) {
+            address _router = _routerArray[i];
             IERC20(_crv).safeApprove(address(_routerArray[i]), 0);
             IERC20(_crv).safeApprove(address(_routerArray[i]), type(uint256).max);
             IERC20(_cvx).safeApprove(address(_routerArray[i]), 0);
@@ -95,14 +117,12 @@ contract ETHConvexStrategy is BaseStrategy {
         return;
     }
 
-    function _harvest(uint256[] memory _estimates) internal override {
-        uint256 arrayCounter;
+    function _harvest(uint256[] calldata _estimates) internal override {
         _claimReward();
         uint256 _cvxBalance = IERC20(cvx).balanceOf(address(this));
         if (_cvxBalance > 0) {
             _swapTokens(cvx, weth, _cvxBalance, _estimates[0]);
         }
-        arrayCounter += 1;
 
         uint256 _extraRewardsLength = crvRewards.extraRewardsLength();
         for (uint256 i = 0; i < _extraRewardsLength; i++) {
@@ -111,50 +131,53 @@ contract ETHConvexStrategy is BaseStrategy {
             if (_extraRewardBalance > 0) {
                 _swapTokens(_rewardToken, weth, _extraRewardBalance, _estimates[i+1]);
             }
-            arrayCounter += 1;
         }
 	// RouterIndex 1 sets router to Uniswap to swap WETH->YAXIS
-        uint256 _remainingWeth = _payHarvestFees(crv, _estimates[arrayCounter], _estimates[arrayCounter+1], 1);
-        arrayCounter += 2;
+        uint256 _remainingWeth = _payHarvestFees(crv, _estimates[_extraRewardsLength + 2], _estimates[_extraRewardsLength + 3], 1);
         if (_remainingWeth > 0) {
             IWETH(weth).withdraw(_remainingWeth);
         }
-        _addLiquidity(_estimates[arrayCounter]);
+        _addLiquidity(_estimates[_extraRewardsLength + 4]);
         if (balanceOfWant() > 0) {
             _deposit();
         }
     }
 
-    function getEstimates() public view returns (uint256[] memory _estimates) {
-        address[] memory _path;
-        uint256[] memory _amounts;
-        uint256 _slippage = IHarvester(manager.harvester()).slippage();
-        uint256 wethAmount;
+    function getEstimates() external view returns (uint256[] memory) {
+    	uint256 rewardsLength = crvRewards.extraRewardsLength();
+    	uint256[] memory _estimates = new uint256[](rewardsLength.add(4));
+      	address[] memory _path;
+     	uint256[] memory _amounts;
+      	uint256 _notSlippage = ONE_HUNDRED_PERCENT.sub(IHarvester(manager.harvester()).slippage());
+      	uint256 wethAmount;
 
         // Estimates for CVX -> WETH
         _path[0] = cvx;
         _path[1] = weth;
         _amounts = router.getAmountsOut(
             // Calculating CVX minted
-            (crvRewards.earned(address(this))).mul(ICVXMinter(cvx).totalCliffs().sub(ICVXMinter(cvx).maxSupply().div(ICVXMinter(cvx).reductionPerCliff()))).div(ICVXMinter(cvx).totalCliffs()),
+            (crvRewards.earned(address(this)))
+            .mul(ICVXMinter(cvx).totalCliffs().sub(ICVXMinter(cvx).maxSupply().div(ICVXMinter(cvx).reductionPerCliff())))
+            .div(ICVXMinter(cvx).totalCliffs()),
             _path
         );
-        _estimates[0]= _amounts[1] - _amounts[1].mul(ONE_HUNDRED_PERCENT - _slippage);
+        _estimates[0]= _amounts[1].mul(_notSlippage).div(ONE_HUNDRED_PERCENT);
 
         wethAmount += _estimates[0];
 
         // Estimates for extra rewards -> WETH
-        if (crvRewards.extraRewardsLength() > 0) {
-            for (uint256 i = 0; i < crvRewards.extraRewardsLength(); i++) {
+        
+        if (rewardsLength > 0) {
+            for (uint256 i = 0; i < rewardsLength; i++) {
                 _path[0] = IConvexRewards(crvRewards.extraRewards(i)).rewardToken();
                 _path[1] = weth;
                 _amounts = router.getAmountsOut(
                     IConvexRewards(crvRewards.extraRewards(i)).earned(address(this)),
                     _path
                 );
-                _estimates[_estimates.length] = _amounts[1] - _amounts[1].mul(ONE_HUNDRED_PERCENT - _slippage);
+                _estimates[i + 1] = _amounts[1].mul(_notSlippage).div(ONE_HUNDRED_PERCENT);
 
-                wethAmount += _estimates[_estimates.length - 1];
+                wethAmount += _estimates[i + 1];
             }
         }
 
@@ -165,18 +188,22 @@ contract ETHConvexStrategy is BaseStrategy {
             crvRewards.earned(address(this)),
             _path
         );
-        _estimates[_estimates.length] = _amounts[1] - _amounts[1].mul(ONE_HUNDRED_PERCENT - _slippage);
+        _estimates[rewardsLength + 1] = _amounts[1].mul(_notSlippage).div(ONE_HUNDRED_PERCENT);
 
-        wethAmount += _estimates[_estimates.length - 1];
+        wethAmount += _estimates[rewardsLength + 1];
 
         // Estimates WETH -> YAXIS
         _path[0] = weth;
         _path[1] = manager.yaxis();
-        _amounts = ISwap(routerArray[1]).getAmountsOut(wethAmount.mul(manager.treasuryFee()).div(ONE_HUNDRED_PERCENT), _path); // Set to UniswapV2 to calculate output for YAXIS
-        _estimates[_estimates.length] = _amounts[1] - _amounts[1].mul(ONE_HUNDRED_PERCENT - _slippage);
+        
+        // Set to UniswapV2 to calculate output for YAXIS
+        _amounts = ISwap(routerArray[1]).getAmountsOut(wethAmount.mul(manager.treasuryFee()).div(ONE_HUNDRED_PERCENT), _path);
+        _estimates[rewardsLength + 2] = _amounts[1].mul(_notSlippage).div(ONE_HUNDRED_PERCENT);
 
         // Estimates for ETH -> ethCRV LP
-        _estimates[_estimates.length] = (wethAmount-_amounts[0]).div(stableSwapPool.get_virtual_price());
+        _estimates[rewardsLength + 3] = (wethAmount-_amounts[0]).div(stableSwapPool.get_virtual_price());
+        
+        return _estimates;
     }
 
     function _withdrawAll() internal override {
