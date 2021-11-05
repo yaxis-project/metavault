@@ -110,7 +110,7 @@ contract NativeStrategyCurve3Crv is BaseStrategy {
     }
 
     function _harvest(
-        uint256[] memory _estimates
+        uint256[] calldata _estimates
     )
         internal
         override
@@ -128,10 +128,12 @@ contract NativeStrategyCurve3Crv is BaseStrategy {
         }
     }
 
-    function getEstimates() public view returns (uint256[] memory _estimates) {
+    function getEstimates() external view returns (uint256[] memory) {
+            
+        uint256[] memory _estimates = new uint256[](4);
         address[] memory _path;
         uint256[] memory _amounts;
-        uint256 _slippage = IHarvester(manager.harvester()).slippage();
+        uint256 _notSlippage = ONE_HUNDRED_PERCENT.sub(IHarvester(manager.harvester()).slippage());
         uint256 wethAmount;
 
         // Estimates for CRV -> WETH
@@ -141,7 +143,7 @@ contract NativeStrategyCurve3Crv is BaseStrategy {
             gauge.claimable_tokens(address(this)),
             _path
         );
-        _estimates[0] = _amounts[1] - _amounts[1].mul(ONE_HUNDRED_PERCENT - _slippage);
+        _estimates[0] = _amounts[1].mul(_notSlippage).div(ONE_HUNDRED_PERCENT);
 
         wethAmount += _estimates[0];
 
@@ -149,7 +151,7 @@ contract NativeStrategyCurve3Crv is BaseStrategy {
         _path[0] = weth;
         _path[1] = manager.yaxis();
         _amounts = ISwap(routerArray[1]).getAmountsOut(wethAmount.mul(manager.treasuryFee()).div(ONE_HUNDRED_PERCENT), _path); // Set to UniswapV2 to calculate output for YAXIS
-        _estimates[1] = _amounts[1] - _amounts[1].mul(ONE_HUNDRED_PERCENT - _slippage);
+        _estimates[1] = _amounts[1] - _amounts[1].mul(_notSlippage).div(ONE_HUNDRED_PERCENT);
         
         // Estimates for WETH -> Stablecoin
         (address _targetCoin,) = getMostPremium(); 
@@ -159,10 +161,12 @@ contract NativeStrategyCurve3Crv is BaseStrategy {
             wethAmount - _amounts[0],
             _path
         );
-        _estimates[2] = _amounts[1].mul(ONE_HUNDRED_PERCENT - _slippage);
+        _estimates[2] = _amounts[1].mul(_notSlippage).div(ONE_HUNDRED_PERCENT);
 
         // Estimates for Stablecoin -> 3CRV
-        _estimates[3] = (_amounts[1].mul(ONE_HUNDRED_PERCENT - _slippage).mul(10**18).div(10**(ExtendedIERC20(_targetCoin).decimals())).div(stableSwap3Pool.get_virtual_price())).mul(ONE_HUNDRED_PERCENT - _slippage);
+        _estimates[3] = (_amounts[1].mul(10**(18-ExtendedIERC20(_targetCoin).decimals())).div(stableSwap3Pool.get_virtual_price())).mul(_notSlippage).div(ONE_HUNDRED_PERCENT);
+        
+        return _estimates;
     }
 
     function _withdrawAll()
