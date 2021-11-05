@@ -77,7 +77,8 @@ contract ConvexStrategy is BaseStrategy {
         address _stableSwap3Pool
     ) internal {
         IERC20(_want).safeApprove(address(_convexVault), type(uint256).max);
-            for(uint i=0; i<_routerArray.length; i++) {
+        uint256 _routerArrayLength = _routerArray.length;
+            for(uint i=0; i<_routerArrayLength; i++) {
                 IERC20(_crv).safeApprove(address(_routerArray[i]), 0);
                 IERC20(_crv).safeApprove(address(_routerArray[i]), type(uint256).max);
                 IERC20(_cvx).safeApprove(address(_routerArray[i]), 0);
@@ -129,7 +130,7 @@ contract ConvexStrategy is BaseStrategy {
         return (dai, 0); // If they're somehow equal, we just want DAI
     }
 
-    function _harvest(uint256[] memory _estimates) internal override {
+    function _harvest(uint256[] calldata _estimates) internal override {
         _claimReward();
         uint256 _cvxBalance = IERC20(cvx).balanceOf(address(this));
         if (_cvxBalance > 0) {
@@ -148,11 +149,12 @@ contract ConvexStrategy is BaseStrategy {
             }
         }
     }
-
-    function getEstimates() public view returns (uint256[] memory _estimates) {
+    
+    function getEstimates() external view returns (uint256[] memory) {
+    	uint256[] memory _estimates = new uint256[](5);
         address[] memory _path;
         uint256[] memory _amounts;
-        uint256 _slippage = IHarvester(manager.harvester()).slippage();
+        uint256 _notSlippage = ONE_HUNDRED_PERCENT.sub(IHarvester(manager.harvester()).slippage());
         uint256 wethAmount;
 
         // Estimates for CVX -> WETH
@@ -160,10 +162,12 @@ contract ConvexStrategy is BaseStrategy {
         _path[1] = weth;
         _amounts = router.getAmountsOut(
             // Calculating CVX minted
-            (crvRewards.earned(address(this))).mul(ICVXMinter(cvx).totalCliffs().sub(ICVXMinter(cvx).maxSupply().div(ICVXMinter(cvx).reductionPerCliff()))).div(ICVXMinter(cvx).totalCliffs()),
+            (crvRewards.earned(address(this)))
+            .mul(ICVXMinter(cvx).totalCliffs().sub(ICVXMinter(cvx).maxSupply().div(ICVXMinter(cvx).reductionPerCliff())))
+            .div(ICVXMinter(cvx).totalCliffs()),
             _path
         );
-        _estimates[0]= _amounts[1] - _amounts[1].mul(ONE_HUNDRED_PERCENT - _slippage);
+        _estimates[0]= _amounts[1].mul(_notSlippage).div(ONE_HUNDRED_PERCENT);
 
         wethAmount += _estimates[0];
 
@@ -174,7 +178,7 @@ contract ConvexStrategy is BaseStrategy {
             crvRewards.earned(address(this)),
             _path
         );
-        _estimates[1] = _amounts[1] - _amounts[1].mul(ONE_HUNDRED_PERCENT - _slippage);
+        _estimates[1] = _amounts[1].mul(_notSlippage).div(ONE_HUNDRED_PERCENT);
 
         wethAmount += _estimates[1];
 
@@ -182,7 +186,7 @@ contract ConvexStrategy is BaseStrategy {
         _path[0] = weth;
         _path[1] = manager.yaxis();
         _amounts = ISwap(routerArray[1]).getAmountsOut(wethAmount.mul(manager.treasuryFee()).div(ONE_HUNDRED_PERCENT), _path); // Set to UniswapV2 to calculate output for YAXIS
-        _estimates[2] = _amounts[1] - _amounts[1].mul(ONE_HUNDRED_PERCENT - _slippage);
+        _estimates[2] = _amounts[1].mul(_notSlippage).div(ONE_HUNDRED_PERCENT);
         
         // Estimates for WETH -> Stablecoin
         (address _targetCoin,) = getMostPremium(); 
@@ -192,10 +196,13 @@ contract ConvexStrategy is BaseStrategy {
             wethAmount - _amounts[0],
             _path
         );
-        _estimates[3] = _amounts[1].mul(ONE_HUNDRED_PERCENT - _slippage);
+        _estimates[3] = _amounts[1].mul(_notSlippage).div(ONE_HUNDRED_PERCENT);
 
         // Estimates for Stablecoin -> 3CRV
-        _estimates[4] = (_amounts[1].mul(ONE_HUNDRED_PERCENT - _slippage).mul(10**18).div(10**(ExtendedIERC20(_targetCoin).decimals())).div(stableSwap3Pool.get_virtual_price())).mul(ONE_HUNDRED_PERCENT - _slippage);
+        // Assumes that maximum value for decimals() is 18
+        _estimates[4] = _estimates[3].mul(10**(18-(ExtendedIERC20(_targetCoin).decimals()))).div(stableSwap3Pool.get_virtual_price()).mul(_notSlippage).div(ONE_HUNDRED_PERCENT);
+        
+        return _estimates;
     }
 
     function _withdrawAll() internal override {
