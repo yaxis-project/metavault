@@ -180,11 +180,12 @@ contract Harvester is IHarvester {
      * @dev This function ignores the timeout
      * @param _controller The address of the controller
      * @param _strategy The address of the strategy
+     * @param _estimates The estimated outputs from swaps during harvest
      */
     function harvest(
         IController _controller,
         address _strategy,
-        uint256[] memory _estimates
+        uint256[] calldata _estimates
     )
         public
         onlyHarvester
@@ -197,10 +198,11 @@ contract Harvester is IHarvester {
      * @notice Harvests the next available strategy for a given vault and
      * rotates the strategies
      * @param _vault The address of the vault
+     * @param _estimates The estimated outputs from swaps during harvest
      */
     function harvestNextStrategy(
         address _vault,
-        uint256[] memory _estimates
+        uint256[] calldata _estimates
     )
         external
     {
