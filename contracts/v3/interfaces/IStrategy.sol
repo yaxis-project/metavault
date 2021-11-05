@@ -10,7 +10,7 @@ interface IStrategy {
     function balanceOfPool() external view returns (uint256);
     function balanceOfWant() external view returns (uint256);
     function deposit() external;
-    function harvest(uint256[] memory) external;
+    function harvest(uint256[] calldata) external;
     function manager() external view returns (IManager);
     function name() external view returns (string memory);
     function router() external view returns (ISwap);
