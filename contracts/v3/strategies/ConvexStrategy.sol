@@ -79,10 +79,11 @@ contract ConvexStrategy is BaseStrategy {
         IERC20(_want).safeApprove(address(_convexVault), type(uint256).max);
         uint256 _routerArrayLength = _routerArray.length;
             for(uint i=0; i<_routerArrayLength; i++) {
-                IERC20(_crv).safeApprove(address(_routerArray[i]), 0);
-                IERC20(_crv).safeApprove(address(_routerArray[i]), type(uint256).max);
-                IERC20(_cvx).safeApprove(address(_routerArray[i]), 0);
-                IERC20(_cvx).safeApprove(address(_routerArray[i]), type(uint256).max);
+                address _router = _routerArray[i];
+                IERC20(_crv).safeApprove(address(_router), 0);
+                IERC20(_crv).safeApprove(address(_router), type(uint256).max);
+                IERC20(_cvx).safeApprove(address(_router), 0);
+                IERC20(_cvx).safeApprove(address(_router), type(uint256).max);
             }
         IERC20(_dai).safeApprove(address(_stableSwap3Pool), type(uint256).max);
         IERC20(_usdc).safeApprove(address(_stableSwap3Pool), type(uint256).max);
