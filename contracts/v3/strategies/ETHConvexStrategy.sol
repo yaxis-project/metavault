@@ -93,10 +93,10 @@ contract ETHConvexStrategy is BaseStrategy {
         uint256 _routerArrayLength = _routerArray.length;
         for(uint i=0; i<_routerArrayLength; i++) {
             address _router = _routerArray[i];
-            IERC20(_crv).safeApprove(address(_routerArray[i]), 0);
-            IERC20(_crv).safeApprove(address(_routerArray[i]), type(uint256).max);
-            IERC20(_cvx).safeApprove(address(_routerArray[i]), 0);
-            IERC20(_cvx).safeApprove(address(_routerArray[i]), type(uint256).max);
+            IERC20(_crv).safeApprove(address(_router), 0);
+            IERC20(_crv).safeApprove(address(_router), type(uint256).max);
+            IERC20(_cvx).safeApprove(address(_router), 0);
+            IERC20(_cvx).safeApprove(address(_router), type(uint256).max);
         }
         IERC20(_want).safeApprove(address(_stableSwapPool), type(uint256).max);
         IERC20(_aleth).safeApprove(_stableSwapPool, type(uint256).max);
