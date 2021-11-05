@@ -64,9 +64,10 @@ abstract contract BaseStrategy is IStrategy {
         controller = _controller;
         manager = IManager(_manager);
         weth = _weth;
+        require(_routerArray.length > 0, "Must input at least one router");
         routerArray = _routerArray;
         router = ISwap(_routerArray[0]);
-        for(uint i=0; i<_routerArray.length; i++) {
+        for(uint i = 0; i < _routerArray.length; i++) {
             IERC20(_weth).safeApprove(address(_routerArray[i]), 0);
             IERC20(_weth).safeApprove(address(_routerArray[i]), type(uint256).max);
         }
@@ -101,8 +102,8 @@ abstract contract BaseStrategy is IStrategy {
      * @param _tokenArray The addresses of tokens that need to be approved by the strategy
      */
      function setRouter(
-        address[] memory _routerArray,
-        address[] memory _tokenArray
+        address[] calldata _routerArray,
+        address[] calldata _tokenArray
     )
         external
     {
@@ -110,11 +111,13 @@ abstract contract BaseStrategy is IStrategy {
         routerArray = _routerArray;
         router = ISwap(_routerArray[0]);
         address _router;
-        for(uint i=0; i<_routerArray.length; i++) {
-        _router = _routerArray[i];
+        uint256 _routerLength = _routerArray.length;
+        uint256 _tokenArrayLength = _tokenArray.length;
+        for(uint i = 0; i < _routerLength; i++) {
+            _router = _routerArray[i];
             IERC20(weth).safeApprove(_router, 0);
             IERC20(weth).safeApprove(_router, type(uint256).max);
-            for(uint j=0; j<_tokenArray.length; j++) {
+            for(uint j = 0; j < _tokenArrayLength; j++) {
                 IERC20(_tokenArray[j]).safeApprove(_router, 0);
                 IERC20(_tokenArray[j]).safeApprove(_router, type(uint256).max);
             }
@@ -132,7 +135,7 @@ abstract contract BaseStrategy is IStrategy {
         external
     {
     	require(msg.sender == manager.governance(), "!governance");
-        router = ISwap(routerArray[_routerIndex]);
+    	router = ISwap(routerArray[_routerIndex]);
     }
 
     /**
@@ -154,7 +157,7 @@ abstract contract BaseStrategy is IStrategy {
      * @notice Harvest funds in the strategy's pool
      */
     function harvest(
-        uint256[] memory _estimates
+        uint256[] calldata _estimates
     )
         external
         override
@@ -279,7 +282,7 @@ abstract contract BaseStrategy is IStrategy {
         virtual;
 
     function _harvest(
-        uint256[] memory _estimates
+        uint256[] calldata _estimates
     )
         internal
         virtual;
