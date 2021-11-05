@@ -77,15 +77,25 @@ contract GeneralConvexStrategy is BaseStrategy {
         }
 
         IERC20(_want).safeApprove(address(_convexVault), type(uint256).max);
-        for(uint i=0; i<_routerArray.length; i++) {
-            IERC20(_crv).safeApprove(address(_routerArray[i]), 0);
-            IERC20(_crv).safeApprove(address(_routerArray[i]), type(uint256).max);
-            IERC20(_cvx).safeApprove(address(_routerArray[i]), 0);
-            IERC20(_cvx).safeApprove(address(_routerArray[i]), type(uint256).max);
-        }
         IERC20(_want).safeApprove(address(_stableSwapPool), type(uint256).max);
+        _setApprovals(_cvx, _crv, _routerArray);
     }
 
+    function _setApprovals(
+    	address _cvx,
+    	address _crv,
+    	address[] memory _routerArray
+    ) internal {
+    	uint _routerArrayLength = _routerArray.length;
+        for(uint i=0; i<_routerArrayLength; i++) {
+            address _router = _routerArray[i];
+            IERC20(_crv).safeApprove(address(_router), 0);
+            IERC20(_crv).safeApprove(address(_router), type(uint256).max);
+            IERC20(_cvx).safeApprove(address(_router), 0);
+            IERC20(_cvx).safeApprove(address(_router), type(uint256).max);	
+    	}
+    }	
+    
     function _deposit() internal override {
         convexVault.depositAll(pid, true);
     }
