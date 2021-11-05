@@ -151,14 +151,12 @@ contract MIMConvexStrategy is BaseStrategy {
         return (stablePool.coins(0), 0); // If they're somehow equal, we just want DAI
     }
 
-    function _harvest(uint256[] memory _estimates) internal override {
-        uint256 arrayCounter;
+    function _harvest(uint256[] calldata _estimates) internal override {
         _claimReward();
         uint256 _cvxBalance = IERC20(cvx).balanceOf(address(this));
         if (_cvxBalance > 0) {
             _swapTokens(cvx, weth, _cvxBalance, _estimates[0]);
         }
-        arrayCounter += 1;
 
         uint256 _extraRewardsLength = crvRewards.extraRewardsLength();
         for (uint256 i = 0; i < _extraRewardsLength; i++) {
@@ -167,25 +165,25 @@ contract MIMConvexStrategy is BaseStrategy {
             if (_extraRewardBalance > 0) {
                 _swapTokens(_rewardToken, weth, _extraRewardBalance, _estimates[i+1]);
             }
-            arrayCounter += 1;
         }
 	// RouterIndex 1 sets router to Uniswap to swap WETH->YAXIS
-        uint256 _remainingWeth = _payHarvestFees(crv, _estimates[arrayCounter], _estimates[arrayCounter + 1], 1);
-        arrayCounter += 2;
+        uint256 _remainingWeth = _payHarvestFees(crv, _estimates[_extraRewardsLength + 2], _estimates[_extraRewardsLength + 3], 1);
         if (_remainingWeth > 0) {
             (address _token, ) = getMostPremium(); // stablecoin we want to convert to
-            _swapTokens(weth, _token, _remainingWeth, _estimates[arrayCounter]);
-            arrayCounter += 1;
-            _addLiquidity3CRV(_estimates[arrayCounter]);
-            _addLiquidity(_estimates[arrayCounter]);
+            _swapTokens(weth, _token, _remainingWeth, _estimates[_extraRewardsLength + 4]);
+            _addLiquidity3CRV(_estimates[_extraRewardsLength + 5]);
+            _addLiquidity(_estimates[_extraRewardsLength + 5]);
             _deposit();
         }
     }
 
-    function getEstimates() public view returns (uint256[] memory _estimates) {
+    function getEstimates() external view returns (uint256[] memory) {
+               
+        uint rewardsLength = crvRewards.extraRewardsLength();
+        uint256[] memory _estimates = new uint256[](rewardsLength.add(5));
         address[] memory _path;
         uint256[] memory _amounts;
-        uint256 _slippage = IHarvester(manager.harvester()).slippage();
+        uint256 _notSlippage = ONE_HUNDRED_PERCENT.sub(IHarvester(manager.harvester()).slippage());
         uint256 wethAmount;
 
         // Estimates for CVX -> WETH
@@ -193,25 +191,28 @@ contract MIMConvexStrategy is BaseStrategy {
         _path[1] = weth;
         _amounts = router.getAmountsOut(
             // Calculating CVX minted
-            (crvRewards.earned(address(this))).mul(ICVXMinter(cvx).totalCliffs().sub(ICVXMinter(cvx).maxSupply().div(ICVXMinter(cvx).reductionPerCliff()))).div(ICVXMinter(cvx).totalCliffs()),
+            (crvRewards.earned(address(this)))
+            .mul(ICVXMinter(cvx).totalCliffs().sub(ICVXMinter(cvx).maxSupply().div(ICVXMinter(cvx).reductionPerCliff())))
+            .div(ICVXMinter(cvx).totalCliffs()),
             _path
         );
-        _estimates[0]= _amounts[1] - _amounts[1].mul(ONE_HUNDRED_PERCENT - _slippage);
+        _estimates[0]= _amounts[1].mul(_notSlippage).div(ONE_HUNDRED_PERCENT);
 
         wethAmount += _estimates[0];
 
         // Estimates for extra rewards -> WETH
-        if (crvRewards.extraRewardsLength() > 0) {
-            for (uint256 i = 0; i < crvRewards.extraRewardsLength(); i++) {
+        
+        if (rewardsLength > 0) {
+            for (uint256 i = 0; i < rewardsLength; i++) {
                 _path[0] = IConvexRewards(crvRewards.extraRewards(i)).rewardToken();
                 _path[1] = weth;
                 _amounts = router.getAmountsOut(
                     IConvexRewards(crvRewards.extraRewards(i)).earned(address(this)),
                     _path
                 );
-                _estimates[_estimates.length] = _amounts[1] - _amounts[1].mul(ONE_HUNDRED_PERCENT - _slippage);
+                _estimates[i + 1] = _amounts[1].mul(_notSlippage).div(ONE_HUNDRED_PERCENT);
 
-                wethAmount += _estimates[_estimates.length - 1];
+                wethAmount += _estimates[i + 1];
             }
         }
 
@@ -222,15 +223,16 @@ contract MIMConvexStrategy is BaseStrategy {
             crvRewards.earned(address(this)),
             _path
         );
-        _estimates[_estimates.length] = _amounts[1] - _amounts[1].mul(ONE_HUNDRED_PERCENT - _slippage);
+        _estimates[rewardsLength + 1] = _amounts[1].mul(_notSlippage).div(ONE_HUNDRED_PERCENT);
 
-        wethAmount += _estimates[_estimates.length - 1];
+        wethAmount += _estimates[rewardsLength + 1];
 
         // Estimates WETH -> YAXIS
         _path[0] = weth;
         _path[1] = manager.yaxis();
-        _amounts = ISwap(routerArray[1]).getAmountsOut(wethAmount.mul(manager.treasuryFee()).div(ONE_HUNDRED_PERCENT), _path); // Set to UniswapV2 to calculate output for YAXIS
-        _estimates[_estimates.length] = _amounts[1] - _amounts[1].mul(ONE_HUNDRED_PERCENT - _slippage);
+        // Set to UniswapV2 to calculate output for YAXIS
+        _amounts = ISwap(routerArray[1]).getAmountsOut(wethAmount.mul(manager.treasuryFee()).div(ONE_HUNDRED_PERCENT), _path);
+        _estimates[rewardsLength + 2] = _amounts[1].mul(_notSlippage).div(ONE_HUNDRED_PERCENT);
         
         // Estimates for WETH -> Stablecoin
         (address _targetCoin,) = getMostPremium(); 
@@ -240,11 +242,13 @@ contract MIMConvexStrategy is BaseStrategy {
             wethAmount - _amounts[0],
             _path
         );
-        _estimates[_estimates.length] = _amounts[1].mul(ONE_HUNDRED_PERCENT - _slippage);
+        _estimates[rewardsLength + 3] = _amounts[1].mul(_notSlippage).div(ONE_HUNDRED_PERCENT);
 
         // Estimates for Stablecoin -> 3CRV
-        _estimates[_estimates.length] = (_amounts[1].mul(ONE_HUNDRED_PERCENT - _slippage).mul(10**18).div(10**(ExtendedIERC20(_targetCoin).decimals())).div(IStableSwap3Pool(crv3).get_virtual_price())).mul(ONE_HUNDRED_PERCENT - _slippage);
+        _estimates[rewardsLength + 4] = (_amounts[1].mul(10**(18-ExtendedIERC20(_targetCoin).decimals())).div(IStableSwap3Pool(crv3).get_virtual_price())).mul(_notSlippage).div(ONE_HUNDRED_PERCENT);
         // Estimates for 3CRV -> MIM-3CRV is the same 3CRV estimate
+        
+        return _estimates;
     }
 
     function _withdrawAll() internal override {
