@@ -374,7 +374,7 @@ contract Controller is IController {
      */
     function harvestStrategy(
         address _strategy,
-        uint256[] memory _estimates
+        uint256[] calldata _estimates
     )
         external
         override
