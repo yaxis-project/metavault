@@ -145,14 +145,12 @@ contract GeneralConvexStrategy is BaseStrategy {
         return (tokens[0], 0);
     }
 
-    function _harvest(uint256[] memory _estimates) internal override {
-        uint256 arrayCounter;
+    function _harvest(uint256[] calldata _estimates) internal override {
         _claimReward();
         uint256 _cvxBalance = IERC20(cvx).balanceOf(address(this));
         if (_cvxBalance > 0) {
             _swapTokens(cvx, weth, _cvxBalance, _estimates[0]);
         }
-        arrayCounter += 1;
 
         uint256 _extraRewardsLength = crvRewards.extraRewardsLength();
         for (uint256 i = 0; i < _extraRewardsLength; i++) {
@@ -161,16 +159,13 @@ contract GeneralConvexStrategy is BaseStrategy {
             if (_extraRewardBalance > 0) {
                 _swapTokens(_rewardToken, weth, _extraRewardBalance, _estimates[i+1]);
             }
-            arrayCounter += 1;
         }
 	// RouterIndex 1 sets router to Uniswap to swap WETH->YAXIS
-        uint256 _remainingWeth = _payHarvestFees(crv, _estimates[arrayCounter], _estimates[arrayCounter+1], 1);
-        arrayCounter += 2;
+        uint256 _remainingWeth = _payHarvestFees(crv, _estimates[_extraRewardsLength + 2], _estimates[_extraRewardsLength + 3], 1);
         if (_remainingWeth > 0) {
             (address _targetCoin, ) = getMostPremium();
-            _swapTokens(weth, _targetCoin, _remainingWeth, _estimates[arrayCounter]);
-            arrayCounter += 1;
-            _addLiquidity(_estimates[arrayCounter]);
+            _swapTokens(weth, _targetCoin, _remainingWeth, _estimates[_extraRewardsLength + 4]);
+            _addLiquidity(_estimates[_extraRewardsLength + 5]);
 
             if (balanceOfWant() > 0) {
                 _deposit();
@@ -178,10 +173,13 @@ contract GeneralConvexStrategy is BaseStrategy {
         }
     }
 
-    function getEstimates() public view returns (uint256[] memory _estimates) {
+    function getEstimates() external view returns (uint256[] memory) {
+    	
+        uint rewardsLength = crvRewards.extraRewardsLength();
+        uint256[] memory _estimates = new uint256[](rewardsLength.add(5));
         address[] memory _path;
         uint256[] memory _amounts;
-        uint256 _slippage = IHarvester(manager.harvester()).slippage();
+        uint256 _notSlippage = ONE_HUNDRED_PERCENT.sub(IHarvester(manager.harvester()).slippage());
         uint256 wethAmount;
 
         // Estimates for CVX -> WETH
@@ -189,25 +187,28 @@ contract GeneralConvexStrategy is BaseStrategy {
         _path[1] = weth;
         _amounts = router.getAmountsOut(
             // Calculating CVX minted
-            (crvRewards.earned(address(this))).mul(ICVXMinter(cvx).totalCliffs().sub(ICVXMinter(cvx).maxSupply().div(ICVXMinter(cvx).reductionPerCliff()))).div(ICVXMinter(cvx).totalCliffs()),
+            (crvRewards.earned(address(this)))
+            .mul(ICVXMinter(cvx).totalCliffs().sub(ICVXMinter(cvx).maxSupply().div(ICVXMinter(cvx).reductionPerCliff())))
+            .div(ICVXMinter(cvx).totalCliffs()),
             _path
         );
-        _estimates[0]= _amounts[1] - _amounts[1].mul(ONE_HUNDRED_PERCENT - _slippage);
+        _estimates[0]= _amounts[1].mul(_notSlippage).div(ONE_HUNDRED_PERCENT);
 
         wethAmount += _estimates[0];
 
         // Estimates for extra rewards -> WETH
-        if (crvRewards.extraRewardsLength() > 0) {
-            for (uint256 i = 0; i < crvRewards.extraRewardsLength(); i++) {
+        
+        if (rewardsLength > 0) {
+            for (uint256 i = 0; i < rewardsLength; i++) {
                 _path[0] = IConvexRewards(crvRewards.extraRewards(i)).rewardToken();
                 _path[1] = weth;
                 _amounts = router.getAmountsOut(
                     IConvexRewards(crvRewards.extraRewards(i)).earned(address(this)),
                     _path
                 );
-                _estimates[_estimates.length] = _amounts[1] - _amounts[1].mul(ONE_HUNDRED_PERCENT - _slippage);
+                _estimates[i + 1] = _amounts[1].mul(_notSlippage).div(ONE_HUNDRED_PERCENT);
 
-                wethAmount += _estimates[_estimates.length - 1];
+                wethAmount += _estimates[i + 1];
             }
         }
 
@@ -218,15 +219,15 @@ contract GeneralConvexStrategy is BaseStrategy {
             crvRewards.earned(address(this)),
             _path
         );
-        _estimates[_estimates.length] = _amounts[1] - _amounts[1].mul(ONE_HUNDRED_PERCENT - _slippage);
+        _estimates[rewardsLength + 1] = _amounts[1].mul(_notSlippage).div(ONE_HUNDRED_PERCENT);
 
-        wethAmount += _estimates[_estimates.length - 1];
+        wethAmount += _estimates[rewardsLength + 1];
 
         // Estimates WETH -> YAXIS
         _path[0] = weth;
         _path[1] = manager.yaxis();
         _amounts = ISwap(routerArray[1]).getAmountsOut(wethAmount.mul(manager.treasuryFee()).div(ONE_HUNDRED_PERCENT), _path); // Set to UniswapV2 to calculate output for YAXIS
-        _estimates[_estimates.length] = _amounts[1] - _amounts[1].mul(ONE_HUNDRED_PERCENT - _slippage);
+        _estimates[rewardsLength + 2] = _amounts[1].mul(_notSlippage).div(ONE_HUNDRED_PERCENT);
         
         // Estimates for WETH -> Target Coin
         (address _targetCoin,) = getMostPremium(); 
@@ -236,10 +237,13 @@ contract GeneralConvexStrategy is BaseStrategy {
             wethAmount - _amounts[0],
             _path
         );
-        _estimates[_estimates.length] = _amounts[1].mul(ONE_HUNDRED_PERCENT - _slippage);
+        _estimates[rewardsLength + 3] = _amounts[1].mul(_notSlippage).div(ONE_HUNDRED_PERCENT);
 
         // Estimates for Target Coin -> CRV LP
-        _estimates[_estimates.length] = (_amounts[1].mul(ONE_HUNDRED_PERCENT - _slippage).mul(10**18).div(10**(ExtendedIERC20(_targetCoin).decimals())).div(IStableSwapPool(stableSwapPool).get_virtual_price())).mul(ONE_HUNDRED_PERCENT - _slippage);
+        // Supports up to 18 decimals
+        _estimates[rewardsLength + 4] = _amounts[1].mul(_notSlippage).div(ONE_HUNDRED_PERCENT).mul(10**(18-ExtendedIERC20(_targetCoin).decimals())).div(IStableSwapPool(stableSwapPool).get_virtual_price());
+        
+        return _estimates;
     }
 
     function _withdrawAll() internal override {
