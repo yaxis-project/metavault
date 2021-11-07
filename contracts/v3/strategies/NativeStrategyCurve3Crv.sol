@@ -131,7 +131,7 @@ contract NativeStrategyCurve3Crv is BaseStrategy {
     function getEstimates() external view returns (uint256[] memory) {
             
         uint256[] memory _estimates = new uint256[](4);
-        address[] memory _path;
+        address[] memory _path = new address[](2);
         uint256[] memory _amounts;
         uint256 _notSlippage = ONE_HUNDRED_PERCENT.sub(IHarvester(manager.harvester()).slippage());
         uint256 wethAmount;
@@ -151,7 +151,7 @@ contract NativeStrategyCurve3Crv is BaseStrategy {
         _path[0] = weth;
         _path[1] = manager.yaxis();
         _amounts = ISwap(routerArray[1]).getAmountsOut(wethAmount.mul(manager.treasuryFee()).div(ONE_HUNDRED_PERCENT), _path); // Set to UniswapV2 to calculate output for YAXIS
-        _estimates[1] = _amounts[1] - _amounts[1].mul(_notSlippage).div(ONE_HUNDRED_PERCENT);
+        _estimates[1] = _amounts[1].mul(_notSlippage).div(ONE_HUNDRED_PERCENT);
         
         // Estimates for WETH -> Stablecoin
         (address _targetCoin,) = getMostPremium(); 

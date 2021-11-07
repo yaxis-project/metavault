@@ -4,6 +4,8 @@ const { solidity } = require('ethereum-waffle');
 chai.use(solidity);
 const hardhat = require('hardhat');
 const { deployments, ethers } = hardhat;
+const { parseEther } = ethers.utils;
+const ether = parseEther;
 
 describe('ConvexStrategy3Crv', () => {
     let deployer, treasury, user;
@@ -52,6 +54,9 @@ describe('ConvexStrategy3Crv', () => {
         const router = await deployments.get('MockUniswapRouter');
         unirouter = await ethers.getContractAt('MockUniswapRouter', router.address);
         const vaultPID = 0;
+
+        const harvester = await deployments.get('Harvester');
+        manager.connect(deployer).setHarvester(harvester.address);
 
         const ConvexStrategy = await deployments.deploy('ConvexStrategy', {
             from: deployer.address,
@@ -172,6 +177,28 @@ describe('ConvexStrategy3Crv', () => {
     describe('withdrawAll', () => {
         it('should revert if called by an address other than controller', async () => {
             await expect(convexStrategy.withdrawAll()).to.be.revertedWith('!controller');
+        });
+    });
+
+    describe('getEstimates', () => {
+        it('should have correct length', async () => {
+            let _estimates = await convexStrategy.connect(user).getEstimates();
+            let crvRewards = await ethers.getContractAt('MockConvexBaseRewardPool', await convexStrategy.crvRewards());
+            let extraRewards = await crvRewards.extraRewardsLength();
+            expect(_estimates).to.have.lengthOf(extraRewards + 5);
+        });
+
+        it('should have correct values', async () => {
+            let _estimates = await convexStrategy.connect(user).getEstimates();
+
+            // Mock CRV earned is 1
+            // Mock cvx.totalCliffs() is 1
+            // Mock cvx.reductionPerCliff() is 100000 * 10 ** 18
+            expect(_estimates[0]).to.equal(ether('0.09'));
+            expect(_estimates[1]).to.equal(ether('0.09'));
+            expect(_estimates[2]).to.equal(ether('0.00081'));
+            expect(_estimates[3]).to.equal(ether('0.01539'));
+            expect(_estimates[4]).to.equal(0);
         });
     });
 });

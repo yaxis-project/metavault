@@ -38,7 +38,13 @@ contract MockConvexBaseRewardPool {
         address _account,
         bool /*_claimExtras*/
     ) public returns (bool) {
-        IERC20(rewardToken).safeTransferFrom(address(this), _account, 1000);
+        IERC20(rewardToken).safeTransferFrom(address(this), _account, 1 ether);
         return true;
+    }
+
+    function earned(
+        address _account
+    ) public returns (uint) {
+        return 1 ether;
     }
 }

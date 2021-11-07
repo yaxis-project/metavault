@@ -182,7 +182,7 @@ contract MIMConvexStrategy is BaseStrategy {
                
         uint rewardsLength = crvRewards.extraRewardsLength();
         uint256[] memory _estimates = new uint256[](rewardsLength.add(5));
-        address[] memory _path;
+        address[] memory _path = new address[](2);
         uint256[] memory _amounts;
         uint256 _notSlippage = ONE_HUNDRED_PERCENT.sub(IHarvester(manager.harvester()).slippage());
         uint256 wethAmount;

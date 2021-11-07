@@ -4,6 +4,8 @@ const { solidity } = require('ethereum-waffle');
 chai.use(solidity);
 const hardhat = require('hardhat');
 const { deployments, ethers } = hardhat;
+const { parseEther } = ethers.utils;
+const ether = parseEther;
 
 describe('NativeStrategyCurve3Crv', () => {
     let deployer, treasury, user;
@@ -51,6 +53,9 @@ describe('NativeStrategyCurve3Crv', () => {
         controller = await ethers.getContractAt('Controller', Controller.address);
         const router = await deployments.get('MockUniswapRouter');
         unirouter = await ethers.getContractAt('MockUniswapRouter', router.address);
+
+        const harvester = await deployments.get('Harvester');
+        manager.connect(deployer).setHarvester(harvester.address);
 
         const NativeStrategyCurve3Crv = await deployments.deploy('NativeStrategyCurve3Crv', {
             from: deployer.address,
@@ -183,6 +188,25 @@ describe('NativeStrategyCurve3Crv', () => {
             await expect(nativeStrategyCurve3Crv.withdrawAll()).to.be.revertedWith(
                 '!controller'
             );
+        });
+    });
+
+    describe('getEstimates', () => {
+        it('should have correct length', async () => {
+            let _estimates = await nativeStrategyCurve3Crv.connect(user).getEstimates();
+            expect(_estimates).to.have.lengthOf(4);
+        });
+
+        it('should have correct values', async () => {
+            let _estimates = await nativeStrategyCurve3Crv.connect(user).getEstimates();
+
+            // Mock CRV earned is 1
+            // Mock cvx.totalCliffs() is 1
+            // Mock cvx.reductionPerCliff() is 100000 * 10 ** 18
+            expect(_estimates[0]).to.equal(ether('0.09'));
+            expect(_estimates[1]).to.equal(ether('0.000405')); 
+            expect(_estimates[2]).to.equal(ether('0.007695')); 
+            expect(_estimates[3]).to.equal(ether('0'));  
         });
     });
 });

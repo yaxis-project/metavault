@@ -50,6 +50,9 @@ describe('MIMConvexStrategy', () => {
         unirouter = await ethers.getContractAt('MockUniswapRouter', router.address);
         const vaultPID = 0;
 
+        const harvester = await deployments.get('Harvester');
+        manager.connect(deployer).setHarvester(harvester.address);
+
         const MIMConvexStrategy = await deployments.deploy('MIMConvexStrategy', {
             from: deployer.address,
             args: [
