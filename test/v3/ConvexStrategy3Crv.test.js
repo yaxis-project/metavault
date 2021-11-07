@@ -183,7 +183,10 @@ describe('ConvexStrategy3Crv', () => {
     describe('getEstimates', () => {
         it('should have correct length', async () => {
             let _estimates = await convexStrategy.connect(user).getEstimates();
-            let crvRewards = await ethers.getContractAt('MockConvexBaseRewardPool', await convexStrategy.crvRewards());
+            let crvRewards = await ethers.getContractAt(
+                'MockConvexBaseRewardPool',
+                await convexStrategy.crvRewards()
+            );
             let extraRewards = await crvRewards.extraRewardsLength();
             expect(_estimates).to.have.lengthOf(extraRewards + 5);
         });

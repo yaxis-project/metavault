@@ -204,9 +204,9 @@ describe('NativeStrategyCurve3Crv', () => {
             // Mock cvx.totalCliffs() is 1
             // Mock cvx.reductionPerCliff() is 100000 * 10 ** 18
             expect(_estimates[0]).to.equal(ether('0.09'));
-            expect(_estimates[1]).to.equal(ether('0.000405')); 
-            expect(_estimates[2]).to.equal(ether('0.007695')); 
-            expect(_estimates[3]).to.equal(ether('0'));  
+            expect(_estimates[1]).to.equal(ether('0.000405'));
+            expect(_estimates[2]).to.equal(ether('0.007695'));
+            expect(_estimates[3]).to.equal(ether('0'));
         });
     });
 });
