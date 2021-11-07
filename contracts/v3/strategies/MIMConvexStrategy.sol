@@ -24,6 +24,7 @@ contract MIMConvexStrategy is BaseStrategy {
     address public immutable mimCvxDepositLP;
     IConvexRewards public immutable crvRewards;
     IStableSwap2Pool public immutable stableSwap2Pool;
+    IStableSwap3Pool public immutable stableSwap3Pool;
 
     /**
      * @param _name The strategy name
@@ -33,6 +34,7 @@ contract MIMConvexStrategy is BaseStrategy {
      * @param _weth The address of WETH
      * @param _mim The address of MIM
      * @param _crv3 The address of 3CRV
+     * @param _stableSwap3Pool The address of the 3CRV pool
      * @param _pid The pool id of convex
      * @param _convexVault The address of the convex vault
      * @param _stableSwap2Pool The address of the stable swap pool
@@ -48,6 +50,7 @@ contract MIMConvexStrategy is BaseStrategy {
         address _weth,
         address _mim,
         address _crv3,
+        IStableSwap3Pool _stableSwap3Pool,
         uint256 _pid,
         IConvexVault _convexVault,
         IStableSwap2Pool _stableSwap2Pool,
@@ -61,6 +64,7 @@ contract MIMConvexStrategy is BaseStrategy {
         require(address(_crv3) != address(0), '!_crv3');
         require(address(_convexVault) != address(0), '!_convexVault');
         require(address(_stableSwap2Pool) != address(0), '!_stableSwap2Pool');
+        require(address(_stableSwap3Pool) != address(0), '!_stableSwap3Pool');
 
         (, address _token, , address _crvRewards, , ) = _convexVault.poolInfo(_pid);
         crv = _crv;
@@ -72,6 +76,7 @@ contract MIMConvexStrategy is BaseStrategy {
         mimCvxDepositLP = _token;
         crvRewards = IConvexRewards(_crvRewards);
         stableSwap2Pool = _stableSwap2Pool;
+        stableSwap3Pool = _stableSwap3Pool;
         // Required to overcome "Stack Too Deep" error
         _setApprovals(
             _want,
@@ -83,6 +88,13 @@ contract MIMConvexStrategy is BaseStrategy {
             address(_stableSwap2Pool),
             _routerArray
         );
+        _setApprovals3crv(address(_stableSwap3Pool));
+    }
+    
+    function _setApprovals3crv(address _stableSwap3Pool) internal {
+        IERC20(IStableSwap3Pool(_stableSwap3Pool).coins(0)).safeApprove(_stableSwap3Pool, type(uint256).max);
+        IERC20(IStableSwap3Pool(_stableSwap3Pool).coins(1)).safeApprove(_stableSwap3Pool, type(uint256).max);
+        IERC20(IStableSwap3Pool(_stableSwap3Pool).coins(2)).safeApprove(_stableSwap3Pool, type(uint256).max);    	
     }
 
     function _setApprovals(
@@ -128,28 +140,27 @@ contract MIMConvexStrategy is BaseStrategy {
         uint256[3] memory amounts;
         (address targetCoin, uint256 targetIndex) = getMostPremium();
         amounts[targetIndex] = IERC20(targetCoin).balanceOf(address(this));
-        IStableSwap3Pool(crv3).add_liquidity(amounts, estimate);
+        stableSwap3Pool.add_liquidity(amounts, estimate);
     }
 
     function getMostPremium() public view returns (address, uint256) {
-        ICurvePool stablePool = ICurvePool(crv3);
-        uint256 daiBalance = stablePool.balances(0);
-        uint256 usdcBalance = (stablePool.balances(1)).mul(10**18).div(ExtendedIERC20(stablePool.coins(1)).decimals());
-        uint256 usdtBalance = (stablePool.balances(2)).mul(10**12); 
+        uint256 daiBalance = stableSwap3Pool.balances(0);
+        uint256 usdcBalance = (stableSwap3Pool.balances(1)).mul(10**18).div(ExtendedIERC20(stableSwap3Pool.coins(1)).decimals());
+        uint256 usdtBalance = (stableSwap3Pool.balances(2)).mul(10**12); 
 
         if (daiBalance <= usdcBalance && daiBalance <= usdtBalance) {
-            return (stablePool.coins(0), 0);
+            return (stableSwap3Pool.coins(0), 0);
         }
 
         if (usdcBalance <= daiBalance && usdcBalance <= usdtBalance) {
-            return (stablePool.coins(1), 1);
+            return (stableSwap3Pool.coins(1), 1);
         }
 
         if (usdtBalance <= daiBalance && usdtBalance <= usdcBalance) {
-            return (stablePool.coins(2), 2);
+            return (stableSwap3Pool.coins(2), 2);
         }
 
-        return (stablePool.coins(0), 0); // If they're somehow equal, we just want DAI
+        return (stableSwap3Pool.coins(0), 0); // If they're somehow equal, we just want DAI
     }
 
     function _harvest(uint256[] calldata _estimates) internal override {
@@ -246,7 +257,7 @@ contract MIMConvexStrategy is BaseStrategy {
         _estimates[rewardsLength + 3] = _amounts[1].mul(_notSlippage).div(ONE_HUNDRED_PERCENT);
 
         // Estimates for Stablecoin -> 3CRV
-        _estimates[rewardsLength + 4] = (_amounts[1].mul(10**(18-ExtendedIERC20(_targetCoin).decimals())).div(IStableSwap3Pool(crv3).get_virtual_price())).mul(_notSlippage).div(ONE_HUNDRED_PERCENT);
+        _estimates[rewardsLength + 4] = (_amounts[1].mul(10**(18-ExtendedIERC20(_targetCoin).decimals())).div(stableSwap3Pool.get_virtual_price())).mul(_notSlippage).div(ONE_HUNDRED_PERCENT);
         // Estimates for 3CRV -> MIM-3CRV is the same 3CRV estimate
         
         return _estimates;
