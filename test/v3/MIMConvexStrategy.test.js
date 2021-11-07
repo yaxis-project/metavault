@@ -46,7 +46,10 @@ describe('MIMConvexStrategy', () => {
             MockStableSwap2Pool.address
         );
         const MockStableSwap3Pool = await deployments.get('MockStableSwap3Pool');
-        stableSwap3Pool = await ethers.getContractAt('MockStableSwap3Pool', MockStableSwap3Pool.address);
+        stableSwap3Pool = await ethers.getContractAt(
+            'MockStableSwap3Pool',
+            MockStableSwap3Pool.address
+        );
         const Controller = await deployments.get('Controller');
         controller = await ethers.getContractAt('Controller', Controller.address);
         const router = await deployments.get('MockUniswapRouter');
