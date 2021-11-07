@@ -9,6 +9,7 @@ describe('MIMConvexStrategy', () => {
     let deployer, treasury, user;
     let mim,
         mock3crv,
+        stableSwap3Pool,
         mim3crv,
         stableSwap2Pool,
         manager,
@@ -44,6 +45,8 @@ describe('MIMConvexStrategy', () => {
             'MockStableSwap2Pool',
             MockStableSwap2Pool.address
         );
+        const MockStableSwap3Pool = await deployments.get('MockStableSwap3Pool');
+        stableSwap3Pool = await ethers.getContractAt('MockStableSwap3Pool', MockStableSwap3Pool.address);
         const Controller = await deployments.get('Controller');
         controller = await ethers.getContractAt('Controller', Controller.address);
         const router = await deployments.get('MockUniswapRouter');
@@ -63,6 +66,7 @@ describe('MIMConvexStrategy', () => {
                 weth.address,
                 mim.address,
                 mock3crv.address,
+                stableSwap3Pool.address,
                 vaultPID,
                 convexVault.address,
                 stableSwap2Pool.address,
@@ -84,6 +88,7 @@ describe('MIMConvexStrategy', () => {
         expect(await convexStrategy.cvx()).to.equal(cvx.address);
         expect(await convexStrategy.mim()).to.equal(mim.address);
         expect(await convexStrategy.crv3()).to.equal(mock3crv.address);
+        expect(await convexStrategy.stableSwap3Pool()).to.equal(stableSwap3Pool.address);
         expect(await convexStrategy.stableSwap2Pool()).to.equal(stableSwap2Pool.address);
         expect(await convexStrategy.convexVault()).to.equal(convexVault.address);
         expect(await convexStrategy.want()).to.equal(mim3crv.address);
