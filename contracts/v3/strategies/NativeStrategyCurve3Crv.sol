@@ -151,7 +151,7 @@ contract NativeStrategyCurve3Crv is BaseStrategy {
         _path[0] = weth;
         _path[1] = manager.yaxis();
         _amounts = ISwap(routerArray[1]).getAmountsOut(wethAmount.mul(manager.treasuryFee()).div(ONE_HUNDRED_PERCENT), _path); // Set to UniswapV2 to calculate output for YAXIS
-        _estimates[1] = _amounts[1] - _amounts[1].mul(_notSlippage).div(ONE_HUNDRED_PERCENT);
+        _estimates[1] = _amounts[1].mul(_notSlippage).div(ONE_HUNDRED_PERCENT);
         
         // Estimates for WETH -> Stablecoin
         (address _targetCoin,) = getMostPremium(); 
