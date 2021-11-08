@@ -6,6 +6,7 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
         CVX,
         MIM,
         T3CRV,
+        stableSwap3Pool,
         MIMCRV,
         WETH,
         deployer,
@@ -27,6 +28,8 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
         T3CRV = t3crv.address;
         const mim3crv = await deployments.get('MIM3CRV');
         MIMCRV = mim3crv.address;
+        const mockStableSwap3Pool = await deployments.get('MockStableSwap3Pool');
+        stableSwap3Pool = mockStableSwap3Pool.address;
         const weth = await deployments.get('WETH');
         WETH = weth.address;
         await deploy('CRV', {
@@ -71,7 +74,7 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
         const mockStableSwap2Pool = await deployments.get('MockStableSwap2Pool');
         stableSwapMIMPool = mockStableSwap2Pool.address;
         const router = await deployments.get('MockUniswapRouter');
-        unirouter = router.address;
+        unirouter = [router.address, router.address];
 
         pid = 0;
     }
@@ -87,6 +90,7 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
             WETH,
             MIM,
             T3CRV,
+            stableSwap3Pool,
             pid,
             convexBoost,
             stableSwapMIMPool,

@@ -4,6 +4,8 @@ const { solidity } = require('ethereum-waffle');
 chai.use(solidity);
 const hardhat = require('hardhat');
 const { deployments, ethers } = hardhat;
+const { parseEther } = ethers.utils;
+const ether = parseEther;
 
 describe('NativeStrategyCurve3Crv', () => {
     let deployer, treasury, user;
@@ -52,6 +54,9 @@ describe('NativeStrategyCurve3Crv', () => {
         const router = await deployments.get('MockUniswapRouter');
         unirouter = await ethers.getContractAt('MockUniswapRouter', router.address);
 
+        const harvester = await deployments.get('Harvester');
+        await manager.connect(deployer).setHarvester(harvester.address);
+
         const NativeStrategyCurve3Crv = await deployments.deploy('NativeStrategyCurve3Crv', {
             from: deployer.address,
             args: [
@@ -67,7 +72,7 @@ describe('NativeStrategyCurve3Crv', () => {
                 stableSwap3Pool.address,
                 controller.address,
                 manager.address,
-                unirouter.address
+                [unirouter.address, unirouter.address]
             ]
         });
         nativeStrategyCurve3Crv = await ethers.getContractAt(
@@ -125,7 +130,9 @@ describe('NativeStrategyCurve3Crv', () => {
     describe('setRouter', () => {
         it('should revert if called by an address other than governance', async () => {
             await expect(
-                nativeStrategyCurve3Crv.connect(user).setRouter(ethers.constants.AddressZero)
+                nativeStrategyCurve3Crv
+                    .connect(user)
+                    .setRouter([ethers.constants.AddressZero], [dai.address])
             ).to.be.revertedWith('!governance');
         });
 
@@ -133,7 +140,7 @@ describe('NativeStrategyCurve3Crv', () => {
             expect(await nativeStrategyCurve3Crv.router()).to.equal(unirouter.address);
             await nativeStrategyCurve3Crv
                 .connect(treasury)
-                .setRouter(ethers.constants.AddressZero);
+                .setRouter([ethers.constants.AddressZero], [dai.address]);
             expect(await nativeStrategyCurve3Crv.router()).to.equal(
                 ethers.constants.AddressZero
             );
@@ -148,9 +155,9 @@ describe('NativeStrategyCurve3Crv', () => {
 
     describe('deposit', () => {
         it('should revert if called by an address other than controller', async () => {
-            await expect(nativeStrategyCurve3Crv.harvest(0, 0)).to.be.revertedWith(
-                '!controller'
-            );
+            await expect(
+                nativeStrategyCurve3Crv.harvest([0, 0, 0, 0, 0, 0, 0, 0])
+            ).to.be.revertedWith('!controller');
         });
     });
 
@@ -181,6 +188,25 @@ describe('NativeStrategyCurve3Crv', () => {
             await expect(nativeStrategyCurve3Crv.withdrawAll()).to.be.revertedWith(
                 '!controller'
             );
+        });
+    });
+
+    describe('getEstimates', () => {
+        it('should have correct length', async () => {
+            let _estimates = await nativeStrategyCurve3Crv.connect(user).getEstimates();
+            expect(_estimates).to.have.lengthOf(4);
+        });
+
+        it('should have correct values', async () => {
+            let _estimates = await nativeStrategyCurve3Crv.connect(user).getEstimates();
+
+            // Mock CRV earned is 1
+            // Mock cvx.totalCliffs() is 1
+            // Mock cvx.reductionPerCliff() is 100000 * 10 ** 18
+            expect(_estimates[0]).to.equal(ether('0.09'));
+            expect(_estimates[1]).to.equal(ether('0.000405'));
+            expect(_estimates[2]).to.equal(ether('0.007695'));
+            expect(_estimates[3]).to.equal(ether('0'));
         });
     });
 });

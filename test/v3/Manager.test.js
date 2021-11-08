@@ -191,7 +191,7 @@ describe('Manager', () => {
                 stableSwap3Pool.address,
                 controller.address,
                 manager.address,
-                router.address
+                [router.address, router.address]
             );
             await manager.connect(deployer).setGovernance(treasury.address);
             await manager.connect(treasury).setAllowedStrategy(strategy.address, true);
@@ -220,7 +220,7 @@ describe('Manager', () => {
                 stableSwap3Pool.address,
                 controller.address,
                 fakeManager.address,
-                router.address
+                [router.address, router.address]
             );
             await expect(
                 manager.connect(treasury).setAllowedStrategy(newStrategy.address, true)
@@ -249,7 +249,7 @@ describe('Manager', () => {
                 stableSwap3Pool.address,
                 controller.address,
                 manager.address,
-                router.address
+                [router.address, router.address]
             );
             await expect(
                 manager.connect(treasury).setAllowedStrategy(newStrategy.address, true)

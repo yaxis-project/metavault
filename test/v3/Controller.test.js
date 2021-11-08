@@ -599,13 +599,13 @@ describe('Controller', () => {
 
         it('should revert if called by an address other than the harvester', async () => {
             await expect(
-                controller.connect(user).harvestStrategy(strategyCrv.address, 1, 1)
+                controller.connect(user).harvestStrategy(strategyCrv.address, [])
             ).to.be.revertedWith('!harvester');
         });
 
         it('should revert if strategy is not allowed', async () => {
             await expect(
-                harvester.harvest(controller.address, strategyCrv.address, 0, 0)
+                harvester.harvest(controller.address, strategyCrv.address, [])
             ).to.be.revertedWith('!allowedStrategy');
         });
 
@@ -636,7 +636,18 @@ describe('Controller', () => {
             });
 
             it('should harvest', async () => {
-                await expect(harvester.harvest(controller.address, strategyCrv.address, 0, 0))
+                await expect(
+                    harvester.harvest(controller.address, strategyCrv.address, [
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0
+                    ])
+                )
                     .to.emit(controller, 'Harvest')
                     .withArgs(strategyCrv.address);
             });
@@ -644,7 +655,16 @@ describe('Controller', () => {
             it('should revert if the system is halted', async () => {
                 await manager.setHalted();
                 await expect(
-                    harvester.harvest(controller.address, strategyCrv.address, 0, 0)
+                    harvester.harvest(controller.address, strategyCrv.address, [
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0
+                    ])
                 ).to.be.revertedWith('halted');
             });
         });

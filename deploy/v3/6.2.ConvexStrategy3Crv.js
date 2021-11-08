@@ -80,7 +80,7 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
         const mockStableSwap3Pool = await deployments.get('MockStableSwap3Pool');
         stableSwap3Pool = mockStableSwap3Pool.address;
         const router = await deployments.get('MockUniswapRouter');
-        unirouter = router.address;
+        unirouter = [router.address, router.address];
 
         pid = 0;
     }

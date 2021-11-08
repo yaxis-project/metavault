@@ -4,6 +4,8 @@ const { solidity } = require('ethereum-waffle');
 chai.use(solidity);
 const hardhat = require('hardhat');
 const { deployments, ethers } = hardhat;
+const { parseEther } = ethers.utils;
+const ether = parseEther;
 
 describe('ConvexStrategy3Crv', () => {
     let deployer, treasury, user;
@@ -53,6 +55,9 @@ describe('ConvexStrategy3Crv', () => {
         unirouter = await ethers.getContractAt('MockUniswapRouter', router.address);
         const vaultPID = 0;
 
+        const harvester = await deployments.get('Harvester');
+        await manager.connect(deployer).setHarvester(harvester.address);
+
         const ConvexStrategy = await deployments.deploy('ConvexStrategy', {
             from: deployer.address,
             args: [
@@ -69,7 +74,7 @@ describe('ConvexStrategy3Crv', () => {
                 stableSwap3Pool.address,
                 controller.address,
                 manager.address,
-                unirouter.address
+                [unirouter.address, unirouter.address]
             ]
         });
         convexStrategy = await ethers.getContractAt('ConvexStrategy', ConvexStrategy.address);
@@ -118,13 +123,17 @@ describe('ConvexStrategy3Crv', () => {
     describe('setRouter', () => {
         it('should revert if called by an address other than governance', async () => {
             await expect(
-                convexStrategy.connect(user).setRouter(ethers.constants.AddressZero)
+                convexStrategy
+                    .connect(user)
+                    .setRouter([ethers.constants.AddressZero], [dai.address])
             ).to.be.revertedWith('!governance');
         });
 
         it('should set router when called by governance', async () => {
             expect(await convexStrategy.router()).to.equal(unirouter.address);
-            await convexStrategy.connect(treasury).setRouter(ethers.constants.AddressZero);
+            await convexStrategy
+                .connect(treasury)
+                .setRouter([ethers.constants.AddressZero], [dai.address]);
             expect(await convexStrategy.router()).to.equal(ethers.constants.AddressZero);
         });
     });
@@ -137,7 +146,9 @@ describe('ConvexStrategy3Crv', () => {
 
     describe('deposit', () => {
         it('should revert if called by an address other than controller', async () => {
-            await expect(convexStrategy.harvest(0, 0)).to.be.revertedWith('!controller');
+            await expect(convexStrategy.harvest([0, 0, 0, 0, 0, 0, 0, 0])).to.be.revertedWith(
+                '!controller'
+            );
         });
     });
 
@@ -166,6 +177,31 @@ describe('ConvexStrategy3Crv', () => {
     describe('withdrawAll', () => {
         it('should revert if called by an address other than controller', async () => {
             await expect(convexStrategy.withdrawAll()).to.be.revertedWith('!controller');
+        });
+    });
+
+    describe('getEstimates', () => {
+        it('should have correct length', async () => {
+            let _estimates = await convexStrategy.connect(user).getEstimates();
+            let crvRewards = await ethers.getContractAt(
+                'MockConvexBaseRewardPool',
+                await convexStrategy.crvRewards()
+            );
+            let extraRewards = await crvRewards.extraRewardsLength();
+            expect(_estimates).to.have.lengthOf(extraRewards + 5);
+        });
+
+        it('should have correct values', async () => {
+            let _estimates = await convexStrategy.connect(user).getEstimates();
+
+            // Mock CRV earned is 1
+            // Mock cvx.totalCliffs() is 1
+            // Mock cvx.reductionPerCliff() is 100000 * 10 ** 18
+            expect(_estimates[0]).to.equal(ether('0.09'));
+            expect(_estimates[1]).to.equal(ether('0.09'));
+            expect(_estimates[2]).to.equal(ether('0.00081'));
+            expect(_estimates[3]).to.equal(ether('0.01539'));
+            expect(_estimates[4]).to.equal(0);
         });
     });
 });

@@ -30,7 +30,7 @@ contract MockCurveGauge is Gauge {
     }
 
     function claimable_tokens(address _account) external override view returns (uint) {
-        return amounts[_account].div(10); // always return 10% of staked
+        return 1 ether; // always return 1 ether
     }
 
     function withdraw(uint _amount) external override {

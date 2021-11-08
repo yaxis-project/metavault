@@ -99,4 +99,13 @@ contract MockUniswapRouter is IUniswapRouter {
         IERC20(tokenB).safeTransferFrom(msg.sender, address(this), amountB);
         univ2LpToken.safeTransfer(to, liquidity); // 1A + 1B -> 1LP
     }
+
+    function getAmountsOut(
+        uint amountIn, 
+        address[] memory path
+    ) public view returns (uint[] memory amounts) {
+        amounts = new uint[](path.length);
+        amounts[0] = amountIn;
+        amounts[1] = amountIn.mul(9).div(100);
+    }
 }

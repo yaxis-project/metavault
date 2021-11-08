@@ -139,4 +139,17 @@ contract MockERC20 {
     function transferOwnership(address newOwner) external _onlyOwner_ {
         _owner = newOwner;
     }
+
+    // Mock functions for CVX
+    function totalCliffs() external returns (uint) {
+        return 1 ether;
+    }
+
+    function reductionPerCliff() external returns (uint) {
+        return 100000000000000000000000;
+    }
+
+    function maxSupply() public view returns (uint) {
+        return _totalSupply;
+    }
 }

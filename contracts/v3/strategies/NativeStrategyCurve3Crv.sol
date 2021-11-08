@@ -9,6 +9,8 @@ import "../interfaces/ExtendedIERC20.sol";
 
 import "./BaseStrategy.sol";
 
+import '../interfaces/IHarvester.sol';
+
 contract NativeStrategyCurve3Crv is BaseStrategy {
     // used for Crv -> weth -> [dai/usdc/usdt] -> 3crv route
     address public immutable crv;
@@ -35,10 +37,10 @@ contract NativeStrategyCurve3Crv is BaseStrategy {
         IStableSwap3Pool _stableSwap3Pool,
         address _controller,
         address _manager,
-        address _router
+        address[] memory _routerArray
     )
         public
-        BaseStrategy(_name, _controller, _manager, _want, _weth, _router)
+        BaseStrategy(_name, _controller, _manager, _want, _weth, _routerArray)
     {
         crv = _crv;
         dai = _dai;
@@ -48,7 +50,7 @@ contract NativeStrategyCurve3Crv is BaseStrategy {
         gauge = _gauge;
         crvMintr = _crvMintr;
         IERC20(_want).safeApprove(address(_gauge), type(uint256).max);
-        IERC20(_crv).safeApprove(address(_router), type(uint256).max);
+        IERC20(_crv).safeApprove(address(_routerArray[0]), type(uint256).max);
         IERC20(_dai).safeApprove(address(_stableSwap3Pool), type(uint256).max);
         IERC20(_usdc).safeApprove(address(_stableSwap3Pool), type(uint256).max);
         IERC20(_usdt).safeApprove(address(_stableSwap3Pool), type(uint256).max);
@@ -72,14 +74,14 @@ contract NativeStrategyCurve3Crv is BaseStrategy {
         crvMintr.mint(address(gauge));
     }
 
-    function _addLiquidity()
+    function _addLiquidity(uint256 _estimate)
         internal
     {
         uint256[3] memory amounts;
         amounts[0] = IERC20(dai).balanceOf(address(this));
         amounts[1] = IERC20(usdc).balanceOf(address(this));
         amounts[2] = IERC20(usdt).balanceOf(address(this));
-        stableSwap3Pool.add_liquidity(amounts, 1);
+        stableSwap3Pool.add_liquidity(amounts, _estimate);
     }
 
     function getMostPremium()
@@ -108,22 +110,63 @@ contract NativeStrategyCurve3Crv is BaseStrategy {
     }
 
     function _harvest(
-        uint256 _estimatedWETH,
-        uint256 _estimatedYAXIS
+        uint256[] calldata _estimates
     )
         internal
         override
     {
         _claimReward();
-        uint256 _remainingWeth = _payHarvestFees(crv, _estimatedWETH, _estimatedYAXIS);
+        // RouterIndex 1 sets router to Uniswap to swap WETH->YAXIS
+        uint256 _remainingWeth = _payHarvestFees(crv, _estimates[0], _estimates[1], 1);
 
         if (_remainingWeth > 0) {
             (address _stableCoin,) = getMostPremium(); // stablecoin we want to convert to
-            _swapTokens(weth, _stableCoin, _remainingWeth, 1);
-            _addLiquidity();
+            _swapTokens(weth, _stableCoin, _remainingWeth, _estimates[2]);
+            _addLiquidity(_estimates[3]);
 
             _deposit();
         }
+    }
+
+    function getEstimates() external view returns (uint256[] memory) {
+            
+        uint256[] memory _estimates = new uint256[](4);
+        address[] memory _path = new address[](2);
+        uint256[] memory _amounts;
+        uint256 _notSlippage = ONE_HUNDRED_PERCENT.sub(IHarvester(manager.harvester()).slippage());
+        uint256 wethAmount;
+
+        // Estimates for CRV -> WETH
+        _path[0] = crv;
+        _path[1] = weth;
+        _amounts = router.getAmountsOut(
+            gauge.claimable_tokens(address(this)),
+            _path
+        );
+        _estimates[0] = _amounts[1].mul(_notSlippage).div(ONE_HUNDRED_PERCENT);
+
+        wethAmount += _estimates[0];
+
+        // Estimates WETH -> YAXIS
+        _path[0] = weth;
+        _path[1] = manager.yaxis();
+        _amounts = ISwap(routerArray[1]).getAmountsOut(wethAmount.mul(manager.treasuryFee()).div(ONE_HUNDRED_PERCENT), _path); // Set to UniswapV2 to calculate output for YAXIS
+        _estimates[1] = _amounts[1].mul(_notSlippage).div(ONE_HUNDRED_PERCENT);
+        
+        // Estimates for WETH -> Stablecoin
+        (address _targetCoin,) = getMostPremium(); 
+        _path[0] = weth;
+        _path[1] = _targetCoin;
+        _amounts = router.getAmountsOut(
+            wethAmount - _amounts[0],
+            _path
+        );
+        _estimates[2] = _amounts[1].mul(_notSlippage).div(ONE_HUNDRED_PERCENT);
+
+        // Estimates for Stablecoin -> 3CRV
+        _estimates[3] = (_amounts[1].mul(10**(18-ExtendedIERC20(_targetCoin).decimals())).div(stableSwap3Pool.get_virtual_price())).mul(_notSlippage).div(ONE_HUNDRED_PERCENT);
+        
+        return _estimates;
     }
 
     function _withdrawAll()

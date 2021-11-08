@@ -41,6 +41,7 @@ abstract contract BaseStrategy is IStrategy {
     address public immutable controller;
     IManager public immutable override manager;
     string public override name;
+    address[] public routerArray;
     ISwap public override router;
 
     /**
@@ -48,7 +49,7 @@ abstract contract BaseStrategy is IStrategy {
      * @param _manager The address of the manager
      * @param _want The desired token of the strategy
      * @param _weth The address of WETH
-     * @param _router The address of the router for swapping tokens
+     * @param _routerArray The addresses of routers for swapping tokens
      */
     constructor(
         string memory _name,
@@ -56,15 +57,21 @@ abstract contract BaseStrategy is IStrategy {
         address _manager,
         address _want,
         address _weth,
-        address _router
+        address[] memory _routerArray
     ) public {
         name = _name;
         want = _want;
         controller = _controller;
         manager = IManager(_manager);
         weth = _weth;
-        router = ISwap(_router);
-        IERC20(_weth).safeApprove(address(_router), type(uint256).max);
+        require(_routerArray.length > 0, "Must input at least one router");
+        routerArray = _routerArray;
+        router = ISwap(_routerArray[0]);
+        for(uint i = 0; i < _routerArray.length; i++) {
+            IERC20(_weth).safeApprove(address(_routerArray[i]), 0);
+            IERC20(_weth).safeApprove(address(_routerArray[i]), type(uint256).max);
+        }
+        
     }
 
     /**
@@ -91,17 +98,44 @@ abstract contract BaseStrategy is IStrategy {
 
     /**
      * @notice Sets the address of the ISwap-compatible router
-     * @param _router The address of the router
+     * @param _routerArray The addresses of routers
+     * @param _tokenArray The addresses of tokens that need to be approved by the strategy
      */
-    function setRouter(
-        address _router
+     function setRouter(
+        address[] calldata _routerArray,
+        address[] calldata _tokenArray
     )
         external
     {
         require(msg.sender == manager.governance(), "!governance");
-        router = ISwap(_router);
-        IERC20(weth).safeApprove(address(_router), 0);
-        IERC20(weth).safeApprove(address(_router), type(uint256).max);
+        routerArray = _routerArray;
+        router = ISwap(_routerArray[0]);
+        address _router;
+        uint256 _routerLength = _routerArray.length;
+        uint256 _tokenArrayLength = _tokenArray.length;
+        for(uint i = 0; i < _routerLength; i++) {
+            _router = _routerArray[i];
+            IERC20(weth).safeApprove(_router, 0);
+            IERC20(weth).safeApprove(_router, type(uint256).max);
+            for(uint j = 0; j < _tokenArrayLength; j++) {
+                IERC20(_tokenArray[j]).safeApprove(_router, 0);
+                IERC20(_tokenArray[j]).safeApprove(_router, type(uint256).max);
+            }
+        }
+
+    }
+    
+    /**
+     * @notice Sets the default ISwap-compatible router
+     * @param _routerIndex Gets the address of the router from routerArray
+     */
+     function setDefaultRouter(
+        uint256 _routerIndex
+    )
+        external
+    {
+    	require(msg.sender == manager.governance(), "!governance");
+    	router = ISwap(routerArray[_routerIndex]);
     }
 
     /**
@@ -123,14 +157,13 @@ abstract contract BaseStrategy is IStrategy {
      * @notice Harvest funds in the strategy's pool
      */
     function harvest(
-        uint256 _estimatedWETH,
-        uint256 _estimatedYAXIS
+        uint256[] calldata _estimates
     )
         external
         override
         onlyController
     {
-        _harvest(_estimatedWETH, _estimatedYAXIS);
+        _harvest(_estimates);
     }
 
     /**
@@ -249,8 +282,7 @@ abstract contract BaseStrategy is IStrategy {
         virtual;
 
     function _harvest(
-        uint256 _estimatedWETH,
-        uint256 _estimatedYAXIS
+        uint256[] calldata _estimates
     )
         internal
         virtual;
@@ -258,7 +290,8 @@ abstract contract BaseStrategy is IStrategy {
     function _payHarvestFees(
         address _poolToken,
         uint256 _estimatedWETH,
-        uint256 _estimatedYAXIS
+        uint256 _estimatedYAXIS,
+        uint256 _routerIndex
     )
         internal
         returns (uint256 _wethBal)
@@ -280,7 +313,8 @@ abstract contract BaseStrategy is IStrategy {
             // pay the treasury with YAX
             if (treasuryFee > 0 && treasury != address(0)) {
                 _fee = _wethBal.mul(treasuryFee).div(ONE_HUNDRED_PERCENT);
-                _swapTokens(weth, yaxis, _fee, _estimatedYAXIS);
+
+                _swapTokensWithRouterIndex(weth, yaxis, _fee, _estimatedYAXIS, _routerIndex);
                 IERC20(yaxis).safeTransfer(treasury, IERC20(yaxis).balanceOf(address(this)));
             }
 
@@ -289,6 +323,28 @@ abstract contract BaseStrategy is IStrategy {
         }
     }
 
+    function _swapTokensWithRouterIndex(
+        address _input,
+        address _output,
+        uint256 _amount,
+        uint256 _expected,
+        uint256 _routerIndex
+    )
+        internal
+    {
+        address[] memory path = new address[](2);
+        path[0] = _input;
+        path[1] = _output;
+        ISwap(routerArray[_routerIndex]).swapExactTokensForTokens(
+            _amount,
+            _expected,
+            path,
+            address(this),
+            // The deadline is a hardcoded value that is far in the future.
+            1e10
+        );
+    }
+    
     function _swapTokens(
         address _input,
         address _output,
