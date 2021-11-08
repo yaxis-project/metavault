@@ -55,7 +55,7 @@ describe('NativeStrategyCurve3Crv', () => {
         unirouter = await ethers.getContractAt('MockUniswapRouter', router.address);
 
         const harvester = await deployments.get('Harvester');
-        manager.connect(deployer).setHarvester(harvester.address);
+        await manager.connect(deployer).setHarvester(harvester.address);
 
         const NativeStrategyCurve3Crv = await deployments.deploy('NativeStrategyCurve3Crv', {
             from: deployer.address,
