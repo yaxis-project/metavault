@@ -56,7 +56,7 @@ describe('ConvexStrategy3Crv', () => {
         const vaultPID = 0;
 
         const harvester = await deployments.get('Harvester');
-        manager.connect(deployer).setHarvester(harvester.address);
+        await manager.connect(deployer).setHarvester(harvester.address);
 
         const ConvexStrategy = await deployments.deploy('ConvexStrategy', {
             from: deployer.address,
