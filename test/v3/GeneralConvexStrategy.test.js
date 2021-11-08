@@ -50,7 +50,7 @@ describe('GeneralConvexStrategy with 2 tokens', () => {
         const vaultPID = 0;
 
         const harvester = await deployments.get('Harvester');
-        manager.connect(deployer).setHarvester(harvester.address);
+        await manager.connect(deployer).setHarvester(harvester.address);
 
         const GeneralConvexStrategy = await deployments.deploy('GeneralConvexStrategy', {
             from: deployer.address,
