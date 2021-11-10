@@ -240,7 +240,12 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
         });
 
         if (!linkcrv.newlyDeployed) {
-            await execute('LINKCRV', { from: deployer }, 'transferOwnership', linkStableSwap.address);
+            await execute(
+                'LINKCRV',
+                { from: deployer },
+                'transferOwnership',
+                linkStableSwap.address
+            );
             await execute(
                 'LINK',
                 { from: deployer },
@@ -310,7 +315,12 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
         });
 
         if (!rencrv.newlyDeployed) {
-            await execute('renCrv', { from: deployer }, 'transferOwnership', btcStableSwap.address);
+            await execute(
+                'renCrv',
+                { from: deployer },
+                'transferOwnership',
+                btcStableSwap.address
+            );
             await execute(
                 'WBTC',
                 { from: deployer },
@@ -372,7 +382,7 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
             args: [
                 deployer,
                 [weth.address, aleth.address],
-                linkcrv.address,
+                alethcrv.address,
                 200,
                 4000000,
                 5000000000
@@ -380,7 +390,12 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
         });
 
         if (!rencrv.newlyDeployed) {
-            await execute('alethCrv', { from: deployer }, 'transferOwnership', ethStableSwap.address);
+            await execute(
+                'alethCrv',
+                { from: deployer },
+                'transferOwnership',
+                ethStableSwap.address
+            );
             await execute(
                 'WETH',
                 { from: deployer },

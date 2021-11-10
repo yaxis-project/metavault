@@ -162,6 +162,9 @@ module.exports = {
         stableSwapALETHPool: {
             1: '0xC4C319E2D4d66CcA4464C0c2B32c9Bd23ebe784e'
         },
+        stableSwapBTCPool: {
+            1: '0x93054188d876f558f4a66B2EF1d97d16eDf0895B'
+        },
         stableSwapPBTCPool: {
             1: '0x7F55DDe206dbAD629C080068923b36fe9D6bDBeF'
         },
@@ -262,7 +265,7 @@ module.exports = {
         },
         RENCRV: {
             1: '0x49849C98ae39Fff122806C06791Fa73784FB3675'
-        },
+        }
     },
     solidity: {
         version: '0.6.12',

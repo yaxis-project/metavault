@@ -24,7 +24,7 @@ module.exports = async ({ getChainId, getNamedAccounts, deployments }) => {
         contract: 'Vault',
         from: deployer,
         log: true,
-        args: [LINK, VaultToken.address, Manager.address]
+        args: [LINKCRV, VaultToken.address, Manager.address]
     });
 
     const Gauge = await deploy('VaultLINKCRVGauge', {
@@ -58,7 +58,12 @@ module.exports = async ({ getChainId, getNamedAccounts, deployments }) => {
             Vault.address,
             Controller.address
         );
-        await execute('LINKCRVVault', { from: deployer, log: true }, 'setGauge', Gauge.address);
+        await execute(
+            'LINKCRVVault',
+            { from: deployer, log: true },
+            'setGauge',
+            Gauge.address
+        );
     }
 };
 

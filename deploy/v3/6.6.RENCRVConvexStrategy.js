@@ -3,23 +3,23 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
     let {
         CRV,
         CVX,
-        ALETHCRV,
+        RENCRV,
         WETH,
         deployer,
         convexBoost,
-        stableSwapALETHPool,
+        stableSwapBTCPool,
         unirouter
     } = await getNamedAccounts();
     const chainId = await getChainId();
     const Controller = await deployments.get('Controller');
     const Manager = await deployments.get('Manager');
-    const Vault = await deployments.get('ALETHCRVVault');
-    const name = 'Convex: ALETHCRV';
-    let pid = 49;
+    const Vault = await deployments.get('RENCRVVault');
+    const name = 'Convex: RENBTC';
+    let pid = 18;
 
     if (chainId != '1') {
-        const alethcrv = await deployments.get('alethCrv');
-        ALETHCRV = alethcrv.address;
+        const rencrv = await deployments.get('renCrv');
+        RENCRV = rencrv.address;
 
         const weth = await deployments.get('WETH');
         WETH = weth.address;
@@ -41,34 +41,34 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
             'MockConvexVault',
             { from: deployer, log: true },
             'addPool(address,address,uint256)',
-            ALETHCRV,
-            ALETHCRV,
+            RENCRV,
+            RENCRV,
             0
         );
 
-        const mockStableSwap2Pool = await deployments.get('MockETHStableSwap2Pool');
-        stableSwapALETHPool = mockStableSwap2Pool.address;
+        const mockStableSwap2Pool = await deployments.get('MockBTCStableSwap2Pool');
+        stableSwapBTCPool = mockStableSwap2Pool.address;
 
         const router = await deployments.get('MockUniswapRouter');
         unirouter = [router.address, router.address];
 
-        pid = 2;
+        pid = 3;
     }
 
-    const Strategy = await deploy('ALETHConvexStrategy', {
+    const Strategy = await deploy('BTCConvexStrategy', {
         contract: 'GeneralConvexStrategy',
         from: deployer,
         log: true,
         args: [
             name,
-            ALETHCRV,
+            RENCRV,
             CRV,
             CVX,
             WETH,
             pid,
             2,
             convexBoost,
-            stableSwapALETHPool,
+            stableSwapBTCPool,
             Controller.address,
             Manager.address,
             unirouter

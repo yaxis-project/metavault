@@ -17,7 +17,7 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
     const chainId = await getChainId();
     const Controller = await deployments.get('Controller');
     const Manager = await deployments.get('Manager');
-    const Vault = await deployments.get('Vault3CRV');
+    const Vault = await deployments.get('VaultMIM3CRV');
     const name = 'Convex: MIMCRV';
     let pid = 40;
 
