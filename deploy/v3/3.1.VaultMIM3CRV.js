@@ -1,38 +1,32 @@
 module.exports = async ({ getChainId, getNamedAccounts, deployments }) => {
     const { deploy, execute } = deployments;
     const chainId = await getChainId();
-    let { deployer, BTC } = await getNamedAccounts();
+    let { deployer, MIMCRV } = await getNamedAccounts();
     const Controller = await deployments.get('Controller');
     const Manager = await deployments.get('Manager');
     const Minter = await deployments.get('Minter');
     const GaugeProxy = await deployments.get('GaugeProxy');
 
     if (chainId != '1') {
-        const btc = await deploy('WBTC', {
-            from: deployer,
-            log: true,
-            contract: 'MockERC20',
-            args: ['Wrapped BTC', 'WBTC', 18]
-        });
-
-        BTC = btc.address;
+        const mim3crv = await deployments.get('MIM3CRV');
+        MIMCRV = mim3crv.address;
     }
 
-    const VaultToken = await deploy('BTCVaultToken', {
+    const VaultToken = await deploy('VaultTokenMIM3CRV', {
         contract: 'VaultToken',
         from: deployer,
         log: true,
-        args: ['yAxis WBTC Vault', 'V:WBTC', Manager.address]
+        args: ['yAxis MIM3CRV Vault', 'V:MIM3CRV', Manager.address]
     });
 
-    const Vault = await deploy('WBTCVault', {
+    const Vault = await deploy('VaultMIM3CRV', {
         contract: 'Vault',
         from: deployer,
         log: true,
-        args: [BTC, VaultToken.address, Manager.address]
+        args: [MIMCRV, VaultToken.address, Manager.address]
     });
 
-    const Gauge = await deploy('VaultWBTCGauge', {
+    const Gauge = await deploy('VaultMIM3CRVGauge', {
         contract: 'LiquidityGaugeV2',
         from: deployer,
         log: true,
@@ -63,7 +57,7 @@ module.exports = async ({ getChainId, getNamedAccounts, deployments }) => {
             Vault.address,
             Controller.address
         );
-        await execute('WBTCVault', { from: deployer, log: true }, 'setGauge', Gauge.address);
+        await execute('VaultMIM3CRV', { from: deployer, log: true }, 'setGauge', Gauge.address);
     }
 };
 

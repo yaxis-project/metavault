@@ -1,33 +1,33 @@
 module.exports = async ({ getChainId, getNamedAccounts, deployments }) => {
     const { deploy, execute } = deployments;
     const chainId = await getChainId();
-    let { deployer, WETH } = await getNamedAccounts();
+    let { deployer, RENCRV } = await getNamedAccounts();
     const Controller = await deployments.get('Controller');
     const Manager = await deployments.get('Manager');
     const Minter = await deployments.get('Minter');
     const GaugeProxy = await deployments.get('GaugeProxy');
 
     if (chainId != '1') {
-        const weth = await deployments.get('WETH');
+        const rencrv = await deployments.get('renCrv');
 
-        WETH = weth.address;
+        RENCRV = rencrv.address;
     }
 
-    const VaultToken = await deploy('WETHVaultToken', {
+    const VaultToken = await deploy('RENCRVVaultToken', {
         contract: 'VaultToken',
         from: deployer,
         log: true,
-        args: ['yAxis WETH Vault', 'V:WETH', Manager.address]
+        args: ['yAxis RENCRV Vault', 'V:RENCRV', Manager.address]
     });
 
-    const Vault = await deploy('WETHVault', {
+    const Vault = await deploy('RENCRVVault', {
         contract: 'Vault',
         from: deployer,
         log: true,
-        args: [WETH, VaultToken.address, Manager.address]
+        args: [RENCRV, VaultToken.address, Manager.address]
     });
 
-    const Gauge = await deploy('VaultWETHGauge', {
+    const Gauge = await deploy('VaultRENCRVGauge', {
         contract: 'LiquidityGaugeV2',
         from: deployer,
         log: true,
@@ -58,7 +58,7 @@ module.exports = async ({ getChainId, getNamedAccounts, deployments }) => {
             Vault.address,
             Controller.address
         );
-        await execute('WETHVault', { from: deployer, log: true }, 'setGauge', Gauge.address);
+        await execute('RENCRVVault', { from: deployer, log: true }, 'setGauge', Gauge.address);
     }
 };
 

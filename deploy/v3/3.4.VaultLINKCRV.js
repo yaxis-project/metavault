@@ -1,32 +1,33 @@
 module.exports = async ({ getChainId, getNamedAccounts, deployments }) => {
     const { deploy, execute } = deployments;
     const chainId = await getChainId();
-    let { deployer, T3CRV } = await getNamedAccounts();
+    let { deployer, LINKCRV } = await getNamedAccounts();
     const Controller = await deployments.get('Controller');
     const Manager = await deployments.get('Manager');
     const Minter = await deployments.get('Minter');
     const GaugeProxy = await deployments.get('GaugeProxy');
 
     if (chainId != '1') {
-        const t3crv = await deployments.get('T3CRV');
-        T3CRV = t3crv.address;
+        const linkcrv = await deployments.get('LINKCRV');
+
+        LINKCRV = linkcrv.address;
     }
 
-    const VaultToken = await deploy('VaultToken3CRV', {
+    const VaultToken = await deploy('LINKCRVVaultToken', {
         contract: 'VaultToken',
         from: deployer,
         log: true,
-        args: ['yAxis 3CRV Vault', 'V:3CRV', Manager.address]
+        args: ['yAxis LINKCRV Vault', 'V:LINK', Manager.address]
     });
 
-    const Vault = await deploy('Vault3CRV', {
+    const Vault = await deploy('LINKCRVVault', {
         contract: 'Vault',
         from: deployer,
         log: true,
-        args: [T3CRV, VaultToken.address, Manager.address]
+        args: [LINK, VaultToken.address, Manager.address]
     });
 
-    const Gauge = await deploy('Vault3CRVGauge', {
+    const Gauge = await deploy('VaultLINKCRVGauge', {
         contract: 'LiquidityGaugeV2',
         from: deployer,
         log: true,
@@ -57,7 +58,7 @@ module.exports = async ({ getChainId, getNamedAccounts, deployments }) => {
             Vault.address,
             Controller.address
         );
-        await execute('Vault3CRV', { from: deployer, log: true }, 'setGauge', Gauge.address);
+        await execute('LINKCRVVault', { from: deployer, log: true }, 'setGauge', Gauge.address);
     }
 };
 

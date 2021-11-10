@@ -1,38 +1,33 @@
 module.exports = async ({ getChainId, getNamedAccounts, deployments }) => {
     const { deploy, execute } = deployments;
     const chainId = await getChainId();
-    let { deployer, LINK } = await getNamedAccounts();
+    let { deployer, ALETHCRV } = await getNamedAccounts();
     const Controller = await deployments.get('Controller');
     const Manager = await deployments.get('Manager');
     const Minter = await deployments.get('Minter');
     const GaugeProxy = await deployments.get('GaugeProxy');
 
     if (chainId != '1') {
-        const link = await deploy('LINK', {
-            from: deployer,
-            log: true,
-            contract: 'MockERC20',
-            args: ['LINK', 'LINK', 18]
-        });
+        const alethcrv = await deployments.get('alethCrv');
 
-        LINK = link.address;
+        ALETHCRV = alethcrv.address;
     }
 
-    const VaultToken = await deploy('LINKVaultToken', {
+    const VaultToken = await deploy('ALETHCRVVaultToken', {
         contract: 'VaultToken',
         from: deployer,
         log: true,
-        args: ['yAxis LINK Vault', 'V:LINK', Manager.address]
+        args: ['yAxis ALETHCRV Vault', 'V:ALETHCRV', Manager.address]
     });
 
-    const Vault = await deploy('LINKVault', {
+    const Vault = await deploy('ALETHCRVVault', {
         contract: 'Vault',
         from: deployer,
         log: true,
-        args: [LINK, VaultToken.address, Manager.address]
+        args: [ALETHCRV, VaultToken.address, Manager.address]
     });
 
-    const Gauge = await deploy('VaultLINKGauge', {
+    const Gauge = await deploy('VaultALETHCRVGauge', {
         contract: 'LiquidityGaugeV2',
         from: deployer,
         log: true,
@@ -63,7 +58,7 @@ module.exports = async ({ getChainId, getNamedAccounts, deployments }) => {
             Vault.address,
             Controller.address
         );
-        await execute('LINKVault', { from: deployer, log: true }, 'setGauge', Gauge.address);
+        await execute('ALETHCRVVault', { from: deployer, log: true }, 'setGauge', Gauge.address);
     }
 };
 
