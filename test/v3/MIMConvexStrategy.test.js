@@ -59,7 +59,7 @@ describe('MIMConvexStrategy', () => {
         const vaultPID = 0;
 
         const harvester = await deployments.get('Harvester');
-        manager.connect(deployer).setHarvester(harvester.address);
+        await manager.connect(deployer).setHarvester(harvester.address);
 
         const MIMConvexStrategy = await deployments.deploy('MIMConvexStrategy', {
             from: deployer.address,
