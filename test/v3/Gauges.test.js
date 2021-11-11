@@ -27,7 +27,7 @@ describe('Gauges', () => {
         [deployer, treasury, user] = await ethers.getSigners();
         const YAXIS = await deployments.get('YaxisToken');
         yaxis = await ethers.getContractAt('YaxisToken', YAXIS.address);
-        const T3CRV = await deployments.get('T3CRV');
+        const T3CRV = await deployments.get('MIM3CRV');
         t3crv = await ethers.getContractAt('MockERC20', T3CRV.address);
         const GaugeController = await deployments.get('GaugeController');
         gaugeController = await ethers.getContractAt(
@@ -43,11 +43,11 @@ describe('Gauges', () => {
         minterWrapper = await ethers.getContractAt('MinterWrapper', MinterWrapper.address);
         const Minter = await deployments.get('Minter');
         minter = await ethers.getContractAt('Minter', Minter.address);
-        const Vault3CRVToken = await deployments.get('VaultToken3CRV');
+        const Vault3CRVToken = await deployments.get('VaultTokenMIM3CRV');
         vault3CrvToken = await ethers.getContractAt('VaultToken', Vault3CRVToken.address);
-        const Vault3CRV = await deployments.get('Vault3CRV');
+        const Vault3CRV = await deployments.get('VaultMIM3CRV');
         vault3Crv = await ethers.getContractAt('Vault', Vault3CRV.address);
-        const Vault3CRVGauge = await deployments.get('Vault3CRVGauge');
+        const Vault3CRVGauge = await deployments.get('VaultMIM3CRVGauge');
         vault3CrvGauge = await ethers.getContractAt(
             'LiquidityGaugeV2',
             Vault3CRVGauge.address
