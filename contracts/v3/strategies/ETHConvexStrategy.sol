@@ -145,11 +145,11 @@ contract ETHConvexStrategy is BaseStrategy {
 
     function getEstimates() external view returns (uint256[] memory) {
     	uint256 rewardsLength = crvRewards.extraRewardsLength();
-    	uint256[] memory _estimates = new uint256[](rewardsLength.add(4));
-      	address[] memory _path;
-     	uint256[] memory _amounts;
-      	uint256 _notSlippage = ONE_HUNDRED_PERCENT.sub(IHarvester(manager.harvester()).slippage());
-      	uint256 wethAmount;
+	uint256[] memory _estimates = new uint256[](rewardsLength.add(4));
+	address[] memory _path;
+	uint256[] memory _amounts;
+	uint256 _notSlippage = ONE_HUNDRED_PERCENT.sub(IHarvester(manager.harvester()).slippage());
+	uint256 wethAmount;
 
         // Estimates for CVX -> WETH
         _path[0] = cvx;
