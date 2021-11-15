@@ -184,7 +184,7 @@ contract MIMConvexStrategy is BaseStrategy {
             (address _token, ) = getMostPremium(); // stablecoin we want to convert to
             _swapTokens(weth, _token, _remainingWeth, _estimates[_extraRewardsLength + 3]);
             _addLiquidity3CRV(_estimates[_extraRewardsLength + 4]);
-            _addLiquidity(_estimates[_extraRewardsLength + 5]);
+            _addLiquidity(_estimates[_extraRewardsLength + 4]);
             _deposit();
         }
     }
