@@ -133,11 +133,11 @@ contract ETHConvexStrategy is BaseStrategy {
             }
         }
 	// RouterIndex 1 sets router to Uniswap to swap WETH->YAXIS
-        uint256 _remainingWeth = _payHarvestFees(crv, _estimates[_extraRewardsLength + 2], _estimates[_extraRewardsLength + 3], 1);
+        uint256 _remainingWeth = _payHarvestFees(crv, _estimates[_extraRewardsLength + 1], _estimates[_extraRewardsLength + 2], 1);
         if (_remainingWeth > 0) {
             IWETH(weth).withdraw(_remainingWeth);
         }
-        _addLiquidity(_estimates[_extraRewardsLength + 4]);
+        _addLiquidity(_estimates[_extraRewardsLength + 3]);
         if (balanceOfWant() > 0) {
             _deposit();
         }

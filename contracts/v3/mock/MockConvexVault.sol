@@ -79,7 +79,8 @@ contract MockConvexVault {
         );
 
         // give some fake generated rewards to reward pool so user can claim
-        IERC20(cvx).safeTransferFrom(address(this), address(newRewardPool), 10000);
+        IERC20(cvx).safeTransferFrom(address(this), address(newRewardPool), 100000000000000000000);
+        IERC20(crv).safeTransferFrom(address(this), address(newRewardPool), 100000000000000000000);
 
         //add the new pool
         poolInfo.push(

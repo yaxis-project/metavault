@@ -60,7 +60,20 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
         const mockConvexVault = await deployments.get('MockConvexVault');
         convexBoost = mockConvexVault.address;
 
-        await execute('CVX', { from: deployer }, 'mint', convexBoost, '10000000000000000000');
+        await execute(
+            'CVX',
+            { from: deployer },
+            'mint',
+            convexBoost,
+            '10000000000000000000000'
+        );
+        await execute(
+            'CRV',
+            { from: deployer },
+            'mint',
+            convexBoost,
+            '10000000000000000000000'
+        );
 
         await execute(
             'MockConvexVault',

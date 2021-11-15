@@ -60,11 +60,25 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
             args: ['Curve.fi DAI/USDC/USDT', 'MOCK3CRV', 18]
         });
 
-        await deploy('MockUniswapRouter', {
+        const ulp = await deployments.deploy('ULP', {
+            from: deployer,
+            contract: 'MockERC20',
+            args: ['Universal LP Token', 'ULP', 18]
+        });
+
+        const router = await deploy('MockUniswapRouter', {
             from: deployer,
             log: true,
-            args: ['0x0000000000000000000000000000000000000000']
+            args: [ulp.address]
         });
+
+        await execute(
+            'ULP',
+            { from: deployer },
+            'mint',
+            router.address,
+            '1000000000000000000000000000'
+        );
 
         stableSwap3Pool = await deploy('MockStableSwap3Pool', {
             from: deployer,
