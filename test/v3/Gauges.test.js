@@ -74,8 +74,8 @@ describe('Gauges', () => {
 
     it('should fund the minterWrapper with YAXIS', async () => {
         expect(await yaxis.balanceOf(minterWrapper.address)).to.be.equal(0);
-        await yaxis.connect(deployer).transfer(minterWrapper.address, ether('10000'));
-        expect(await yaxis.balanceOf(minterWrapper.address)).to.be.equal(ether('10000'));
+        await yaxis.connect(deployer).transfer(minterWrapper.address, ether('1000000'));
+        expect(await yaxis.balanceOf(minterWrapper.address)).to.be.equal(ether('1000000'));
     });
 
     it('should allow users to lock tokens in voting escrow', async () => {
@@ -89,17 +89,10 @@ describe('Gauges', () => {
         );
     });
 
-    it('should allow users to vote for a gauge', async () => {
-        expect(await gaugeController.get_gauge_weight(vault3CrvGauge.address)).to.be.equal(
-            ether('1')
-        );
-        await gaugeController.vote_for_gauge_weights(vault3CrvGauge.address, 10000);
-        expect(await gaugeController.get_gauge_weight(vault3CrvGauge.address)).to.be.above(
-            ether('0.97')
-        );
-    });
-
     it('should allow users to stake vault tokens in a gauge', async () => {
+        await yaxis
+            .connect(user)
+            .transfer(minterWrapper.address, await yaxis.balanceOf(user.address));
         await increaseTime(86400 * 7);
         await t3crv.connect(user).faucet(ether('1000'));
         await t3crv.connect(user).approve(vault3Crv.address, ethers.constants.MaxUint256);
@@ -113,5 +106,47 @@ describe('Gauges', () => {
             .connect(user)
             ['deposit(uint256,address)'](ether('1000'), user.address);
         expect(await vault3CrvGauge.balanceOf(user.address)).to.be.equal(ether('1000'));
+        await increaseTime(86400 * 7);
+        await minter.connect(user).mint(vault3CrvGauge.address);
+        expect(await yaxis.balanceOf(user.address)).to.be.above(0);
+    });
+
+    it('should emit correct tokens value', async () => {
+        await yaxis
+            .connect(user)
+            .transfer(minterWrapper.address, await yaxis.balanceOf(user.address));
+        expect(await yaxis.balanceOf(user.address)).to.be.equal(0);
+        //250k tokens per 4 weeks
+        await minterWrapper.connect(deployer).setRate('103339947089947090');
+        await increaseTime(86400 * 7 * 4);
+        await minter.connect(user).mint(vault3CrvGauge.address);
+        const balance = await yaxis.balanceOf(user.address);
+        //will not be 250k exactly
+        //mul by 5 because 5 gauges with same weight
+        expect(balance.mul(5)).to.be.above(ether('250000'));
+        expect(balance.mul(5)).to.be.below(ether('250001'));
+    });
+
+    describe('changingRate', () => {
+        it('should revert if not owner', async () => {
+            await expect(minterWrapper.connect(user).setRate(10000)).to.be.revertedWith(
+                'Ownable: caller is not the owner'
+            );
+        });
+
+        it('should allow changing rate', async () => {
+            await minterWrapper.connect(deployer).setRate(20000);
+            expect(await minterWrapper.rate()).to.be.equal(20000);
+        });
+    });
+
+    it('should allow users to vote for a gauge', async () => {
+        expect(await gaugeController.get_gauge_weight(vault3CrvGauge.address)).to.be.equal(
+            ether('1')
+        );
+        await gaugeController.vote_for_gauge_weights(vault3CrvGauge.address, 10000);
+        expect(await gaugeController.get_gauge_weight(vault3CrvGauge.address)).to.be.above(
+            ether('0.97')
+        );
     });
 });

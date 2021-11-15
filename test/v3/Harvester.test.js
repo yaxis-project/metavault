@@ -209,16 +209,8 @@ describe('Harvester', () => {
         });
 
         it('should pass when called by the harvester', async () => {
-            await harvester.harvest(controller.address, strategyCrv.address, [
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0
-            ]);
+            let _estimates = await strategyCrv.connect(user).getEstimates();
+            await harvester.harvest(controller.address, strategyCrv.address, _estimates);
         });
     });
 
