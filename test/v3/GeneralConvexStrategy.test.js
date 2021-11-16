@@ -213,7 +213,7 @@ describe('GeneralConvexStrategy with 3 tokens', () => {
         unirouter;
 
     beforeEach(async () => {
-        await deployments.fixture(['v3', 'ConvexStrategy']);
+        await deployments.fixture(['v3', 'ConvexStrategy', 'MIMConvexStrategy']);
         [deployer, treasury, , user] = await ethers.getSigners();
         const Manager = await deployments.get('Manager');
         manager = await ethers.getContractAt('Manager', Manager.address);

@@ -100,7 +100,9 @@ contract Controller is IController {
         onlyStrategy(_strategy)
     {
         require(manager.allowedVaults(_vault), "!_vault");
-        require(_vaultDetails[_vault].converter != address(0), "!converter");
+        if(IStrategy(_strategy).want() != IVault(_vault).getToken()) {
+            require(_vaultDetails[_vault].converter != address(0), "!converter");
+        }
         // checking if strategy is already added
         require(_vaultStrategies[_strategy] == address(0), "Strategy is already added"); 
         // get the index of the newly added strategy

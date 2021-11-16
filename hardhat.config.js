@@ -82,7 +82,7 @@ module.exports = {
         deployer: {
             default: 0,
             1: '0x65F84A48e640a908d0DF7B6f00B871352F77022D',
-            42: '0x36D68d13dD18Fe8076833Ef99245Ef33B00A7259'
+            42: '0x91019BAE8beD657A416e8B5B582F30c5Eef99132'
         },
         developFund: {
             default: 5,
@@ -161,6 +161,9 @@ module.exports = {
         },
         stableSwapALETHPool: {
             1: '0xC4C319E2D4d66CcA4464C0c2B32c9Bd23ebe784e'
+        },
+        stableSwapBTCPool: {
+            1: '0x93054188d876f558f4a66B2EF1d97d16eDf0895B'
         },
         stableSwapPBTCPool: {
             1: '0x7F55DDe206dbAD629C080068923b36fe9D6bDBeF'
@@ -259,6 +262,9 @@ module.exports = {
         },
         dYdXSoloMargin: {
             1: '0x1E0447b19BB6EcFdAe1e4AE1694b0C3659614e4e'
+        },
+        RENCRV: {
+            1: '0x49849C98ae39Fff122806C06791Fa73784FB3675'
         }
     },
     solidity: {
