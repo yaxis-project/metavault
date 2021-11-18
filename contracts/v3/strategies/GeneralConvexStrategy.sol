@@ -20,7 +20,6 @@ contract GeneralConvexStrategy is BaseStrategy {
 
     uint256 public immutable pid;
     IConvexVault public immutable convexVault;
-    address public immutable cvxDepositLP;
     IConvexRewards public immutable crvRewards;
     address public immutable stableSwapPool;
 
@@ -61,12 +60,11 @@ contract GeneralConvexStrategy is BaseStrategy {
         require(address(_convexVault) != address(0), '!_convexVault');
         require(address(_stableSwapPool) != address(0), '!_stableSwapPool');
 
-        (, address _token, , address _crvRewards, , ) = _convexVault.poolInfo(_pid);
+        (, , , address _crvRewards, , ) = _convexVault.poolInfo(_pid);
         crv = _crv;
         cvx = _cvx;
         pid = _pid;
         convexVault = _convexVault;
-        cvxDepositLP = _token;
         crvRewards = IConvexRewards(_crvRewards);
         stableSwapPool = _stableSwapPool;
 
@@ -198,7 +196,7 @@ contract GeneralConvexStrategy is BaseStrategy {
         _amounts = router.getAmountsOut(
             // Calculating CVX minted
             (crvRewards.earned(address(this)))
-            .mul(ICVXMinter(cvx).totalCliffs().sub(ICVXMinter(cvx).maxSupply().div(ICVXMinter(cvx).reductionPerCliff())))
+            .mul(ICVXMinter(cvx).totalCliffs().sub(ICVXMinter(cvx).totalSupply().div(ICVXMinter(cvx).reductionPerCliff())))
             .div(ICVXMinter(cvx).totalCliffs()),
             _path
         );
@@ -265,6 +263,6 @@ contract GeneralConvexStrategy is BaseStrategy {
     }
 
     function balanceOfPool() public view override returns (uint256) {
-        return IERC20(cvxDepositLP).balanceOf(address(this));
+        return IERC20(address(crvRewards)).balanceOf(address(this));
     }
 }
