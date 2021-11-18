@@ -20,7 +20,6 @@ contract ConvexStrategy is BaseStrategy {
 
     uint256 public immutable pid;
     IConvexVault public immutable convexVault;
-    address public immutable cvxDepositLP;
     IConvexRewards public immutable crvRewards;
     IStableSwap3Pool public immutable stableSwap3Pool;
 
@@ -40,7 +39,7 @@ contract ConvexStrategy is BaseStrategy {
         address _manager,
         address[] memory _routerArray // [0]=Sushiswap, [1]=Uniswap
     ) public BaseStrategy(_name, _controller, _manager, _want, _weth, _routerArray) {
-        (, address _token, , address _crvRewards, , ) = _convexVault.poolInfo(_pid);
+        (, , , address _crvRewards, , ) = _convexVault.poolInfo(_pid);
         crv = _crv;
         cvx = _cvx;
         dai = _dai;
@@ -48,7 +47,6 @@ contract ConvexStrategy is BaseStrategy {
         usdt = _usdt;
         pid = _pid;
         convexVault = _convexVault;
-        cvxDepositLP = _token;
         crvRewards = IConvexRewards(_crvRewards);
         stableSwap3Pool = _stableSwap3Pool;
         // Required to overcome "Stack Too Deep" error
@@ -164,7 +162,7 @@ contract ConvexStrategy is BaseStrategy {
         _amounts = router.getAmountsOut(
             // Calculating CVX minted
             (crvRewards.earned(address(this)))
-            .mul(ICVXMinter(cvx).totalCliffs().sub(ICVXMinter(cvx).maxSupply().div(ICVXMinter(cvx).reductionPerCliff())))
+            .mul(ICVXMinter(cvx).totalCliffs().sub(ICVXMinter(cvx).totalSupply().div(ICVXMinter(cvx).reductionPerCliff())))
             .div(ICVXMinter(cvx).totalCliffs()),
             _path
         );
@@ -215,6 +213,6 @@ contract ConvexStrategy is BaseStrategy {
     }
 
     function balanceOfPool() public view override returns (uint256) {
-        return IERC20(cvxDepositLP).balanceOf(address(this));
+        return IERC20(address(crvRewards)).balanceOf(address(this));
     }
 }
