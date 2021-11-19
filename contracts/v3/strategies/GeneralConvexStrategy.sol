@@ -11,7 +11,6 @@ import '../interfaces/IStableSwap2Pool.sol';
 import './BaseStrategy.sol';
 import '../interfaces/ICVXMinter.sol';
 import '../interfaces/IHarvester.sol';
-
 contract GeneralConvexStrategy is BaseStrategy {
     using SafeMath for uint8;
 
@@ -24,6 +23,7 @@ contract GeneralConvexStrategy is BaseStrategy {
     address public immutable stableSwapPool;
 
     address[] public tokens;
+    address public premiumToken;
     uint8[] public decimalMultiples;
 
     /**
@@ -36,6 +36,7 @@ contract GeneralConvexStrategy is BaseStrategy {
      * @param _coinCount The number of coins in the pool
      * @param _convexVault The address of the convex vault
      * @param _stableSwapPool The address of the stable swap pool
+     * @param _premiumTokenIndex The index of the premium asset in the liquidity pool
      * @param _controller The address of the controller
      * @param _manager The address of the manager
      * @param _routerArray The addresses of routers for swapping tokens
@@ -50,6 +51,7 @@ contract GeneralConvexStrategy is BaseStrategy {
         uint256 _coinCount,
         IConvexVault _convexVault,
         address _stableSwapPool,
+        uint256 _premiumTokenIndex,
         address _controller,
         address _manager,
         address[] memory _routerArray // [1] should be set to Uniswap router
@@ -73,16 +75,18 @@ contract GeneralConvexStrategy is BaseStrategy {
             decimalMultiples.push(18 - ExtendedIERC20(tokens[i]).decimals());
             IERC20(tokens[i]).safeApprove(_stableSwapPool, type(uint256).max);
         }
+        premiumToken = IStableSwapPool(_stableSwapPool).coins(_premiumTokenIndex);
 
         IERC20(_want).safeApprove(address(_convexVault), type(uint256).max);
         IERC20(_want).safeApprove(address(_stableSwapPool), type(uint256).max);
-        _setApprovals(_cvx, _crv, _routerArray);
+        _setApprovals(_cvx, _crv, _routerArray, _crvRewards);
     }
 
     function _setApprovals(
     	address _cvx,
     	address _crv,
-    	address[] memory _routerArray
+    	address[] memory _routerArray,
+    	address _crvRewards
     ) internal {
     	uint _routerArrayLength = _routerArray.length;
         for(uint i=0; i<_routerArrayLength; i++) {
@@ -90,9 +94,15 @@ contract GeneralConvexStrategy is BaseStrategy {
             IERC20(_crv).safeApprove(address(_router), 0);
             IERC20(_crv).safeApprove(address(_router), type(uint256).max);
             IERC20(_cvx).safeApprove(address(_router), 0);
-            IERC20(_cvx).safeApprove(address(_router), type(uint256).max);	
+            IERC20(_cvx).safeApprove(address(_router), type(uint256).max);
+            uint rewardsLength = IConvexRewards(_crvRewards).extraRewardsLength();
+            if (rewardsLength > 0) {
+            	for(uint j=0; j<rewardsLength; j++) {
+                    IERC20(IConvexRewards(IConvexRewards(_crvRewards).extraRewards(j)).rewardToken()).safeApprove(_router, type(uint256).max);
+            	}
+            }	
     	}
-    }	
+    }
     
     function _deposit() internal override {
         convexVault.depositAll(pid, true);
@@ -118,41 +128,6 @@ contract GeneralConvexStrategy is BaseStrategy {
         IStableSwap3Pool(stableSwapPool).add_liquidity(amounts, _estimate);
     }
 
-    function getMostPremium() public view returns (address, uint256) {
-        uint256 balance0 = IStableSwap3Pool(stableSwapPool).balances(0).mul(
-            10**(decimalMultiples[0])
-        );
-        uint256 balance1 = IStableSwap3Pool(stableSwapPool).balances(1).mul(
-            10**(decimalMultiples[1])
-        );
-
-        if (tokens.length == 2) {
-            if (balance0 > balance1) {
-                return (tokens[1], 1);
-            }
-
-            return (tokens[0], 0);
-        }
-
-        uint256 balance2 = IStableSwap3Pool(stableSwapPool).balances(2).mul(
-            10**(decimalMultiples[2])
-        );
-
-        if (balance0 < balance1 && balance0 < balance2) {
-            return (tokens[0], 0);
-        }
-
-        if (balance1 < balance0 && balance1 < balance2) {
-            return (tokens[1], 1);
-        }
-
-        if (balance2 < balance0 && balance2 < balance1) {
-            return (tokens[2], 2);
-        }
-
-        return (tokens[0], 0);
-    }
-
     function _harvest(uint256[] calldata _estimates) internal override {
         _claimReward();
         uint256 _cvxBalance = IERC20(cvx).balanceOf(address(this));
@@ -171,8 +146,7 @@ contract GeneralConvexStrategy is BaseStrategy {
 	// RouterIndex 1 sets router to Uniswap to swap WETH->YAXIS
         uint256 _remainingWeth = _payHarvestFees(crv, _estimates[_extraRewardsLength + 1], _estimates[_extraRewardsLength + 2], 1);
         if (_remainingWeth > 0) {
-            (address _targetCoin, ) = getMostPremium();
-            _swapTokens(weth, _targetCoin, _remainingWeth, _estimates[_extraRewardsLength + 3]);
+            _swapTokens(weth, premiumToken, _remainingWeth, _estimates[_extraRewardsLength + 3]);
             _addLiquidity(_estimates[_extraRewardsLength + 4]);
 
             if (balanceOfWant() > 0) {
@@ -237,10 +211,9 @@ contract GeneralConvexStrategy is BaseStrategy {
         _amounts = ISwap(routerArray[1]).getAmountsOut(wethAmount.mul(manager.treasuryFee()).div(ONE_HUNDRED_PERCENT), _path); // Set to UniswapV2 to calculate output for YAXIS
         _estimates[rewardsLength + 2] = _amounts[1].mul(_notSlippage).div(ONE_HUNDRED_PERCENT);
         
-        // Estimates for WETH -> Target Coin
-        (address _targetCoin,) = getMostPremium(); 
+        // Estimates for WETH -> Premium Token
         _path[0] = weth;
-        _path[1] = _targetCoin;
+        _path[1] = premiumToken;
         _amounts = router.getAmountsOut(
             wethAmount - _amounts[0],
             _path
@@ -249,7 +222,7 @@ contract GeneralConvexStrategy is BaseStrategy {
 
         // Estimates for Target Coin -> CRV LP
         // Supports up to 18 decimals
-        _estimates[rewardsLength + 4] = _amounts[1].mul(_notSlippage).div(ONE_HUNDRED_PERCENT).mul(10**(18-ExtendedIERC20(_targetCoin).decimals())).div(IStableSwapPool(stableSwapPool).get_virtual_price());
+        _estimates[rewardsLength + 4] = _amounts[1].mul(_notSlippage).div(ONE_HUNDRED_PERCENT).mul(10**(18-ExtendedIERC20(premiumToken).decimals())).div(IStableSwapPool(stableSwapPool).get_virtual_price());
         
         return _estimates;
     }
