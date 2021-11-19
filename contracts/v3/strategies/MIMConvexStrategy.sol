@@ -86,13 +86,23 @@ contract MIMConvexStrategy is BaseStrategy {
             address(_stableSwap2Pool),
             _routerArray
         );
-        _setApprovals3crv(address(_stableSwap3Pool));
+        _setMoreApprovals(address(_stableSwap3Pool), _crvRewards, _routerArray);
     }
     
-    function _setApprovals3crv(address _stableSwap3Pool) internal {
+    function _setMoreApprovals(address _stableSwap3Pool, address _crvRewards, address[] memory _routerArray) internal {
         IERC20(IStableSwap3Pool(_stableSwap3Pool).coins(0)).safeApprove(_stableSwap3Pool, type(uint256).max);
         IERC20(IStableSwap3Pool(_stableSwap3Pool).coins(1)).safeApprove(_stableSwap3Pool, type(uint256).max);
-        IERC20(IStableSwap3Pool(_stableSwap3Pool).coins(2)).safeApprove(_stableSwap3Pool, type(uint256).max);    	
+        IERC20(IStableSwap3Pool(_stableSwap3Pool).coins(2)).safeApprove(_stableSwap3Pool, type(uint256).max);
+        uint _routerArrayLength = _routerArray.length;
+        for(uint i=0; i<_routerArrayLength; i++) {
+            address _router = _routerArray[i];
+            uint rewardsLength = IConvexRewards(_crvRewards).extraRewardsLength();
+            if (rewardsLength > 0) {
+                for(uint j=0; j<rewardsLength; j++) {
+                    IERC20(IConvexRewards(IConvexRewards(_crvRewards).extraRewards(j)).rewardToken()).safeApprove(_router, type(uint256).max);
+                }
+            }
+        }	
     }
 
     function _setApprovals(
