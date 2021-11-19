@@ -8,13 +8,14 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
         deployer,
         convexBoost,
         stableSwapALETHPool,
-        unirouter
+        unirouter,
+        sushirouter
     } = await getNamedAccounts();
     const chainId = await getChainId();
     const Controller = await deployments.get('Controller');
     const Manager = await deployments.get('Manager');
     const Vault = await deployments.get('ALETHCRVVault');
-    const name = 'Convex: ALETHCRV';
+    const name = 'yAxis Convex Strategy: ALETHCRV';
     let pid = 49;
 
     if (chainId != '1') {
@@ -55,6 +56,8 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
         pid = 2;
     }
 
+    const routers = [sushirouter, unirouter];
+
     const Strategy = await deploy('ALETHConvexStrategy', {
         contract: 'GeneralConvexStrategy',
         from: deployer,
@@ -71,7 +74,7 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
             stableSwapALETHPool,
             Controller.address,
             Manager.address,
-            unirouter
+            routers
         ]
     });
 

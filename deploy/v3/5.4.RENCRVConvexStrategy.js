@@ -8,14 +8,15 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
         deployer,
         convexBoost,
         stableSwapBTCPool,
-        unirouter
+        unirouter,
+        sushirouter
     } = await getNamedAccounts();
     const chainId = await getChainId();
     const Controller = await deployments.get('Controller');
     const Manager = await deployments.get('Manager');
     const Vault = await deployments.get('RENCRVVault');
-    const name = 'Convex: RENBTC';
-    let pid = 18;
+    const name = 'yAxis Convex Strategy: RENBTC';
+    let pid = 6;
 
     if (chainId != '1') {
         const rencrv = await deployments.get('renCrv');
@@ -55,6 +56,8 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
         pid = 3;
     }
 
+    const routers = [sushirouter, unirouter];
+
     const Strategy = await deploy('BTCConvexStrategy', {
         contract: 'GeneralConvexStrategy',
         from: deployer,
@@ -71,7 +74,7 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
             stableSwapBTCPool,
             Controller.address,
             Manager.address,
-            unirouter
+            routers
         ]
     });
 
