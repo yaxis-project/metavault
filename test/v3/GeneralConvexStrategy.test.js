@@ -64,6 +64,7 @@ describe('GeneralConvexStrategy with 2 tokens', () => {
                 2,
                 convexVault.address,
                 stableSwapPool.address,
+                0,
                 controller.address,
                 manager.address,
                 [unirouter.address, unirouter.address]
@@ -252,6 +253,7 @@ describe('GeneralConvexStrategy with 3 tokens', () => {
                 3,
                 convexVault.address,
                 stableSwapPool.address,
+                0,
                 controller.address,
                 manager.address,
                 [unirouter.address, unirouter.address]
