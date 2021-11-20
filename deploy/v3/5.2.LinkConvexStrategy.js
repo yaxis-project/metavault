@@ -72,6 +72,7 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
             2,
             convexBoost,
             stableSwapLINKPool,
+            0,
             Controller.address,
             Manager.address,
             routers

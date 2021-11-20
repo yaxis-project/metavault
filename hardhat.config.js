@@ -272,6 +272,9 @@ module.exports = {
         },
         sushirouter: {
             1: '0xd9e1cE17f2641f24aE83637ab66a2cca9C378B9F'
+        },
+        ALETH: {
+            1: '0x0100546F2cD4C9D97f798fFC9755E47865FF7Ee6'
         }
     },
     solidity: {

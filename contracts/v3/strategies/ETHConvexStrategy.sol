@@ -75,7 +75,7 @@ contract ETHConvexStrategy is BaseStrategy {
         	_stableSwapPool,
         	_aleth,
         	_routerArray,
-		_crvRewards
+		    _crvRewards
         );
     }
     
@@ -87,11 +87,11 @@ contract ETHConvexStrategy is BaseStrategy {
     	address _stableSwapPool,
     	address _aleth,
     	address[] memory _routerArray,
-	address _crvRewards
+	    address _crvRewards
     ) internal {
-   	IERC20(_want).safeApprove(address(_convexVault), type(uint256).max);
+   	    IERC20(_want).safeApprove(address(_convexVault), type(uint256).max);
         uint256 _routerArrayLength = _routerArray.length;
-	uint rewardsLength = IConvexRewards(_crvRewards).extraRewardsLength();
+	    uint rewardsLength = IConvexRewards(_crvRewards).extraRewardsLength();
         for(uint i=0; i<_routerArrayLength; i++) {
             address _router = _routerArray[i];
             IERC20(_crv).safeApprove(address(_router), 0);
@@ -151,11 +151,11 @@ contract ETHConvexStrategy is BaseStrategy {
 
     function getEstimates() external view returns (uint256[] memory) {
     	uint256 rewardsLength = crvRewards.extraRewardsLength();
-	uint256[] memory _estimates = new uint256[](rewardsLength.add(4));
-	address[] memory _path = new address[](2);
-	uint256[] memory _amounts;
-	uint256 _notSlippage = ONE_HUNDRED_PERCENT.sub(IHarvester(manager.harvester()).slippage());
-	uint256 wethAmount;
+        uint256[] memory _estimates = new uint256[](rewardsLength.add(4));
+        address[] memory _path = new address[](2);
+        uint256[] memory _amounts;
+        uint256 _notSlippage = ONE_HUNDRED_PERCENT.sub(IHarvester(manager.harvester()).slippage());
+        uint256 wethAmount;
 
         // Estimates for CVX -> WETH
         _path[0] = cvx;

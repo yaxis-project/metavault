@@ -4,6 +4,7 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
         CRV,
         CVX,
         ALETHCRV,
+        ALETH,
         WETH,
         deployer,
         convexBoost,
@@ -59,7 +60,7 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
     const routers = [sushirouter, unirouter];
 
     const Strategy = await deploy('ALETHConvexStrategy', {
-        contract: 'GeneralConvexStrategy',
+        contract: 'ETHConvexStrategy',
         from: deployer,
         log: true,
         args: [
@@ -68,8 +69,8 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
             CRV,
             CVX,
             WETH,
+            ALETH,
             pid,
-            2,
             convexBoost,
             stableSwapALETHPool,
             Controller.address,
