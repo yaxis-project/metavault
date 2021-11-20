@@ -228,11 +228,11 @@ contract GeneralConvexStrategy is BaseStrategy {
     }
 
     function _withdrawAll() internal override {
-        convexVault.withdrawAll(pid);
+        crvRewards.withdrawAllAndUnwrap(false);
     }
 
     function _withdraw(uint256 _amount) internal override {
-        convexVault.withdraw(pid, _amount);
+        crvRewards.withdrawAndUnwrap(_amount, false);
     }
 
     function balanceOfPool() public view override returns (uint256) {
