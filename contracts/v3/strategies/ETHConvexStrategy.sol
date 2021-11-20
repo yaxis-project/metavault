@@ -74,7 +74,8 @@ contract ETHConvexStrategy is BaseStrategy {
         	address(_convexVault),
         	_stableSwapPool,
         	_aleth,
-        	_routerArray
+        	_routerArray,
+		_crvRewards
         );
     }
     
@@ -85,16 +86,23 @@ contract ETHConvexStrategy is BaseStrategy {
     	address _convexVault,
     	address _stableSwapPool,
     	address _aleth,
-    	address[] memory _routerArray
+    	address[] memory _routerArray,
+	address _crvRewards
     ) internal {
    	IERC20(_want).safeApprove(address(_convexVault), type(uint256).max);
         uint256 _routerArrayLength = _routerArray.length;
+	uint rewardsLength = IConvexRewards(_crvRewards).extraRewardsLength();
         for(uint i=0; i<_routerArrayLength; i++) {
             address _router = _routerArray[i];
             IERC20(_crv).safeApprove(address(_router), 0);
             IERC20(_crv).safeApprove(address(_router), type(uint256).max);
             IERC20(_cvx).safeApprove(address(_router), 0);
-            IERC20(_cvx).safeApprove(address(_router), type(uint256).max);
+            IERC20(_cvx).safeApprove(address(_router), type(uint256).max)
+            if (rewardsLength > 0) {
+            	for(uint j=0; j<rewardsLength; j++) {
+                    IERC20(IConvexRewards(IConvexRewards(_crvRewards).extraRewards(j)).rewardToken()).safeApprove(_router, type(uint256).max);
+            	}
+            }		    
         }
         IERC20(_want).safeApprove(address(_stableSwapPool), type(uint256).max);
         IERC20(_aleth).safeApprove(_stableSwapPool, type(uint256).max);
@@ -199,17 +207,17 @@ contract ETHConvexStrategy is BaseStrategy {
         _estimates[rewardsLength + 2] = _amounts[1].mul(_notSlippage).div(ONE_HUNDRED_PERCENT);
 
         // Estimates for ETH -> ethCRV LP
-        _estimates[rewardsLength + 3] = (wethAmount-_amounts[0]).div(stableSwapPool.get_virtual_price());
+        _estimates[rewardsLength + 3] = (wethAmount-_amounts[0]).mul(10**18).div(stableSwapPool.get_virtual_price());
         
         return _estimates;
     }
 
     function _withdrawAll() internal override {
-        convexVault.withdrawAll(pid);
+        crvRewards.withdrawAllAndUnwrap(true);
     }
 
     function _withdraw(uint256 _amount) internal override {
-        convexVault.withdraw(pid, _amount);
+        crvRewards.withdrawAndUnwrap(_amount, true);
     }
 
     function balanceOfPool() public view override returns (uint256) {
