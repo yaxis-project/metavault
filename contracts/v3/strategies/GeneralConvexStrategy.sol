@@ -89,13 +89,13 @@ contract GeneralConvexStrategy is BaseStrategy {
     	address _crvRewards
     ) internal {
     	uint _routerArrayLength = _routerArray.length;
+	uint rewardsLength = IConvexRewards(_crvRewards).extraRewardsLength();
         for(uint i=0; i<_routerArrayLength; i++) {
             address _router = _routerArray[i];
             IERC20(_crv).safeApprove(address(_router), 0);
             IERC20(_crv).safeApprove(address(_router), type(uint256).max);
             IERC20(_cvx).safeApprove(address(_router), 0);
             IERC20(_cvx).safeApprove(address(_router), type(uint256).max);
-            uint rewardsLength = IConvexRewards(_crvRewards).extraRewardsLength();
             if (rewardsLength > 0) {
             	for(uint j=0; j<rewardsLength; j++) {
                     IERC20(IConvexRewards(IConvexRewards(_crvRewards).extraRewards(j)).rewardToken()).safeApprove(_router, type(uint256).max);
