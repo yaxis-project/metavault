@@ -213,11 +213,11 @@ contract ETHConvexStrategy is BaseStrategy {
     }
 
     function _withdrawAll() internal override {
-        crvRewards.withdrawAllAndUnwrap(true);
+        crvRewards.withdrawAllAndUnwrap(false);
     }
 
     function _withdraw(uint256 _amount) internal override {
-        crvRewards.withdrawAndUnwrap(_amount, true);
+        crvRewards.withdrawAndUnwrap(_amount, false);
     }
 
     function balanceOfPool() public view override returns (uint256) {
