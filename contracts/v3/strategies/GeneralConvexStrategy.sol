@@ -222,7 +222,7 @@ contract GeneralConvexStrategy is BaseStrategy {
 
         // Estimates for Target Coin -> CRV LP
         // Supports up to 18 decimals
-        _estimates[rewardsLength + 4] = _amounts[1].mul(_notSlippage).div(ONE_HUNDRED_PERCENT).mul(10**(18-ExtendedIERC20(premiumToken).decimals())).div(IStableSwapPool(stableSwapPool).get_virtual_price());
+        _estimates[rewardsLength + 4] = _amounts[1].mul(_notSlippage).div(ONE_HUNDRED_PERCENT).mul(10**(18-ExtendedIERC20(premiumToken).decimals())).mul(10**18).div(IStableSwapPool(stableSwapPool).get_virtual_price());
         
         return _estimates;
     }
