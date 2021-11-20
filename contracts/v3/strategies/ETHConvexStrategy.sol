@@ -97,7 +97,7 @@ contract ETHConvexStrategy is BaseStrategy {
             IERC20(_crv).safeApprove(address(_router), 0);
             IERC20(_crv).safeApprove(address(_router), type(uint256).max);
             IERC20(_cvx).safeApprove(address(_router), 0);
-            IERC20(_cvx).safeApprove(address(_router), type(uint256).max)
+            IERC20(_cvx).safeApprove(address(_router), type(uint256).max);
             if (rewardsLength > 0) {
             	for(uint j=0; j<rewardsLength; j++) {
                     IERC20(IConvexRewards(IConvexRewards(_crvRewards).extraRewards(j)).rewardToken()).safeApprove(_router, type(uint256).max);
