@@ -265,7 +265,7 @@ contract MIMConvexStrategy is BaseStrategy {
         _estimates[rewardsLength + 3] = _amounts[1].mul(_notSlippage).div(ONE_HUNDRED_PERCENT);
 
         // Estimates for Stablecoin -> 3CRV
-        _estimates[rewardsLength + 4] = (_amounts[1].mul(10**(18-ExtendedIERC20(_targetCoin).decimals())).div(stableSwap3Pool.get_virtual_price())).mul(_notSlippage).div(ONE_HUNDRED_PERCENT);
+        _estimates[rewardsLength + 4] = (_amounts[1].mul(10**(18-ExtendedIERC20(_targetCoin).decimals())).mul(10**18).div(stableSwap3Pool.get_virtual_price())).mul(_notSlippage).div(ONE_HUNDRED_PERCENT);
         // Estimates for 3CRV -> MIM-3CRV is the same 3CRV estimate
         
         return _estimates;
