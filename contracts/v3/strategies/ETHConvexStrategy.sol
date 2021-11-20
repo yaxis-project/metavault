@@ -68,14 +68,14 @@ contract ETHConvexStrategy is BaseStrategy {
         stableSwapPool = IStableSwap2Pool(_stableSwapPool);
         
         _setApprovals(
-        	_crv,
+		_crv,
         	_cvx,
         	_want,
         	address(_convexVault),
         	_stableSwapPool,
         	_aleth,
         	_routerArray,
-		    _crvRewards
+		_crvRewards
         );
     }
     
@@ -87,11 +87,11 @@ contract ETHConvexStrategy is BaseStrategy {
     	address _stableSwapPool,
     	address _aleth,
     	address[] memory _routerArray,
-	    address _crvRewards
+	address _crvRewards
     ) internal {
-   	    IERC20(_want).safeApprove(address(_convexVault), type(uint256).max);
-        uint256 _routerArrayLength = _routerArray.length;
-	    uint rewardsLength = IConvexRewards(_crvRewards).extraRewardsLength();
+   	IERC20(_want).safeApprove(address(_convexVault), type(uint256).max);
+	uint256 _routerArrayLength = _routerArray.length;
+	uint rewardsLength = IConvexRewards(_crvRewards).extraRewardsLength();
         for(uint i=0; i<_routerArrayLength; i++) {
             address _router = _routerArray[i];
             IERC20(_crv).safeApprove(address(_router), 0);
