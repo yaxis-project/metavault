@@ -1,15 +1,15 @@
 pragma solidity 0.6.12;
 pragma experimental ABIEncoderV2;
 
-import "@openzeppelin/contracts/GSN/Context.sol";
-import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
-import "@openzeppelin/contracts/math/SafeMath.sol";
-import "@openzeppelin/contracts/utils/Address.sol";
-import "./interfaces/IERC20Burnable.sol";
+import '@openzeppelin/contracts/GSN/Context.sol';
+import '@openzeppelin/contracts/token/ERC20/SafeERC20.sol';
+import '@openzeppelin/contracts/math/SafeMath.sol';
+import '@openzeppelin/contracts/utils/Address.sol';
+import './interfaces/IERC20Burnable.sol';
 
-import "hardhat/console.sol";
+import 'hardhat/console.sol';
 
-//    ___    __        __                _               ___                              __         _ 
+//    ___    __        __                _               ___                              __         _
 //   / _ |  / / ____  / /  ___   __ _   (_) __ __       / _ \  ____ ___   ___ ___   ___  / /_  ___  (_)
 //  / __ | / / / __/ / _ \/ -_) /  ' \ / /  \ \ /      / ___/ / __// -_) (_-</ -_) / _ \/ __/ (_-< _
 // /_/ |_|/_/  \__/ /_//_/\__/ /_/_/_//_/  /_\_\      /_/    /_/   \__/ /___/\__/ /_//_/\__/ /___/(_)
@@ -50,7 +50,11 @@ contract Transmuter is Context {
     using Address for address;
 
     address public constant ZERO_ADDRESS = address(0);
-    uint256 public TRANSMUTATION_PERIOD;
+
+    ///@dev values needed to calculate the distribution of base asset in proportion for alTokens staked
+    uint256 public constant POINT_MULTIPLIER = 10e18;
+
+    uint256 public transmutationPeriod;
 
     address public AlToken;
     address public Token;
@@ -68,14 +72,11 @@ contract Transmuter is Context {
     uint256 public buffer;
     uint256 public lastDepositBlock;
 
-    ///@dev values needed to calculate the distribution of base asset in proportion for alTokens staked
-    uint256 public pointMultiplier = 10e18;
-
     uint256 public totalDividendPoints;
     uint256 public unclaimedDividends;
 
     /// @dev alchemist addresses whitelisted
-    mapping (address => bool) public whiteList;
+    mapping(address => bool) public whiteList;
 
     /// @dev The address of the account which currently has administrative capabilities over this contract.
     address public governance;
@@ -83,30 +84,28 @@ contract Transmuter is Context {
     /// @dev The address of the pending governance.
     address public pendingGovernance;
 
-    event GovernanceUpdated(
-        address governance
-    );
+    event GovernanceUpdated(address governance);
 
-    event PendingGovernanceUpdated(
-        address pendingGovernance
-    );
+    event PendingGovernanceUpdated(address pendingGovernance);
 
-    event TransmuterPeriodUpdated(
-        uint256 newTransmutationPeriod
-    );
+    event TransmuterPeriodUpdated(uint256 newTransmutationPeriod);
 
-    constructor(address _AlToken, address _Token, address _governance) public {
-        require(_governance != ZERO_ADDRESS, "Transmuter: 0 gov");
+    constructor(
+        address _AlToken,
+        address _Token,
+        address _governance
+    ) public {
+        require(_governance != ZERO_ADDRESS, 'Transmuter: 0 gov');
         governance = _governance;
         AlToken = _AlToken;
         Token = _Token;
-        TRANSMUTATION_PERIOD = 50;
+        transmutationPeriod = 50;
     }
 
     ///@return displays the user's share of the pooled alTokens.
     function dividendsOwing(address account) public view returns (uint256) {
         uint256 newDividendPoints = totalDividendPoints.sub(lastDividendPoints[account]);
-        return depositedAlTokens[account].mul(newDividendPoints).div(pointMultiplier);
+        return depositedAlTokens[account].mul(newDividendPoints).div(POINT_MULTIPLIER);
     }
 
     ///@dev modifier to fill the bucket and keep bookkeeping correct incase of increase/decrease in shares
@@ -145,20 +144,17 @@ contract Transmuter is Context {
             uint256 deltaTime = _currentBlock.sub(_lastDepositBlock);
 
             // distribute all if bigger than timeframe
-            if(deltaTime >= TRANSMUTATION_PERIOD) {
+            if (deltaTime >= transmutationPeriod) {
                 _toDistribute = _buffer;
             } else {
-
                 //needs to be bigger than 0 cuzz solidity no decimals
-                if(_buffer.mul(deltaTime) > TRANSMUTATION_PERIOD)
-                {
-                    _toDistribute = _buffer.mul(deltaTime).div(TRANSMUTATION_PERIOD);
+                if (_buffer.mul(deltaTime) > transmutationPeriod) {
+                    _toDistribute = _buffer.mul(deltaTime).div(transmutationPeriod);
                 }
             }
 
             // factually allocate if any needs distribution
-            if(_toDistribute > 0){
-
+            if (_toDistribute > 0) {
                 // remove from buffer
                 buffer = _buffer.sub(_toDistribute);
 
@@ -174,7 +170,7 @@ contract Transmuter is Context {
 
     /// @dev A modifier which checks if whitelisted for minting.
     modifier onlyWhitelisted() {
-        require(whiteList[msg.sender], "Transmuter: !whitelisted");
+        require(whiteList[msg.sender], 'Transmuter: !whitelisted');
         _;
     }
 
@@ -182,16 +178,16 @@ contract Transmuter is Context {
     ///
     ///
     modifier onlyGov() {
-        require(msg.sender == governance, "Transmuter: !governance");
+        require(msg.sender == governance, 'Transmuter: !governance');
         _;
     }
 
-    ///@dev set the TRANSMUTATION_PERIOD variable
+    ///@dev set the transmutationPeriod variable
     ///
     /// sets the length (in blocks) of one full distribution phase
-    function setTransmutationPeriod(uint256 newTransmutationPeriod) public onlyGov() {
-        TRANSMUTATION_PERIOD = newTransmutationPeriod;
-        emit TransmuterPeriodUpdated(TRANSMUTATION_PERIOD);
+    function setTransmutationPeriod(uint256 newTransmutationPeriod) public onlyGov {
+        transmutationPeriod = newTransmutationPeriod;
+        emit TransmuterPeriodUpdated(transmutationPeriod);
     }
 
     ///@dev claims the base token after it has been transmuted
@@ -213,19 +209,23 @@ contract Transmuter is Context {
     function unstake(uint256 amount) public updateAccount(msg.sender) {
         // by calling this function before transmuting you forfeit your gained allocation
         address sender = msg.sender;
-        require(depositedAlTokens[sender] >= amount,"Transmuter: unstake amount exceeds deposited amount");
+        require(
+            depositedAlTokens[sender] >= amount,
+            'Transmuter: unstake amount exceeds deposited amount'
+        );
         depositedAlTokens[sender] = depositedAlTokens[sender].sub(amount);
         totalSupplyAltokens = totalSupplyAltokens.sub(amount);
         IERC20Burnable(AlToken).safeTransfer(sender, amount);
     }
-    ///@dev Deposits alTokens into the transmuter 
+
+    ///@dev Deposits alTokens into the transmuter
     ///
     ///@param amount the amount of alTokens to stake
     function stake(uint256 amount)
         public
-        runPhasedDistribution()
+        runPhasedDistribution
         updateAccount(msg.sender)
-        checkIfNewUser()
+        checkIfNewUser
     {
         // requires approval of AlToken first
         address sender = msg.sender;
@@ -234,17 +234,18 @@ contract Transmuter is Context {
         totalSupplyAltokens = totalSupplyAltokens.add(amount);
         depositedAlTokens[sender] = depositedAlTokens[sender].add(amount);
     }
+
     /// @dev Converts the staked alTokens to the base tokens in amount of the sum of pendingdivs and tokensInBucket
     ///
-    /// once the alToken has been converted, it is burned, and the base token becomes realisedTokens which can be recieved using claim()    
+    /// once the alToken has been converted, it is burned, and the base token becomes realisedTokens which can be recieved using claim()
     ///
     /// reverts if there are no pendingdivs or tokensInBucket
-    function transmute() public runPhasedDistribution() updateAccount(msg.sender) {
+    function transmute() public runPhasedDistribution updateAccount(msg.sender) {
         address sender = msg.sender;
         uint256 pendingz = tokensInBucket[sender];
         uint256 diff;
 
-        require(pendingz > 0, "need to have pending in bucket");
+        require(pendingz > 0, 'need to have pending in bucket');
 
         tokensInBucket[sender] = 0;
 
@@ -281,7 +282,7 @@ contract Transmuter is Context {
     /// @param toTransmute address of the account you will force transmute.
     function forceTransmute(address toTransmute)
         public
-        runPhasedDistribution()
+        runPhasedDistribution
         updateAccount(msg.sender)
         updateAccount(toTransmute)
     {
@@ -289,10 +290,7 @@ contract Transmuter is Context {
         address sender = msg.sender;
         uint256 pendingz = tokensInBucket[toTransmute];
         // check restrictions
-        require(
-            pendingz > depositedAlTokens[toTransmute],
-            "Transmuter: !overflow"
-        );
+        require(pendingz > depositedAlTokens[toTransmute], 'Transmuter: !overflow');
 
         // empty bucket
         tokensInBucket[toTransmute] = 0;
@@ -355,12 +353,16 @@ contract Transmuter is Context {
 
     /// @dev Distributes the base token proportionally to all alToken stakers.
     ///
-    /// This function is meant to be called by the Alchemist contract for when it is sending yield to the transmuter. 
+    /// This function is meant to be called by the Alchemist contract for when it is sending yield to the transmuter.
     /// Anyone can call this and add funds, idk why they would do that though...
     ///
     /// @param origin the account that is sending the tokens to be distributed.
     /// @param amount the amount of base tokens to be distributed to the transmuter.
-    function distribute(address origin, uint256 amount) public onlyWhitelisted() runPhasedDistribution() {
+    function distribute(address origin, uint256 amount)
+        public
+        onlyWhitelisted
+        runPhasedDistribution
+    {
         IERC20Burnable(Token).safeTransferFrom(origin, address(this), amount);
         buffer = buffer.add(amount);
     }
@@ -369,9 +371,9 @@ contract Transmuter is Context {
     ///
     /// @param amount the amount of base tokens to be distributed in the transmuter.
     function increaseAllocations(uint256 amount) internal {
-        if(totalSupplyAltokens > 0 && amount > 0) {
+        if (totalSupplyAltokens > 0 && amount > 0) {
             totalDividendPoints = totalDividendPoints.add(
-                amount.mul(pointMultiplier).div(totalSupplyAltokens)
+                amount.mul(POINT_MULTIPLIER).div(totalSupplyAltokens)
             );
             unclaimedDividends = unclaimedDividends.add(amount);
         } else {
@@ -386,7 +388,7 @@ contract Transmuter is Context {
     /// @param user the address of the user you wish to query.
     ///
     /// returns user status
-    
+
     function userInfo(address user)
         public
         view
@@ -398,11 +400,15 @@ contract Transmuter is Context {
         )
     {
         uint256 _depositedAl = depositedAlTokens[user];
-        uint256 _toDistribute = buffer.mul(block.number.sub(lastDepositBlock)).div(TRANSMUTATION_PERIOD);
-        if(block.number.sub(lastDepositBlock) > TRANSMUTATION_PERIOD){
+        uint256 _toDistribute = buffer.mul(block.number.sub(lastDepositBlock)).div(
+            transmutationPeriod
+        );
+        if (block.number.sub(lastDepositBlock) > transmutationPeriod) {
             _toDistribute = buffer;
         }
-        uint256 _pendingdivs = _toDistribute.mul(depositedAlTokens[user]).div(totalSupplyAltokens);
+        uint256 _pendingdivs = _toDistribute.mul(depositedAlTokens[user]).div(
+            totalSupplyAltokens
+        );
         uint256 _inbucket = tokensInBucket[user].add(dividendsOwing(user));
         uint256 _realised = realisedTokens[user];
         return (_depositedAl, _pendingdivs, _inbucket, _realised);
@@ -411,13 +417,13 @@ contract Transmuter is Context {
     /// @dev Gets the status of multiple users in one call
     ///
     /// This function is used to query the contract to check for
-    /// accounts that have overfilled positions in order to check 
+    /// accounts that have overfilled positions in order to check
     /// who can be force transmuted.
     ///
     /// @param from the first index of the userList
     /// @param to the last index of the userList
     ///
-    /// returns the userList with their staking status in paginated form. 
+    /// returns the userList with their staking status in paginated form.
     function getMultipleUserInfo(uint256 from, uint256 to)
         public
         view
@@ -428,14 +434,20 @@ contract Transmuter is Context {
         address[] memory _theUserList = new address[](delta); //user
         uint256[] memory _theUserData = new uint256[](delta * 2); //deposited-bucket
         uint256 y = 0;
-        uint256 _toDistribute = buffer.mul(block.number.sub(lastDepositBlock)).div(TRANSMUTATION_PERIOD);
-        if(block.number.sub(lastDepositBlock) > TRANSMUTATION_PERIOD){
+        uint256 _toDistribute = buffer.mul(block.number.sub(lastDepositBlock)).div(
+            transmutationPeriod
+        );
+        if (block.number.sub(lastDepositBlock) > transmutationPeriod) {
             _toDistribute = buffer;
         }
         for (uint256 x = 0; x < delta; x += 1) {
             _theUserList[x] = userList[i];
             _theUserData[y] = depositedAlTokens[userList[i]];
-            _theUserData[y + 1] = dividendsOwing(userList[i]).add(tokensInBucket[userList[i]]).add(_toDistribute.mul(depositedAlTokens[userList[i]]).div(totalSupplyAltokens));
+            _theUserData[y + 1] = dividendsOwing(userList[i])
+                .add(tokensInBucket[userList[i]])
+                .add(
+                    _toDistribute.mul(depositedAlTokens[userList[i]]).div(totalSupplyAltokens)
+                );
             y += 2;
             i += 1;
         }
@@ -449,11 +461,19 @@ contract Transmuter is Context {
     ///
     /// @return _toDistribute the amount ready to be distributed
     /// @return _deltaBlocks the amount of time since the last phased distribution
-    /// @return _buffer the amount in the buffer 
-    function bufferInfo() public view returns (uint256 _toDistribute, uint256 _deltaBlocks, uint256 _buffer){
+    /// @return _buffer the amount in the buffer
+    function bufferInfo()
+        public
+        view
+        returns (
+            uint256 _toDistribute,
+            uint256 _deltaBlocks,
+            uint256 _buffer
+        )
+    {
         _deltaBlocks = block.number.sub(lastDepositBlock);
-        _buffer = buffer; 
-        _toDistribute = _buffer.mul(_deltaBlocks).div(TRANSMUTATION_PERIOD);
+        _buffer = buffer;
+        _toDistribute = _buffer.mul(_deltaBlocks).div(transmutationPeriod);
     }
 
     /// @dev Sets the pending governance.
@@ -464,7 +484,7 @@ contract Transmuter is Context {
     ///
     /// @param _pendingGovernance the new pending governance.
     function setPendingGovernance(address _pendingGovernance) external onlyGov {
-        require(_pendingGovernance != ZERO_ADDRESS, "Transmuter: 0 gov");
+        require(_pendingGovernance != ZERO_ADDRESS, 'Transmuter: 0 gov');
 
         pendingGovernance = _pendingGovernance;
 
@@ -474,8 +494,8 @@ contract Transmuter is Context {
     /// @dev Accepts the role as governance.
     ///
     /// This function reverts if the caller is not the new pending governance.
-    function acceptGovernance() external  {
-        require(msg.sender == pendingGovernance,"!pendingGovernance");
+    function acceptGovernance() external {
+        require(msg.sender == pendingGovernance, '!pendingGovernance');
         address _pendingGovernance = pendingGovernance;
         governance = _pendingGovernance;
 

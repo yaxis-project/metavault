@@ -5,7 +5,6 @@ pragma experimental ABIEncoderV2;
 import {AccessControl} from '@openzeppelin/contracts/access/AccessControl.sol';
 import {ERC20} from '@openzeppelin/contracts/token/ERC20/ERC20.sol';
 import {SafeERC20} from '@openzeppelin/contracts/token/ERC20/SafeERC20.sol';
-import {Ownable} from '@openzeppelin/contracts/access/Ownable.sol';
 
 import {IDetailedERC20} from './interfaces/IDetailedERC20.sol';
 
@@ -63,10 +62,10 @@ contract AlToken is AccessControl, ERC20('Yaxis USD', 'yalUSD') {
     /// @param _amount    the amount of tokens to mint.
     function mint(address _recipient, uint256 _amount) external onlyWhitelisted {
         require(!blacklist[msg.sender], 'AlUSD: Alchemist is blacklisted.');
+        require(!paused[msg.sender], 'AlUSD: user is currently paused.');
         uint256 _total = _amount.add(hasMinted[msg.sender]);
         require(_total <= ceiling[msg.sender], "AlUSD: Alchemist's ceiling was breached.");
-        require(!paused[msg.sender], 'AlUSD: user is currently paused.');
-        hasMinted[msg.sender] = hasMinted[msg.sender].add(_amount);
+        hasMinted[msg.sender] = _total;
         _mint(_recipient, _amount);
     }
 
@@ -87,17 +86,17 @@ contract AlToken is AccessControl, ERC20('Yaxis USD', 'yalUSD') {
         _setupRole(SENTINEL_ROLE, _newSentinel);
     }
 
-    /// This function reverts if the caller does not have the admin role.
+    /// This function reverts if the caller does not have the sentinel role.
     ///
     /// @param _toBlacklist the account to mint tokens to.
     function setBlacklist(address _toBlacklist) external onlySentinel {
         blacklist[_toBlacklist] = true;
     }
 
-    /// This function reverts if the caller does not have the admin role.
+    /// This function reverts if the caller does not have the sentinel role.
     function pauseAlchemist(address _toPause, bool _state) external onlySentinel {
         paused[_toPause] = _state;
-        Paused(_toPause, _state);
+        emit Paused(_toPause, _state);
     }
 
     /// This function reverts if the caller does not have the admin role.

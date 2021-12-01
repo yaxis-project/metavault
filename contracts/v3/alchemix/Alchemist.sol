@@ -77,7 +77,11 @@ contract Alchemist is ReentrancyGuard {
 
     event HarvestFeeUpdated(uint256 fee);
 
+    event BorrowFeeUpdated(uint256 fee);
+
     event CollateralizationLimitUpdated(uint256 limit);
+
+    event PegMinimumUpdated(uint256 pegMinimum);
 
     event EmergencyExitUpdated(bool status);
 
@@ -135,7 +139,7 @@ contract Alchemist is ReentrancyGuard {
     /// @dev The percent of each profitable harvest that will go to the rewards contract.
     uint256 public harvestFee;
 
-    /// @dev The percent of each profitable harvest that will go to the rewards contract.
+    /// @dev The percent of minted debt that will go to the rewards contract.
     uint256 public borrowFee;
 
     /// @dev The total amount the native token deposited into the system that is owned by external users.
@@ -155,15 +159,12 @@ contract Alchemist is ReentrancyGuard {
     CDP.Context private _ctx;
 
     /// @dev A mapping of all of the user CDPs. If a user wishes to have multiple CDPs they will have to either
-    /// create a new address or set up a proxy contract that interfaces with this contract.
+    /// create a new address.
     mapping(address => CDP.Data) private _cdps;
 
     /// @dev A list of all of the vaults. The last element of the list is the vault that is currently being used for
     /// deposits and withdraws. Vaults before the last element are considered inactive and are expected to be cleared.
     AlchemistVault.List private _vaults;
-
-    /// @dev The address of the link oracle.
-    address public _linkGasOracle;
 
     /// @dev The minimum returned amount needed to be on peg according to the oracle.
     uint256 public pegMinimum;
@@ -217,8 +218,8 @@ contract Alchemist is ReentrancyGuard {
     ///
     /// This function reverts if the caller is not the new pending governance.
     function acceptGovernance() external {
-        require(msg.sender == pendingGovernance, 'sender is not pendingGovernance');
         address _pendingGovernance = pendingGovernance;
+        require(msg.sender == _pendingGovernance, 'sender is not pendingGovernance');
         governance = _pendingGovernance;
 
         emit GovernanceUpdated(_pendingGovernance);
@@ -296,7 +297,7 @@ contract Alchemist is ReentrancyGuard {
 
         borrowFee = _borrowFee;
 
-        emit HarvestFeeUpdated(_borrowFee);
+        emit BorrowFeeUpdated(_borrowFee);
     }
 
     /// @dev Sets the collateralization limit.
@@ -323,6 +324,7 @@ contract Alchemist is ReentrancyGuard {
     /// @dev Set pegMinimum.
     function setPegMinimum(uint256 peg) external onlyGov {
         pegMinimum = peg;
+        emit PegMinimumUpdated(pegMinimum);
     }
 
     /// @dev Sets if the contract should enter emergency exit mode.
@@ -451,11 +453,9 @@ contract Alchemist is ReentrancyGuard {
     /// additional funds.
     ///
     /// @return the amount of tokens flushed to the active vault.
-    function flush() external nonReentrant expectInitialized returns (uint256) {
+    function flush() external nonReentrant notEmergency expectInitialized returns (uint256) {
         // Prevent flushing to the active vault when an emergency exit is enabled to prevent potential loss of funds if
         // the active vault is poisoned for any reason.
-        require(!emergencyExit, 'emergency pause enabled');
-
         return flushActiveVault();
     }
 
@@ -483,11 +483,10 @@ contract Alchemist is ReentrancyGuard {
     function deposit(uint256 _amount)
         external
         nonReentrant
+        notEmergency
         noContractAllowed
         expectInitialized
     {
-        require(!emergencyExit, 'emergency pause enabled');
-
         CDP.Data storage _cdp = _cdps[msg.sender];
         _cdp.update(_ctx);
 
@@ -611,6 +610,7 @@ contract Alchemist is ReentrancyGuard {
     function mint(uint256 _amount)
         external
         nonReentrant
+        notEmergency
         noContractAllowed
         onPriceCheck
         expectInitialized
@@ -621,7 +621,7 @@ contract Alchemist is ReentrancyGuard {
         uint256 _totalCredit = _cdp.totalCredit;
 
         if (_totalCredit < _amount) {
-            uint256 _remainingAmount = _amount.sub(_totalCredit);
+            uint256 _remainingAmount = _amount - _totalCredit;
 
             if (borrowFee > 0) {
                 uint256 _borrowFeeAmount = _remainingAmount.mul(borrowFee).div(
@@ -751,18 +751,19 @@ contract Alchemist is ReentrancyGuard {
         _;
     }
 
-    /// @dev Checks that the current message sender or caller is a specific address.
-    ///
-    /// @param _expectedCaller the expected caller.
-    function _expectCaller(address _expectedCaller) internal {
-        require(msg.sender == _expectedCaller, '');
-    }
-
     /// @dev Checks that the current message sender or caller is the governance address.
     ///
     ///
     modifier onlyGov() {
         require(msg.sender == governance, 'Alchemist: only governance.');
+        _;
+    }
+
+    /// @dev Checks that the emergencyExit is not enabled.
+    ///
+    ///
+    modifier notEmergency() {
+        require(!emergencyExit, 'emergency pause enabled');
         _;
     }
 
