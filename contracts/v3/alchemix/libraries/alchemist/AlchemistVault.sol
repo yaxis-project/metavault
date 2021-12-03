@@ -95,11 +95,8 @@ library AlchemistVault {
 
         _self.adapter.withdraw(_recipient, _amount);
 
-        uint256 _endingBalance = _token.balanceOf(_recipient);
-        uint256 _withdrawnAmount = _endingBalance.sub(_startingBalance);
-
-        uint256 _endingTotalValue = _self.totalValue();
-        uint256 _decreasedValue = _startingTotalValue.sub(_endingTotalValue);
+        uint256 _withdrawnAmount = _token.balanceOf(_recipient).sub(_startingBalance);
+        uint256 _decreasedValue = _startingTotalValue.sub(_self.totalValue());
 
         return (_withdrawnAmount, _decreasedValue);
     }

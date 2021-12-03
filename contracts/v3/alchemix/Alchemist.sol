@@ -627,7 +627,7 @@ contract Alchemist is ReentrancyGuard {
                 uint256 _borrowFeeAmount = _remainingAmount.mul(borrowFee).div(
                     PERCENT_RESOLUTION
                 );
-                _cdp.totalDebt = _cdp.totalDebt.add(_borrowFeeAmount);
+                _remainingAmount = _remainingAmount.add(_borrowFeeAmount);
                 xtoken.mint(rewards, _borrowFeeAmount);
             }
             _cdp.totalDebt = _cdp.totalDebt.add(_remainingAmount);
@@ -837,8 +837,7 @@ contract Alchemist is ReentrancyGuard {
 
         // Pull the remaining funds from the active vault.
         if (_remainingAmount > 0) {
-            AlchemistVault.Data storage _activeVault = _vaults.last();
-            (uint256 _withdrawAmount, uint256 _decreasedValue) = _activeVault.withdraw(
+            (uint256 _withdrawAmount, uint256 _decreasedValue) = _vaults.last().withdraw(
                 _recipient,
                 _remainingAmount
             );

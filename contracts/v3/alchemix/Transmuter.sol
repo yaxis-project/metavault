@@ -1,7 +1,6 @@
 pragma solidity 0.6.12;
 pragma experimental ABIEncoderV2;
 
-import '@openzeppelin/contracts/GSN/Context.sol';
 import '@openzeppelin/contracts/token/ERC20/SafeERC20.sol';
 import '@openzeppelin/contracts/math/SafeMath.sol';
 import '@openzeppelin/contracts/utils/Address.sol';
@@ -44,7 +43,7 @@ import 'hardhat/console.sol';
  * functions have been added to mitigate the well-known issues around setting
  * allowances. See {IERC20Burnable-approve}.
  */
-contract Transmuter is Context {
+contract Transmuter {
     using SafeMath for uint256;
     using SafeERC20 for IERC20Burnable;
     using Address for address;
@@ -56,8 +55,8 @@ contract Transmuter is Context {
 
     uint256 public transmutationPeriod;
 
-    address public AlToken;
-    address public Token;
+    address public immutable AlToken;
+    address public immutable Token;
 
     mapping(address => uint256) public depositedAlTokens;
     mapping(address => uint256) public tokensInBucket;
@@ -206,7 +205,7 @@ contract Transmuter is Context {
     /// This function reverts if you try to draw more tokens than you deposited
     ///
     ///@param amount the amount of alTokens to unstake
-    function unstake(uint256 amount) public updateAccount(msg.sender) {
+    function unstake(uint256 amount) public runPhasedDistribution updateAccount(msg.sender) {
         // by calling this function before transmuting you forfeit your gained allocation
         address sender = msg.sender;
         require(
@@ -327,7 +326,7 @@ contract Transmuter is Context {
     /// @dev Transmutes and unstakes all alTokens
     ///
     /// This function combines the transmute and unstake functions for ease of use
-    function exit() public {
+    function exit() external {
         transmute();
         uint256 toWithdraw = depositedAlTokens[msg.sender];
         unstake(toWithdraw);
@@ -336,7 +335,7 @@ contract Transmuter is Context {
     /// @dev Transmutes and claims all converted base tokens.
     ///
     /// This function combines the transmute and claim functions while leaving your remaining alTokens staked.
-    function transmuteAndClaim() public {
+    function transmuteAndClaim() external {
         transmute();
         claim();
     }
@@ -344,7 +343,7 @@ contract Transmuter is Context {
     /// @dev Transmutes, claims base tokens, and withdraws alTokens.
     ///
     /// This function helps users to exit the transmuter contract completely after converting their alTokens to the base pair.
-    function transmuteClaimAndWithdraw() public {
+    function transmuteClaimAndWithdraw() external {
         transmute();
         claim();
         uint256 toWithdraw = depositedAlTokens[msg.sender];

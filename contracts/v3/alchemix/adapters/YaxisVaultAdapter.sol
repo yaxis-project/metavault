@@ -28,17 +28,13 @@ contract YaxisVaultAdapter is IVaultAdapter {
     IDetailedERC20 public immutable override token;
 
     constructor(IVault _vault, address _admin) public {
+        require(_admin != address(0), 'YaxisVaultAdapter: admin address cannot be 0x0.');
+
         vault = _vault;
         admin = _admin;
         IDetailedERC20 _token = IDetailedERC20(_vault.getToken());
         token = _token;
         _token.safeApprove(address(_vault), uint256(-1));
-    }
-
-    /// @dev A modifier which reverts if the caller is not the admin.
-    modifier onlyAdmin() {
-        require(admin == msg.sender, 'YaxisVaultAdapter: only admin');
-        _;
     }
 
     /// @dev Gets the total value of the assets that the adapter holds in the vault.
@@ -61,7 +57,9 @@ contract YaxisVaultAdapter is IVaultAdapter {
     ///
     /// @param _recipient the account to withdraw the tokes to.
     /// @param _amount    the amount of tokens to withdraw.
-    function withdraw(address _recipient, uint256 _amount) external override onlyAdmin {
+    function withdraw(address _recipient, uint256 _amount) external override {
+        require(admin == msg.sender, 'YaxisVaultAdapter: only admin');
+
         IDetailedERC20 _token = token;
         uint256 beforeBalance = _token.balanceOf(address(this));
 
