@@ -51,7 +51,8 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
         stableSwapLINKPool = mockStableSwap2Pool.address;
 
         const router = await deployments.get('MockUniswapRouter');
-        unirouter = [router.address, router.address];
+        unirouter = router.address;
+        sushirouter = router.address;
 
         pid = 1;
     }

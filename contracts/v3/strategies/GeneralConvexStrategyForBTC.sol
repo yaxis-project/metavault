@@ -11,7 +11,7 @@ import '../interfaces/IStableSwap2Pool.sol';
 import './BaseStrategy.sol';
 import '../interfaces/ICVXMinter.sol';
 import '../interfaces/IHarvester.sol';
-contract GeneralConvexStrategy is BaseStrategy {
+contract BTCConvexStrategy is BaseStrategy {
     using SafeMath for uint8;
 
     address public immutable crv;

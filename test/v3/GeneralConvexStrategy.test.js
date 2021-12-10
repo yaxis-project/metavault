@@ -194,7 +194,7 @@ describe('GeneralConvexStrategy with 2 tokens', () => {
             expect(_estimates[1]).to.equal(ether('0.09'));
             expect(_estimates[2]).to.equal(ether('0.00081'));
             expect(_estimates[3]).to.equal(ether('0.01539'));
-            expect(_estimates[4]).to.equal(0);
+            expect(_estimates[4]).to.equal(ether('0.01539'));
         });
     });
 });

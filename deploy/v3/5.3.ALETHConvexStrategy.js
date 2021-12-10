@@ -30,6 +30,9 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
         CRV = crv.address;
         crv = await ethers.getContractAt('MockERC20', CRV, deployer);
 
+        let aleth = await deployments.get('alETH');
+        ALETH = aleth.address;
+
         let cvx = await deployments.get('CVX');
         CVX = cvx.address;
         cvx = await ethers.getContractAt('MockERC20', CVX, deployer);
@@ -52,7 +55,8 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
         stableSwapALETHPool = mockStableSwap2Pool.address;
 
         const router = await deployments.get('MockUniswapRouter');
-        unirouter = [router.address, router.address];
+        unirouter = router.address;
+        sushirouter = router.address;
 
         pid = 2;
     }
