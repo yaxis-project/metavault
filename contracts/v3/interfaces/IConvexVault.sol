@@ -38,4 +38,8 @@ interface IConvexRewards {
     function rewardToken() external view returns (address);
 
     function earned(address _account) external view returns (uint256);
+
+    function withdrawAllAndUnwrap(bool claim) external;
+
+    function withdrawAndUnwrap(uint256 amount, bool claim) external returns(bool);
 }

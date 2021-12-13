@@ -17,7 +17,7 @@ module.exports = async ({ getChainId, getNamedAccounts, deployments }) => {
         contract: 'VaultToken',
         from: deployer,
         log: true,
-        args: ['yAxis RENCRV Vault', 'V:RENCRV', Manager.address]
+        args: ['yAxis BTC Vault Token', 'yV:BTC', Manager.address]
     });
 
     const Vault = await deploy('RENCRVVault', {

@@ -4,17 +4,19 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
         CRV,
         CVX,
         ALETHCRV,
+        ALETH,
         WETH,
         deployer,
         convexBoost,
         stableSwapALETHPool,
-        unirouter
+        unirouter,
+        sushirouter
     } = await getNamedAccounts();
     const chainId = await getChainId();
     const Controller = await deployments.get('Controller');
     const Manager = await deployments.get('Manager');
     const Vault = await deployments.get('ALETHCRVVault');
-    const name = 'Convex: ALETHCRV';
+    const name = 'yAxis Convex Strategy: ALETHCRV';
     let pid = 49;
 
     if (chainId != '1') {
@@ -27,6 +29,9 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
         let crv = await deployments.get('CRV');
         CRV = crv.address;
         crv = await ethers.getContractAt('MockERC20', CRV, deployer);
+
+        let aleth = await deployments.get('alETH');
+        ALETH = aleth.address;
 
         let cvx = await deployments.get('CVX');
         CVX = cvx.address;
@@ -50,13 +55,16 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
         stableSwapALETHPool = mockStableSwap2Pool.address;
 
         const router = await deployments.get('MockUniswapRouter');
-        unirouter = [router.address, router.address];
+        unirouter = router.address;
+        sushirouter = router.address;
 
         pid = 2;
     }
 
+    const routers = [sushirouter, unirouter];
+
     const Strategy = await deploy('ALETHConvexStrategy', {
-        contract: 'GeneralConvexStrategy',
+        contract: 'ETHConvexStrategy',
         from: deployer,
         log: true,
         args: [
@@ -65,13 +73,13 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
             CRV,
             CVX,
             WETH,
+            ALETH,
             pid,
-            2,
             convexBoost,
             stableSwapALETHPool,
             Controller.address,
             Manager.address,
-            unirouter
+            routers
         ]
     });
 

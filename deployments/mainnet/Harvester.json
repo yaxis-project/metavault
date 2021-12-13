@@ -1,0 +1,667 @@
+{
+  "address": "0xc0Ff761A9d4f4E5036cf3D0e1a02B0a7b275927e",
+  "abi": [
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_manager",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "_controller",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "_legacyController",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "constructor"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "controller",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "strategy",
+          "type": "address"
+        }
+      ],
+      "name": "Harvest",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "harvester",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "bool",
+          "name": "status",
+          "type": "bool"
+        }
+      ],
+      "name": "HarvesterSet",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "vault",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "strategy",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "timeout",
+          "type": "uint256"
+        }
+      ],
+      "name": "StrategyAdded",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "vault",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "strategy",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "timeout",
+          "type": "uint256"
+        }
+      ],
+      "name": "StrategyRemoved",
+      "type": "event"
+    },
+    {
+      "inputs": [],
+      "name": "ONE_HUNDRED_PERCENT",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_vault",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "_strategy",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_timeout",
+          "type": "uint256"
+        }
+      ],
+      "name": "addStrategy",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_vault",
+          "type": "address"
+        }
+      ],
+      "name": "canHarvest",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "controller",
+      "outputs": [
+        {
+          "internalType": "contract IController",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_strategy",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "_vault",
+          "type": "address"
+        }
+      ],
+      "name": "earn",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_strategy",
+          "type": "address"
+        }
+      ],
+      "name": "getEstimates",
+      "outputs": [
+        {
+          "internalType": "uint256[]",
+          "name": "_estimates",
+          "type": "uint256[]"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "contract IController",
+          "name": "_controller",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "_strategy",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256[]",
+          "name": "_estimates",
+          "type": "uint256[]"
+        }
+      ],
+      "name": "harvest",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_vault",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256[]",
+          "name": "_estimates",
+          "type": "uint256[]"
+        }
+      ],
+      "name": "harvestNextStrategy",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "name": "isHarvester",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "legacyController",
+      "outputs": [
+        {
+          "internalType": "contract ILegacyController",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "_expected",
+          "type": "uint256"
+        }
+      ],
+      "name": "legacyEarn",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "manager",
+      "outputs": [
+        {
+          "internalType": "contract IManager",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_vault",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "_strategy",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_timeout",
+          "type": "uint256"
+        }
+      ],
+      "name": "removeStrategy",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_harvester",
+          "type": "address"
+        },
+        {
+          "internalType": "bool",
+          "name": "_status",
+          "type": "bool"
+        }
+      ],
+      "name": "setHarvester",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "_slippage",
+          "type": "uint256"
+        }
+      ],
+      "name": "setSlippage",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "slippage",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "name": "strategies",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "timeout",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "lastCalled",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_vault",
+          "type": "address"
+        }
+      ],
+      "name": "strategyAddresses",
+      "outputs": [
+        {
+          "internalType": "address[]",
+          "name": "",
+          "type": "address[]"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    }
+  ],
+  "transactionHash": "0xa6a4ebf2d27b6a837a93ceb71eac2bd08da0f794376058f287f92961001fafa2",
+  "receipt": {
+    "to": null,
+    "from": "0xdCCbf50347e6B7F151EF4eC853c2a6bE149A3cda",
+    "contractAddress": "0xc0Ff761A9d4f4E5036cf3D0e1a02B0a7b275927e",
+    "transactionIndex": 60,
+    "gasUsed": "1140459",
+    "logsBloom": "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+    "blockHash": "0x35f6dcb341646ef531e7eb93fd3178bc3b19c3338462f471098b557cbe10d9ea",
+    "transactionHash": "0xa6a4ebf2d27b6a837a93ceb71eac2bd08da0f794376058f287f92961001fafa2",
+    "logs": [],
+    "blockNumber": 13625918,
+    "cumulativeGasUsed": "5050721",
+    "status": 1,
+    "byzantium": true
+  },
+  "args": [
+    "0xAB72cC293B63f6477BAf9d514Da735Cf6caADC2d",
+    "0x834ebCE3b3Fb5B9647d9398a1f6F44A2E831aC60",
+    "0x84D40423e66C02689c2C90fbB28213dC06aa6F1a"
+  ],
+  "solcInputHash": "31178a3a670b94c6729bec7ecab12abb",
+  "metadata": "{\"compiler\":{\"version\":\"0.6.12+commit.27d51765\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_manager\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_controller\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_legacyController\",\"type\":\"address\"}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"controller\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"strategy\",\"type\":\"address\"}],\"name\":\"Harvest\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"harvester\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"bool\",\"name\":\"status\",\"type\":\"bool\"}],\"name\":\"HarvesterSet\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"vault\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"strategy\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"timeout\",\"type\":\"uint256\"}],\"name\":\"StrategyAdded\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"vault\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"strategy\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"timeout\",\"type\":\"uint256\"}],\"name\":\"StrategyRemoved\",\"type\":\"event\"},{\"inputs\":[],\"name\":\"ONE_HUNDRED_PERCENT\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_vault\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_strategy\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"_timeout\",\"type\":\"uint256\"}],\"name\":\"addStrategy\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_vault\",\"type\":\"address\"}],\"name\":\"canHarvest\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"controller\",\"outputs\":[{\"internalType\":\"contract IController\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_strategy\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_vault\",\"type\":\"address\"}],\"name\":\"earn\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_strategy\",\"type\":\"address\"}],\"name\":\"getEstimates\",\"outputs\":[{\"internalType\":\"uint256[]\",\"name\":\"_estimates\",\"type\":\"uint256[]\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"contract IController\",\"name\":\"_controller\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_strategy\",\"type\":\"address\"},{\"internalType\":\"uint256[]\",\"name\":\"_estimates\",\"type\":\"uint256[]\"}],\"name\":\"harvest\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_vault\",\"type\":\"address\"},{\"internalType\":\"uint256[]\",\"name\":\"_estimates\",\"type\":\"uint256[]\"}],\"name\":\"harvestNextStrategy\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"isHarvester\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"legacyController\",\"outputs\":[{\"internalType\":\"contract ILegacyController\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_expected\",\"type\":\"uint256\"}],\"name\":\"legacyEarn\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"manager\",\"outputs\":[{\"internalType\":\"contract IManager\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_vault\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_strategy\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"_timeout\",\"type\":\"uint256\"}],\"name\":\"removeStrategy\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_harvester\",\"type\":\"address\"},{\"internalType\":\"bool\",\"name\":\"_status\",\"type\":\"bool\"}],\"name\":\"setHarvester\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_slippage\",\"type\":\"uint256\"}],\"name\":\"setSlippage\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"slippage\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"strategies\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"timeout\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"lastCalled\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_vault\",\"type\":\"address\"}],\"name\":\"strategyAddresses\",\"outputs\":[{\"internalType\":\"address[]\",\"name\":\"\",\"type\":\"address[]\"}],\"stateMutability\":\"view\",\"type\":\"function\"}],\"devdoc\":{\"kind\":\"dev\",\"methods\":{\"addStrategy(address,address,uint256)\":{\"params\":{\"_strategy\":\"The address of the strategy\",\"_timeout\":\"The timeout between harvests\",\"_vault\":\"The address of the vault\"}},\"canHarvest(address)\":{\"params\":{\"_vault\":\"The address of the vault\"}},\"constructor\":{\"params\":{\"_controller\":\"The address of the controller\",\"_manager\":\"The address of the yAxisMetaVaultManager contract\"}},\"getEstimates(address)\":{\"params\":{\"_strategy\":\"The address of the strategy\"}},\"harvest(address,address,uint256[])\":{\"details\":\"This function ignores the timeout\",\"params\":{\"_controller\":\"The address of the controller\",\"_estimates\":\"The estimated outputs from swaps during harvest\",\"_strategy\":\"The address of the strategy\"}},\"harvestNextStrategy(address,uint256[])\":{\"params\":{\"_estimates\":\"The estimated outputs from swaps during harvest\",\"_vault\":\"The address of the vault\"}},\"legacyEarn(uint256)\":{\"params\":{\"_expected\":\"The expected amount to deposit after conversion\"}},\"removeStrategy(address,address,uint256)\":{\"params\":{\"_strategy\":\"The address of the strategy\",\"_timeout\":\"The timeout between harvests\",\"_vault\":\"The address of the vault\"}},\"setHarvester(address,bool)\":{\"params\":{\"_harvester\":\"The address of the harvester\",\"_status\":\"The status to allow the harvester to harvest\"}},\"strategyAddresses(address)\":{\"params\":{\"_vault\":\"The address of the vault\"}}},\"title\":\"Harvester\",\"version\":1},\"userdoc\":{\"events\":{\"Harvest(address,address)\":{\"notice\":\"Logged when harvest is called for a strategy\"},\"HarvesterSet(address,bool)\":{\"notice\":\"Logged when a harvester is set\"},\"StrategyAdded(address,address,uint256)\":{\"notice\":\"Logged when a strategy is added for a vault\"},\"StrategyRemoved(address,address,uint256)\":{\"notice\":\"Logged when a strategy is removed for a vault\"}},\"kind\":\"user\",\"methods\":{\"addStrategy(address,address,uint256)\":{\"notice\":\"Adds a strategy to the rotation for a given vault and sets a timeout\"},\"canHarvest(address)\":{\"notice\":\"Returns the availability of a vault's strategy to be harvested\"},\"earn(address,address)\":{\"notice\":\"HARVESTER-ONLY FUNCTIONS\"},\"getEstimates(address)\":{\"notice\":\"Returns the estimated amount of WETH and YAXIS for the given strategy\"},\"harvest(address,address,uint256[])\":{\"notice\":\"Harvests a given strategy on the provided controller\"},\"harvestNextStrategy(address,uint256[])\":{\"notice\":\"Harvests the next available strategy for a given vault and rotates the strategies\"},\"legacyEarn(uint256)\":{\"notice\":\"Earns tokens in the LegacyController to the v3 vault\"},\"removeStrategy(address,address,uint256)\":{\"notice\":\"Removes a strategy from the rotation for a given vault and sets a timeout\"},\"setHarvester(address,bool)\":{\"notice\":\"Sets the status of a harvester address to be able to call harvest functions\"},\"strategyAddresses(address)\":{\"notice\":\"Returns the addresses of the strategies for a given vault\"}},\"notice\":\"This contract is to be used as a central point to call harvest on all strategies for any given vault. It has its own permissions for harvesters (set by the strategist or governance).\",\"version\":1}},\"settings\":{\"compilationTarget\":{\"contracts/v3/Harvester.sol\":\"Harvester\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\",\"useLiteralContent\":true},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[]},\"sources\":{\"@openzeppelin/contracts/math/SafeMath.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\n\\npragma solidity >=0.6.0 <0.8.0;\\n\\n/**\\n * @dev Wrappers over Solidity's arithmetic operations with added overflow\\n * checks.\\n *\\n * Arithmetic operations in Solidity wrap on overflow. This can easily result\\n * in bugs, because programmers usually assume that an overflow raises an\\n * error, which is the standard behavior in high level programming languages.\\n * `SafeMath` restores this intuition by reverting the transaction when an\\n * operation overflows.\\n *\\n * Using this library instead of the unchecked operations eliminates an entire\\n * class of bugs, so it's recommended to use it always.\\n */\\nlibrary SafeMath {\\n    /**\\n     * @dev Returns the addition of two unsigned integers, reverting on\\n     * overflow.\\n     *\\n     * Counterpart to Solidity's `+` operator.\\n     *\\n     * Requirements:\\n     *\\n     * - Addition cannot overflow.\\n     */\\n    function add(uint256 a, uint256 b) internal pure returns (uint256) {\\n        uint256 c = a + b;\\n        require(c >= a, \\\"SafeMath: addition overflow\\\");\\n\\n        return c;\\n    }\\n\\n    /**\\n     * @dev Returns the subtraction of two unsigned integers, reverting on\\n     * overflow (when the result is negative).\\n     *\\n     * Counterpart to Solidity's `-` operator.\\n     *\\n     * Requirements:\\n     *\\n     * - Subtraction cannot overflow.\\n     */\\n    function sub(uint256 a, uint256 b) internal pure returns (uint256) {\\n        return sub(a, b, \\\"SafeMath: subtraction overflow\\\");\\n    }\\n\\n    /**\\n     * @dev Returns the subtraction of two unsigned integers, reverting with custom message on\\n     * overflow (when the result is negative).\\n     *\\n     * Counterpart to Solidity's `-` operator.\\n     *\\n     * Requirements:\\n     *\\n     * - Subtraction cannot overflow.\\n     */\\n    function sub(uint256 a, uint256 b, string memory errorMessage) internal pure returns (uint256) {\\n        require(b <= a, errorMessage);\\n        uint256 c = a - b;\\n\\n        return c;\\n    }\\n\\n    /**\\n     * @dev Returns the multiplication of two unsigned integers, reverting on\\n     * overflow.\\n     *\\n     * Counterpart to Solidity's `*` operator.\\n     *\\n     * Requirements:\\n     *\\n     * - Multiplication cannot overflow.\\n     */\\n    function mul(uint256 a, uint256 b) internal pure returns (uint256) {\\n        // Gas optimization: this is cheaper than requiring 'a' not being zero, but the\\n        // benefit is lost if 'b' is also tested.\\n        // See: https://github.com/OpenZeppelin/openzeppelin-contracts/pull/522\\n        if (a == 0) {\\n            return 0;\\n        }\\n\\n        uint256 c = a * b;\\n        require(c / a == b, \\\"SafeMath: multiplication overflow\\\");\\n\\n        return c;\\n    }\\n\\n    /**\\n     * @dev Returns the integer division of two unsigned integers. Reverts on\\n     * division by zero. The result is rounded towards zero.\\n     *\\n     * Counterpart to Solidity's `/` operator. Note: this function uses a\\n     * `revert` opcode (which leaves remaining gas untouched) while Solidity\\n     * uses an invalid opcode to revert (consuming all remaining gas).\\n     *\\n     * Requirements:\\n     *\\n     * - The divisor cannot be zero.\\n     */\\n    function div(uint256 a, uint256 b) internal pure returns (uint256) {\\n        return div(a, b, \\\"SafeMath: division by zero\\\");\\n    }\\n\\n    /**\\n     * @dev Returns the integer division of two unsigned integers. Reverts with custom message on\\n     * division by zero. The result is rounded towards zero.\\n     *\\n     * Counterpart to Solidity's `/` operator. Note: this function uses a\\n     * `revert` opcode (which leaves remaining gas untouched) while Solidity\\n     * uses an invalid opcode to revert (consuming all remaining gas).\\n     *\\n     * Requirements:\\n     *\\n     * - The divisor cannot be zero.\\n     */\\n    function div(uint256 a, uint256 b, string memory errorMessage) internal pure returns (uint256) {\\n        require(b > 0, errorMessage);\\n        uint256 c = a / b;\\n        // assert(a == b * c + a % b); // There is no case in which this doesn't hold\\n\\n        return c;\\n    }\\n\\n    /**\\n     * @dev Returns the remainder of dividing two unsigned integers. (unsigned integer modulo),\\n     * Reverts when dividing by zero.\\n     *\\n     * Counterpart to Solidity's `%` operator. This function uses a `revert`\\n     * opcode (which leaves remaining gas untouched) while Solidity uses an\\n     * invalid opcode to revert (consuming all remaining gas).\\n     *\\n     * Requirements:\\n     *\\n     * - The divisor cannot be zero.\\n     */\\n    function mod(uint256 a, uint256 b) internal pure returns (uint256) {\\n        return mod(a, b, \\\"SafeMath: modulo by zero\\\");\\n    }\\n\\n    /**\\n     * @dev Returns the remainder of dividing two unsigned integers. (unsigned integer modulo),\\n     * Reverts with custom message when dividing by zero.\\n     *\\n     * Counterpart to Solidity's `%` operator. This function uses a `revert`\\n     * opcode (which leaves remaining gas untouched) while Solidity uses an\\n     * invalid opcode to revert (consuming all remaining gas).\\n     *\\n     * Requirements:\\n     *\\n     * - The divisor cannot be zero.\\n     */\\n    function mod(uint256 a, uint256 b, string memory errorMessage) internal pure returns (uint256) {\\n        require(b != 0, errorMessage);\\n        return a % b;\\n    }\\n}\\n\",\"keccak256\":\"0x3b21f2c8d626de3b9925ae33e972d8bf5c8b1bffb3f4ee94daeed7d0679036e6\",\"license\":\"MIT\"},\"contracts/v3/Harvester.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\n\\npragma solidity 0.6.12;\\n\\nimport \\\"@openzeppelin/contracts/math/SafeMath.sol\\\";\\n\\nimport \\\"./interfaces/IVault.sol\\\";\\nimport \\\"./interfaces/IController.sol\\\";\\nimport \\\"./interfaces/IHarvester.sol\\\";\\nimport \\\"./interfaces/ILegacyController.sol\\\";\\nimport \\\"./interfaces/IManager.sol\\\";\\nimport \\\"./interfaces/IStrategy.sol\\\";\\nimport \\\"./interfaces/ISwap.sol\\\";\\n\\n/**\\n * @title Harvester\\n * @notice This contract is to be used as a central point to call\\n * harvest on all strategies for any given vault. It has its own\\n * permissions for harvesters (set by the strategist or governance).\\n */\\ncontract Harvester is IHarvester {\\n    using SafeMath for uint256;\\n\\n    uint256 public constant ONE_HUNDRED_PERCENT = 10000;\\n\\n    IManager public immutable override manager;\\n    IController public immutable controller;\\n    ILegacyController public immutable legacyController;\\n\\n    uint256 public override slippage;\\n\\n    struct Strategy {\\n        uint256 timeout;\\n        uint256 lastCalled;\\n        address[] addresses;\\n    }\\n\\n    mapping(address => Strategy) public strategies;\\n    mapping(address => bool) public isHarvester;\\n\\n    /**\\n     * @notice Logged when harvest is called for a strategy\\n     */\\n    event Harvest(\\n        address indexed controller,\\n        address indexed strategy\\n    );\\n\\n    /**\\n     * @notice Logged when a harvester is set\\n     */\\n    event HarvesterSet(address indexed harvester, bool status);\\n\\n    /**\\n     * @notice Logged when a strategy is added for a vault\\n     */\\n    event StrategyAdded(address indexed vault, address indexed strategy, uint256 timeout);\\n\\n    /**\\n     * @notice Logged when a strategy is removed for a vault\\n     */\\n    event StrategyRemoved(address indexed vault, address indexed strategy, uint256 timeout);\\n\\n    /**\\n     * @param _manager The address of the yAxisMetaVaultManager contract\\n     * @param _controller The address of the controller\\n     */\\n    constructor(\\n        address _manager,\\n        address _controller,\\n        address _legacyController\\n    )\\n        public\\n    {\\n        manager = IManager(_manager);\\n        controller = IController(_controller);\\n        legacyController = ILegacyController(_legacyController);\\n    }\\n\\n    /**\\n     * (GOVERNANCE|STRATEGIST)-ONLY FUNCTIONS\\n     */\\n\\n    /**\\n     * @notice Adds a strategy to the rotation for a given vault and sets a timeout\\n     * @param _vault The address of the vault\\n     * @param _strategy The address of the strategy\\n     * @param _timeout The timeout between harvests\\n     */\\n    function addStrategy(\\n        address _vault,\\n        address _strategy,\\n        uint256 _timeout\\n    )\\n        external\\n        override\\n        onlyController\\n    {\\n        strategies[_vault].addresses.push(_strategy);\\n        strategies[_vault].timeout = _timeout;\\n        emit StrategyAdded(_vault, _strategy, _timeout);\\n    }\\n\\n    /**\\n     * @notice Removes a strategy from the rotation for a given vault and sets a timeout\\n     * @param _vault The address of the vault\\n     * @param _strategy The address of the strategy\\n     * @param _timeout The timeout between harvests\\n     */\\n    function removeStrategy(\\n        address _vault,\\n        address _strategy,\\n        uint256 _timeout\\n    )\\n        external\\n        override\\n        onlyController\\n    {\\n        uint256 tail = strategies[_vault].addresses.length;\\n        uint256 index;\\n        bool found;\\n        for (uint i; i < tail; i++) {\\n            if (strategies[_vault].addresses[i] == _strategy) {\\n                index = i;\\n                found = true;\\n                break;\\n            }\\n        }\\n\\n        if (found) {\\n            strategies[_vault].addresses[index] = strategies[_vault].addresses[tail.sub(1)];\\n            strategies[_vault].addresses.pop();\\n            strategies[_vault].timeout = _timeout;\\n            emit StrategyRemoved(_vault, _strategy, _timeout);\\n        }\\n    }\\n\\n    /**\\n     * @notice Sets the status of a harvester address to be able to call harvest functions\\n     * @param _harvester The address of the harvester\\n     * @param _status The status to allow the harvester to harvest\\n     */\\n    function setHarvester(\\n        address _harvester,\\n        bool _status\\n    )\\n        external\\n        onlyStrategist\\n    {\\n        isHarvester[_harvester] = _status;\\n        emit HarvesterSet(_harvester, _status);\\n    }\\n\\n    function setSlippage(\\n        uint256 _slippage\\n    )\\n        external\\n        onlyStrategist\\n    {\\n        require(_slippage < ONE_HUNDRED_PERCENT, \\\"!_slippage\\\");\\n        slippage = _slippage;\\n    }\\n\\n    /**\\n     * HARVESTER-ONLY FUNCTIONS\\n     */\\n\\n    function earn(\\n        address _strategy,\\n        address _vault\\n    )\\n        external\\n        onlyHarvester\\n    {\\n        IVault(_vault).earn(_strategy);\\n    }\\n\\n    /**\\n     * @notice Harvests a given strategy on the provided controller\\n     * @dev This function ignores the timeout\\n     * @param _controller The address of the controller\\n     * @param _strategy The address of the strategy\\n     * @param _estimates The estimated outputs from swaps during harvest\\n     */\\n    function harvest(\\n        IController _controller,\\n        address _strategy,\\n        uint256[] calldata _estimates\\n    )\\n        public\\n        onlyHarvester\\n    {\\n        _controller.harvestStrategy(_strategy, _estimates);\\n        emit Harvest(address(_controller), _strategy);\\n    }\\n\\n    /**\\n     * @notice Harvests the next available strategy for a given vault and\\n     * rotates the strategies\\n     * @param _vault The address of the vault\\n     * @param _estimates The estimated outputs from swaps during harvest\\n     */\\n    function harvestNextStrategy(\\n        address _vault,\\n        uint256[] calldata _estimates\\n    )\\n        external\\n    {\\n        require(canHarvest(_vault), \\\"!canHarvest\\\");\\n        address strategy = strategies[_vault].addresses[0];\\n        harvest(controller, strategy, _estimates);\\n        uint256 k = strategies[_vault].addresses.length;\\n        if (k > 1) {\\n            address[] memory _strategies = new address[](k);\\n            for (uint i; i < k-1; i++) {\\n                _strategies[i] = strategies[_vault].addresses[i+1];\\n            }\\n            _strategies[k-1] = strategy;\\n            strategies[_vault].addresses = _strategies;\\n        }\\n        // solhint-disable-next-line not-rely-on-time\\n        strategies[_vault].lastCalled = block.timestamp;\\n    }\\n\\n    /**\\n     * @notice Earns tokens in the LegacyController to the v3 vault\\n     * @param _expected The expected amount to deposit after conversion\\n     */\\n    function legacyEarn(\\n        uint256 _expected\\n    )\\n        external\\n        onlyHarvester\\n    {\\n        legacyController.legacyDeposit(_expected);\\n    }\\n\\n    /**\\n     * EXTERNAL VIEW FUNCTIONS\\n     */\\n\\n    /**\\n     * @notice Returns the addresses of the strategies for a given vault\\n     * @param _vault The address of the vault\\n     */\\n    function strategyAddresses(\\n        address _vault\\n    )\\n        external\\n        view\\n        returns (address[] memory)\\n    {\\n        return strategies[_vault].addresses;\\n    }\\n\\n    /**\\n     * PUBLIC VIEW FUNCTIONS\\n     */\\n\\n    /**\\n     * @notice Returns the availability of a vault's strategy to be harvested\\n     * @param _vault The address of the vault\\n     */\\n    function canHarvest(\\n        address _vault\\n    )\\n        public\\n        view\\n        returns (bool)\\n    {\\n        Strategy storage strategy = strategies[_vault];\\n        // only can harvest if there are strategies, and when sufficient time has elapsed\\n        // solhint-disable-next-line not-rely-on-time\\n        return (strategy.addresses.length > 0 && strategy.lastCalled <= block.timestamp.sub(strategy.timeout));\\n    }\\n\\n    /**\\n     * @notice Returns the estimated amount of WETH and YAXIS for the given strategy\\n     * @param _strategy The address of the strategy\\n     */\\n    function getEstimates(\\n        address _strategy\\n    )\\n        public\\n        view\\n        returns (uint256[] memory _estimates)\\n    {\\n        _estimates = IStrategyExtended(_strategy).getEstimates();\\n    }\\n\\n    /**\\n     * MODIFIERS\\n     */\\n\\n    modifier onlyController() {\\n        require(manager.allowedControllers(msg.sender), \\\"!controller\\\");\\n        _;\\n    }\\n\\n    modifier onlyHarvester() {\\n        require(isHarvester[msg.sender], \\\"!harvester\\\");\\n        _;\\n    }\\n\\n    modifier onlyStrategist() {\\n        require(msg.sender == manager.strategist(), \\\"!strategist\\\");\\n        _;\\n    }\\n}\\n\",\"keccak256\":\"0xd7a4ce4ae984066d17aff28b6e57481e8f93ef07cce51e87f14344418a6c8ed2\",\"license\":\"MIT\"},\"contracts/v3/interfaces/IController.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\n\\npragma solidity 0.6.12;\\n\\nimport \\\"./IManager.sol\\\";\\n\\ninterface IController {\\n    function balanceOf() external view returns (uint256);\\n    function converter(address _vault) external view returns (address);\\n    function earn(address _strategy, address _token, uint256 _amount) external;\\n    function investEnabled() external view returns (bool);\\n    function harvestStrategy(address _strategy, uint256[] calldata _estimates) external;\\n    function manager() external view returns (IManager);\\n    function strategies() external view returns (uint256);\\n    function withdraw(address _token, uint256 _amount) external;\\n    function withdrawAll(address _strategy, address _convert) external;\\n}\\n\",\"keccak256\":\"0x8ce01e149a62d561d025ba8671b7487d33090189d896dcfc0f5464870b85d38e\",\"license\":\"MIT\"},\"contracts/v3/interfaces/IHarvester.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\n\\npragma solidity 0.6.12;\\n\\nimport \\\"./IManager.sol\\\";\\n\\ninterface IHarvester {\\n    function addStrategy(address, address, uint256) external;\\n    function manager() external view returns (IManager);\\n    function removeStrategy(address, address, uint256) external;\\n    function slippage() external view returns (uint256);\\n}\\n\\n\",\"keccak256\":\"0x2047997ad37599e5b472606ec5f1433b2086b3a7eec31c27bc88d1e9a27cd720\",\"license\":\"MIT\"},\"contracts/v3/interfaces/ILegacyController.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\n\\npragma solidity ^0.6.0;\\n\\ninterface ILegacyController {\\n    function legacyDeposit(uint256 _expected) external;\\n}\\n\",\"keccak256\":\"0x21b592c296ab5c724a62c8b33a43d005335bca157efa2b669677e333aef84ebd\",\"license\":\"MIT\"},\"contracts/v3/interfaces/IManager.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\n\\npragma solidity 0.6.12;\\n\\ninterface IManager {\\n    function addVault(address) external;\\n    function allowedControllers(address) external view returns (bool);\\n    function allowedConverters(address) external view returns (bool);\\n    function allowedStrategies(address) external view returns (bool);\\n    function allowedVaults(address) external view returns (bool);\\n    function controllers(address) external view returns (address);\\n    function getHarvestFeeInfo() external view returns (address, address, uint256);\\n    function getToken(address) external view returns (address);\\n    function governance() external view returns (address);\\n    function halted() external view returns (bool);\\n    function harvester() external view returns (address);\\n    function insuranceFee() external view returns (uint256);\\n    function insurancePool() external view returns (address);\\n    function insurancePoolFee() external view returns (uint256);\\n    function pendingStrategist() external view returns (address);\\n    function removeVault(address) external;\\n    function stakingPool() external view returns (address);\\n    function stakingPoolShareFee() external view returns (uint256);\\n    function strategist() external view returns (address);\\n    function treasury() external view returns (address);\\n    function treasuryFee() external view returns (uint256);\\n    function withdrawalProtectionFee() external view returns (uint256);\\n    function yaxis() external view returns (address);\\n}\\n\",\"keccak256\":\"0x7643ce13f4882cd5e4fef64c7e82ef6b7037af24afb88ca0e97922f93d52850d\",\"license\":\"MIT\"},\"contracts/v3/interfaces/IStrategy.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\n\\npragma solidity 0.6.12;\\n\\nimport \\\"./IManager.sol\\\";\\nimport \\\"./ISwap.sol\\\";\\n\\ninterface IStrategy {\\n    function balanceOf() external view returns (uint256);\\n    function balanceOfPool() external view returns (uint256);\\n    function balanceOfWant() external view returns (uint256);\\n    function deposit() external;\\n    function harvest(uint256[] calldata) external;\\n    function manager() external view returns (IManager);\\n    function name() external view returns (string memory);\\n    function router() external view returns (ISwap);\\n    function skim() external;\\n    function want() external view returns (address);\\n    function weth() external view returns (address);\\n    function withdraw(address) external;\\n    function withdraw(uint256) external;\\n    function withdrawAll() external;\\n}\\n\\ninterface IStrategyExtended {\\n    function getEstimates() external view returns (uint256[] memory);\\n}\\n\",\"keccak256\":\"0xd1929e523830a082079cd819f46345ee5c28d79a1f271b2b0d58683194133938\",\"license\":\"MIT\"},\"contracts/v3/interfaces/ISwap.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\npragma solidity ^0.6.2;\\n\\ninterface ISwap {\\n    function swapExactTokensForTokens(uint256, uint256, address[] calldata, address, uint256) external;\\n    function getAmountsOut(uint256, address[] calldata) external view returns (uint256[] memory);\\n}\\n\",\"keccak256\":\"0x054e1fbb6e5fc879fcd57c1fe554fe9838dbae742d35df59541c200e50fc6b59\",\"license\":\"MIT\"},\"contracts/v3/interfaces/IVault.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\n\\npragma solidity 0.6.12;\\n\\nimport \\\"./IManager.sol\\\";\\n\\ninterface IVault {\\n    function available() external view returns (uint256);\\n    function balance() external view returns (uint256);\\n    function deposit(uint256 _amount) external returns (uint256);\\n    function earn(address _strategy) external;\\n    function gauge() external returns (address);\\n    function getLPToken() external view returns (address);\\n    function getPricePerFullShare() external view returns (uint256);\\n    function getToken() external view returns (address);\\n    function manager() external view returns (IManager);\\n    function withdraw(uint256 _amount) external;\\n    function withdrawAll() external;\\n    function withdrawFee(uint256 _amount) external view returns (uint256);\\n}\\n\",\"keccak256\":\"0x8f644406524022d13516dc130b4948962d0ed3d5fa2099b89041ddf54a96b002\",\"license\":\"MIT\"}},\"version\":1}",
+  "bytecode": "0x60e060405234801561001057600080fd5b5060405161145f38038061145f8339818101604052606081101561003357600080fd5b50805160208201516040909201516001600160601b0319606092831b811660805292821b831660a052901b1660c05260805160601c60a05160601c60c05160601c6113aa6100b5600039806104bb5280611020525080610e3552806111b85250806104df528061075a528061079c52806108ee52806110a152506113aa6000f3fe608060405234801561001057600080fd5b50600436106101165760003560e01c80639af409dd116100a2578063eeabd79f11610071578063eeabd79f146103d1578063ef73bb5714610451578063f0fa55a91461046e578063f77c47911461048b578063fb70261a1461049357610116565b80639af409dd146102f3578063a71bbfd514610369578063b6dcbde7146103a3578063dd0081c7146103c957610116565b8063461c420a116100e9578063461c420a146101c8578063481c6a75146102515780634b704acd146102595780636bb3722e1461028f5780636bc9a5a9146102c557610116565b8063039f28c21461011b57806331b710571461013f57806339ebf8231461016f5780633e032a3b146101ae575b600080fd5b6101236104b9565b604080516001600160a01b039092168252519081900360200190f35b61016d6004803603604081101561015557600080fd5b506001600160a01b03813516906020013515156104dd565b005b6101956004803603602081101561018557600080fd5b50356001600160a01b031661060c565b6040805192835260208301919091528051918290030190f35b6101b6610625565b60408051918252519081900360200190f35b61016d600480360360608110156101de57600080fd5b6001600160a01b03823581169260208101359091169181019060608101604082013564010000000081111561021257600080fd5b82018360208201111561022457600080fd5b8035906020019184602083028401116401000000008311171561024657600080fd5b50909250905061062b565b610123610758565b61016d6004803603606081101561026f57600080fd5b506001600160a01b0381358116916020810135909116906040013561077c565b61016d600480360360608110156102a557600080fd5b506001600160a01b038135811691602081013590911690604001356108ce565b61016d600480360360408110156102db57600080fd5b506001600160a01b0381358116916020013516610b59565b6103196004803603602081101561030957600080fd5b50356001600160a01b0316610c0d565b60408051602080825283518183015283519192839290830191858101910280838360005b8381101561035557818101518382015260200161033d565b505050509050019250505060405180910390f35b61038f6004803603602081101561037f57600080fd5b50356001600160a01b0316610c86565b604080519115158252519081900360200190f35b610319600480360360208110156103b957600080fd5b50356001600160a01b0316610c9b565b6101b6610da6565b61016d600480360360408110156103e757600080fd5b6001600160a01b03823516919081019060408101602082013564010000000081111561041257600080fd5b82018360208201111561042457600080fd5b8035906020019184602083028401116401000000008311171561044657600080fd5b509092509050610dac565b61016d6004803603602081101561046757600080fd5b5035610fcd565b61016d6004803603602081101561048457600080fd5b503561109f565b6101236111b6565b61038f600480360360208110156104a957600080fd5b50356001600160a01b03166111da565b7f000000000000000000000000000000000000000000000000000000000000000081565b7f00000000000000000000000000000000000000000000000000000000000000006001600160a01b0316631fe4a6866040518163ffffffff1660e01b815260040160206040518083038186803b15801561053657600080fd5b505afa15801561054a573d6000803e3d6000fd5b505050506040513d602081101561056057600080fd5b50516001600160a01b031633146105ac576040805162461bcd60e51b815260206004820152600b60248201526a085cdd1c985d1959da5cdd60aa1b604482015290519081900360640190fd5b6001600160a01b038216600081815260026020908152604091829020805460ff1916851515908117909155825190815291517f0dd4aeebdb71d8f88640d3361815b0e64e31aaf0ee73ad7f5a421115fac879ae9281900390910190a25050565b6001602081905260009182526040909120805491015482565b60005481565b3360009081526002602052604090205460ff1661067c576040805162461bcd60e51b815260206004820152600a60248201526910b430b93b32b9ba32b960b11b604482015290519081900360640190fd5b836001600160a01b031663423344838484846040518463ffffffff1660e01b815260040180846001600160a01b03168152602001806020018281038252848482818152602001925060200280828437600081840152601f19601f820116905080830192505050945050505050600060405180830381600087803b15801561070257600080fd5b505af1158015610716573d6000803e3d6000fd5b50506040516001600160a01b038087169350871691507ffdfdf879d9abdea70f1d228c39cf14f5e7179a54f36b378f29bccfe7648f333e90600090a350505050565b7f000000000000000000000000000000000000000000000000000000000000000081565b60408051633577910560e11b815233600482015290516001600160a01b037f00000000000000000000000000000000000000000000000000000000000000001691636aef220a916024808301926020929190829003018186803b1580156107e257600080fd5b505afa1580156107f6573d6000803e3d6000fd5b505050506040513d602081101561080c57600080fd5b505161084d576040805162461bcd60e51b815260206004820152600b60248201526a10b1b7b73a3937b63632b960a91b604482015290519081900360640190fd5b6001600160a01b0383811660008181526001602081815260408084206002810180549485018155855282852090930180546001600160a01b03191696891696871790559284905290859055815185815291517fc2008aa15e9b0989ec7ae02bc3d8054428c527c989269ffb2a5bff829028a0129281900390910190a3505050565b60408051633577910560e11b815233600482015290516001600160a01b037f00000000000000000000000000000000000000000000000000000000000000001691636aef220a916024808301926020929190829003018186803b15801561093457600080fd5b505afa158015610948573d6000803e3d6000fd5b505050506040513d602081101561095e57600080fd5b505161099f576040805162461bcd60e51b815260206004820152600b60248201526a10b1b7b73a3937b63632b960a91b604482015290519081900360640190fd5b6001600160a01b0383166000908152600160205260408120600201549080805b83811015610a22576001600160a01b038781166000908152600160205260409020600201805491881691839081106109f357fe5b6000918252602090912001546001600160a01b03161415610a1a5780925060019150610a22565b6001016109bf565b508015610b51576001600160a01b038616600090815260016020819052604090912060020190610a5390859061121c565b81548110610a5d57fe5b60009182526020808320909101546001600160a01b03898116845260019092526040909220600201805491909216919084908110610a9757fe5b600091825260208083209190910180546001600160a01b0319166001600160a01b039485161790559188168152600190915260409020600201805480610ad957fe5b60008281526020808220830160001990810180546001600160a01b03191690559092019092556001600160a01b0388811680845260018352604093849020889055835188815293519189169390927fdd3e131c7baafda30070fc3f53c5153570a3e6552809d20e2b682dd30fa7cc6e92918290030190a35b505050505050565b3360009081526002602052604090205460ff16610baa576040805162461bcd60e51b815260206004820152600a60248201526910b430b93b32b9ba32b960b11b604482015290519081900360640190fd5b806001600160a01b031663fdb5fefc836040518263ffffffff1660e01b815260040180826001600160a01b03168152602001915050600060405180830381600087803b158015610bf957600080fd5b505af1158015610b51573d6000803e3d6000fd5b6001600160a01b038116600090815260016020908152604091829020600201805483518184028101840190945280845260609392830182828015610c7a57602002820191906000526020600020905b81546001600160a01b03168152600190910190602001808311610c5c575b50505050509050919050565b60026020526000908152604090205460ff1681565b6060816001600160a01b031663185881ec6040518163ffffffff1660e01b815260040160006040518083038186803b158015610cd657600080fd5b505afa158015610cea573d6000803e3d6000fd5b505050506040513d6000823e601f3d908101601f191682016040526020811015610d1357600080fd5b8101908080516040519392919084640100000000821115610d3357600080fd5b908301906020820185811115610d4857600080fd5b8251866020820283011164010000000082111715610d6557600080fd5b82525081516020918201928201910280838360005b83811015610d92578181015183820152602001610d7a565b505050509050016040525050509050919050565b61271081565b610db5836111da565b610df4576040805162461bcd60e51b815260206004820152600b60248201526a0858d85b92185c9d995cdd60aa1b604482015290519081900360640190fd5b6001600160a01b038316600090815260016020526040812060020180548290610e1957fe5b6000918252602090912001546001600160a01b03169050610e5c7f000000000000000000000000000000000000000000000000000000000000000082858561062b565b6001600160a01b03841660009081526001602081905260409091206002015490811115610fa95760608167ffffffffffffffff81118015610e9c57600080fd5b50604051908082528060200260200182016040528015610ec6578160200160208202803683370190505b50905060005b60018303811015610f575760016000886001600160a01b03166001600160a01b031681526020019081526020016000206002018160010181548110610f0d57fe5b9060005260206000200160009054906101000a90046001600160a01b0316828281518110610f3757fe5b6001600160a01b0390921660209283029190910190910152600101610ecc565b5082816001840381518110610f6857fe5b6001600160a01b03928316602091820292909201810191909152908716600090815260018252604090208251610fa6926002909201918401906112f0565b50505b505050506001600160a01b0316600090815260016020819052604090912042910155565b3360009081526002602052604090205460ff1661101e576040805162461bcd60e51b815260206004820152600a60248201526910b430b93b32b9ba32b960b11b604482015290519081900360640190fd5b7f00000000000000000000000000000000000000000000000000000000000000006001600160a01b0316632c4c95a1826040518263ffffffff1660e01b815260040180828152602001915050600060405180830381600087803b15801561108457600080fd5b505af1158015611098573d6000803e3d6000fd5b5050505050565b7f00000000000000000000000000000000000000000000000000000000000000006001600160a01b0316631fe4a6866040518163ffffffff1660e01b815260040160206040518083038186803b1580156110f857600080fd5b505afa15801561110c573d6000803e3d6000fd5b505050506040513d602081101561112257600080fd5b50516001600160a01b0316331461116e576040805162461bcd60e51b815260206004820152600b60248201526a085cdd1c985d1959da5cdd60aa1b604482015290519081900360640190fd5b61271081106111b1576040805162461bcd60e51b815260206004820152600a602482015269215f736c69707061676560b01b604482015290519081900360640190fd5b600055565b7f000000000000000000000000000000000000000000000000000000000000000081565b6001600160a01b03811660009081526001602052604081206002810154158015906112155750805461120d90429061121c565b816001015411155b9392505050565b600061121583836040518060400160405280601e81526020017f536166654d6174683a207375627472616374696f6e206f766572666c6f770000815250600081848411156112e85760405162461bcd60e51b81526004018080602001828103825283818151815260200191508051906020019080838360005b838110156112ad578181015183820152602001611295565b50505050905090810190601f1680156112da5780820380516001836020036101000a031916815260200191505b509250505060405180910390fd5b505050900390565b828054828255906000526020600020908101928215611345579160200282015b8281111561134557825182546001600160a01b0319166001600160a01b03909116178255602090920191600190910190611310565b50611351929150611355565b5090565b5b808211156113515780546001600160a01b031916815560010161135656fea26469706673582212202b8b4fb95fec2090a546aed7504aefcbc6c074349adf2a868b45cd37fb9e1c8964736f6c634300060c0033",
+  "deployedBytecode": "0x608060405234801561001057600080fd5b50600436106101165760003560e01c80639af409dd116100a2578063eeabd79f11610071578063eeabd79f146103d1578063ef73bb5714610451578063f0fa55a91461046e578063f77c47911461048b578063fb70261a1461049357610116565b80639af409dd146102f3578063a71bbfd514610369578063b6dcbde7146103a3578063dd0081c7146103c957610116565b8063461c420a116100e9578063461c420a146101c8578063481c6a75146102515780634b704acd146102595780636bb3722e1461028f5780636bc9a5a9146102c557610116565b8063039f28c21461011b57806331b710571461013f57806339ebf8231461016f5780633e032a3b146101ae575b600080fd5b6101236104b9565b604080516001600160a01b039092168252519081900360200190f35b61016d6004803603604081101561015557600080fd5b506001600160a01b03813516906020013515156104dd565b005b6101956004803603602081101561018557600080fd5b50356001600160a01b031661060c565b6040805192835260208301919091528051918290030190f35b6101b6610625565b60408051918252519081900360200190f35b61016d600480360360608110156101de57600080fd5b6001600160a01b03823581169260208101359091169181019060608101604082013564010000000081111561021257600080fd5b82018360208201111561022457600080fd5b8035906020019184602083028401116401000000008311171561024657600080fd5b50909250905061062b565b610123610758565b61016d6004803603606081101561026f57600080fd5b506001600160a01b0381358116916020810135909116906040013561077c565b61016d600480360360608110156102a557600080fd5b506001600160a01b038135811691602081013590911690604001356108ce565b61016d600480360360408110156102db57600080fd5b506001600160a01b0381358116916020013516610b59565b6103196004803603602081101561030957600080fd5b50356001600160a01b0316610c0d565b60408051602080825283518183015283519192839290830191858101910280838360005b8381101561035557818101518382015260200161033d565b505050509050019250505060405180910390f35b61038f6004803603602081101561037f57600080fd5b50356001600160a01b0316610c86565b604080519115158252519081900360200190f35b610319600480360360208110156103b957600080fd5b50356001600160a01b0316610c9b565b6101b6610da6565b61016d600480360360408110156103e757600080fd5b6001600160a01b03823516919081019060408101602082013564010000000081111561041257600080fd5b82018360208201111561042457600080fd5b8035906020019184602083028401116401000000008311171561044657600080fd5b509092509050610dac565b61016d6004803603602081101561046757600080fd5b5035610fcd565b61016d6004803603602081101561048457600080fd5b503561109f565b6101236111b6565b61038f600480360360208110156104a957600080fd5b50356001600160a01b03166111da565b7f000000000000000000000000000000000000000000000000000000000000000081565b7f00000000000000000000000000000000000000000000000000000000000000006001600160a01b0316631fe4a6866040518163ffffffff1660e01b815260040160206040518083038186803b15801561053657600080fd5b505afa15801561054a573d6000803e3d6000fd5b505050506040513d602081101561056057600080fd5b50516001600160a01b031633146105ac576040805162461bcd60e51b815260206004820152600b60248201526a085cdd1c985d1959da5cdd60aa1b604482015290519081900360640190fd5b6001600160a01b038216600081815260026020908152604091829020805460ff1916851515908117909155825190815291517f0dd4aeebdb71d8f88640d3361815b0e64e31aaf0ee73ad7f5a421115fac879ae9281900390910190a25050565b6001602081905260009182526040909120805491015482565b60005481565b3360009081526002602052604090205460ff1661067c576040805162461bcd60e51b815260206004820152600a60248201526910b430b93b32b9ba32b960b11b604482015290519081900360640190fd5b836001600160a01b031663423344838484846040518463ffffffff1660e01b815260040180846001600160a01b03168152602001806020018281038252848482818152602001925060200280828437600081840152601f19601f820116905080830192505050945050505050600060405180830381600087803b15801561070257600080fd5b505af1158015610716573d6000803e3d6000fd5b50506040516001600160a01b038087169350871691507ffdfdf879d9abdea70f1d228c39cf14f5e7179a54f36b378f29bccfe7648f333e90600090a350505050565b7f000000000000000000000000000000000000000000000000000000000000000081565b60408051633577910560e11b815233600482015290516001600160a01b037f00000000000000000000000000000000000000000000000000000000000000001691636aef220a916024808301926020929190829003018186803b1580156107e257600080fd5b505afa1580156107f6573d6000803e3d6000fd5b505050506040513d602081101561080c57600080fd5b505161084d576040805162461bcd60e51b815260206004820152600b60248201526a10b1b7b73a3937b63632b960a91b604482015290519081900360640190fd5b6001600160a01b0383811660008181526001602081815260408084206002810180549485018155855282852090930180546001600160a01b03191696891696871790559284905290859055815185815291517fc2008aa15e9b0989ec7ae02bc3d8054428c527c989269ffb2a5bff829028a0129281900390910190a3505050565b60408051633577910560e11b815233600482015290516001600160a01b037f00000000000000000000000000000000000000000000000000000000000000001691636aef220a916024808301926020929190829003018186803b15801561093457600080fd5b505afa158015610948573d6000803e3d6000fd5b505050506040513d602081101561095e57600080fd5b505161099f576040805162461bcd60e51b815260206004820152600b60248201526a10b1b7b73a3937b63632b960a91b604482015290519081900360640190fd5b6001600160a01b0383166000908152600160205260408120600201549080805b83811015610a22576001600160a01b038781166000908152600160205260409020600201805491881691839081106109f357fe5b6000918252602090912001546001600160a01b03161415610a1a5780925060019150610a22565b6001016109bf565b508015610b51576001600160a01b038616600090815260016020819052604090912060020190610a5390859061121c565b81548110610a5d57fe5b60009182526020808320909101546001600160a01b03898116845260019092526040909220600201805491909216919084908110610a9757fe5b600091825260208083209190910180546001600160a01b0319166001600160a01b039485161790559188168152600190915260409020600201805480610ad957fe5b60008281526020808220830160001990810180546001600160a01b03191690559092019092556001600160a01b0388811680845260018352604093849020889055835188815293519189169390927fdd3e131c7baafda30070fc3f53c5153570a3e6552809d20e2b682dd30fa7cc6e92918290030190a35b505050505050565b3360009081526002602052604090205460ff16610baa576040805162461bcd60e51b815260206004820152600a60248201526910b430b93b32b9ba32b960b11b604482015290519081900360640190fd5b806001600160a01b031663fdb5fefc836040518263ffffffff1660e01b815260040180826001600160a01b03168152602001915050600060405180830381600087803b158015610bf957600080fd5b505af1158015610b51573d6000803e3d6000fd5b6001600160a01b038116600090815260016020908152604091829020600201805483518184028101840190945280845260609392830182828015610c7a57602002820191906000526020600020905b81546001600160a01b03168152600190910190602001808311610c5c575b50505050509050919050565b60026020526000908152604090205460ff1681565b6060816001600160a01b031663185881ec6040518163ffffffff1660e01b815260040160006040518083038186803b158015610cd657600080fd5b505afa158015610cea573d6000803e3d6000fd5b505050506040513d6000823e601f3d908101601f191682016040526020811015610d1357600080fd5b8101908080516040519392919084640100000000821115610d3357600080fd5b908301906020820185811115610d4857600080fd5b8251866020820283011164010000000082111715610d6557600080fd5b82525081516020918201928201910280838360005b83811015610d92578181015183820152602001610d7a565b505050509050016040525050509050919050565b61271081565b610db5836111da565b610df4576040805162461bcd60e51b815260206004820152600b60248201526a0858d85b92185c9d995cdd60aa1b604482015290519081900360640190fd5b6001600160a01b038316600090815260016020526040812060020180548290610e1957fe5b6000918252602090912001546001600160a01b03169050610e5c7f000000000000000000000000000000000000000000000000000000000000000082858561062b565b6001600160a01b03841660009081526001602081905260409091206002015490811115610fa95760608167ffffffffffffffff81118015610e9c57600080fd5b50604051908082528060200260200182016040528015610ec6578160200160208202803683370190505b50905060005b60018303811015610f575760016000886001600160a01b03166001600160a01b031681526020019081526020016000206002018160010181548110610f0d57fe5b9060005260206000200160009054906101000a90046001600160a01b0316828281518110610f3757fe5b6001600160a01b0390921660209283029190910190910152600101610ecc565b5082816001840381518110610f6857fe5b6001600160a01b03928316602091820292909201810191909152908716600090815260018252604090208251610fa6926002909201918401906112f0565b50505b505050506001600160a01b0316600090815260016020819052604090912042910155565b3360009081526002602052604090205460ff1661101e576040805162461bcd60e51b815260206004820152600a60248201526910b430b93b32b9ba32b960b11b604482015290519081900360640190fd5b7f00000000000000000000000000000000000000000000000000000000000000006001600160a01b0316632c4c95a1826040518263ffffffff1660e01b815260040180828152602001915050600060405180830381600087803b15801561108457600080fd5b505af1158015611098573d6000803e3d6000fd5b5050505050565b7f00000000000000000000000000000000000000000000000000000000000000006001600160a01b0316631fe4a6866040518163ffffffff1660e01b815260040160206040518083038186803b1580156110f857600080fd5b505afa15801561110c573d6000803e3d6000fd5b505050506040513d602081101561112257600080fd5b50516001600160a01b0316331461116e576040805162461bcd60e51b815260206004820152600b60248201526a085cdd1c985d1959da5cdd60aa1b604482015290519081900360640190fd5b61271081106111b1576040805162461bcd60e51b815260206004820152600a602482015269215f736c69707061676560b01b604482015290519081900360640190fd5b600055565b7f000000000000000000000000000000000000000000000000000000000000000081565b6001600160a01b03811660009081526001602052604081206002810154158015906112155750805461120d90429061121c565b816001015411155b9392505050565b600061121583836040518060400160405280601e81526020017f536166654d6174683a207375627472616374696f6e206f766572666c6f770000815250600081848411156112e85760405162461bcd60e51b81526004018080602001828103825283818151815260200191508051906020019080838360005b838110156112ad578181015183820152602001611295565b50505050905090810190601f1680156112da5780820380516001836020036101000a031916815260200191505b509250505060405180910390fd5b505050900390565b828054828255906000526020600020908101928215611345579160200282015b8281111561134557825182546001600160a01b0319166001600160a01b03909116178255602090920191600190910190611310565b50611351929150611355565b5090565b5b808211156113515780546001600160a01b031916815560010161135656fea26469706673582212202b8b4fb95fec2090a546aed7504aefcbc6c074349adf2a868b45cd37fb9e1c8964736f6c634300060c0033",
+  "devdoc": {
+    "kind": "dev",
+    "methods": {
+      "addStrategy(address,address,uint256)": {
+        "params": {
+          "_strategy": "The address of the strategy",
+          "_timeout": "The timeout between harvests",
+          "_vault": "The address of the vault"
+        }
+      },
+      "canHarvest(address)": {
+        "params": {
+          "_vault": "The address of the vault"
+        }
+      },
+      "constructor": {
+        "params": {
+          "_controller": "The address of the controller",
+          "_manager": "The address of the yAxisMetaVaultManager contract"
+        }
+      },
+      "getEstimates(address)": {
+        "params": {
+          "_strategy": "The address of the strategy"
+        }
+      },
+      "harvest(address,address,uint256[])": {
+        "details": "This function ignores the timeout",
+        "params": {
+          "_controller": "The address of the controller",
+          "_estimates": "The estimated outputs from swaps during harvest",
+          "_strategy": "The address of the strategy"
+        }
+      },
+      "harvestNextStrategy(address,uint256[])": {
+        "params": {
+          "_estimates": "The estimated outputs from swaps during harvest",
+          "_vault": "The address of the vault"
+        }
+      },
+      "legacyEarn(uint256)": {
+        "params": {
+          "_expected": "The expected amount to deposit after conversion"
+        }
+      },
+      "removeStrategy(address,address,uint256)": {
+        "params": {
+          "_strategy": "The address of the strategy",
+          "_timeout": "The timeout between harvests",
+          "_vault": "The address of the vault"
+        }
+      },
+      "setHarvester(address,bool)": {
+        "params": {
+          "_harvester": "The address of the harvester",
+          "_status": "The status to allow the harvester to harvest"
+        }
+      },
+      "strategyAddresses(address)": {
+        "params": {
+          "_vault": "The address of the vault"
+        }
+      }
+    },
+    "title": "Harvester",
+    "version": 1
+  },
+  "userdoc": {
+    "events": {
+      "Harvest(address,address)": {
+        "notice": "Logged when harvest is called for a strategy"
+      },
+      "HarvesterSet(address,bool)": {
+        "notice": "Logged when a harvester is set"
+      },
+      "StrategyAdded(address,address,uint256)": {
+        "notice": "Logged when a strategy is added for a vault"
+      },
+      "StrategyRemoved(address,address,uint256)": {
+        "notice": "Logged when a strategy is removed for a vault"
+      }
+    },
+    "kind": "user",
+    "methods": {
+      "addStrategy(address,address,uint256)": {
+        "notice": "Adds a strategy to the rotation for a given vault and sets a timeout"
+      },
+      "canHarvest(address)": {
+        "notice": "Returns the availability of a vault's strategy to be harvested"
+      },
+      "earn(address,address)": {
+        "notice": "HARVESTER-ONLY FUNCTIONS"
+      },
+      "getEstimates(address)": {
+        "notice": "Returns the estimated amount of WETH and YAXIS for the given strategy"
+      },
+      "harvest(address,address,uint256[])": {
+        "notice": "Harvests a given strategy on the provided controller"
+      },
+      "harvestNextStrategy(address,uint256[])": {
+        "notice": "Harvests the next available strategy for a given vault and rotates the strategies"
+      },
+      "legacyEarn(uint256)": {
+        "notice": "Earns tokens in the LegacyController to the v3 vault"
+      },
+      "removeStrategy(address,address,uint256)": {
+        "notice": "Removes a strategy from the rotation for a given vault and sets a timeout"
+      },
+      "setHarvester(address,bool)": {
+        "notice": "Sets the status of a harvester address to be able to call harvest functions"
+      },
+      "strategyAddresses(address)": {
+        "notice": "Returns the addresses of the strategies for a given vault"
+      }
+    },
+    "notice": "This contract is to be used as a central point to call harvest on all strategies for any given vault. It has its own permissions for harvesters (set by the strategist or governance).",
+    "version": 1
+  },
+  "storageLayout": {
+    "storage": [
+      {
+        "astId": 10386,
+        "contract": "contracts/v3/Harvester.sol:Harvester",
+        "label": "slippage",
+        "offset": 0,
+        "slot": "0",
+        "type": "t_uint256"
+      },
+      {
+        "astId": 10398,
+        "contract": "contracts/v3/Harvester.sol:Harvester",
+        "label": "strategies",
+        "offset": 0,
+        "slot": "1",
+        "type": "t_mapping(t_address,t_struct(Strategy)10394_storage)"
+      },
+      {
+        "astId": 10402,
+        "contract": "contracts/v3/Harvester.sol:Harvester",
+        "label": "isHarvester",
+        "offset": 0,
+        "slot": "2",
+        "type": "t_mapping(t_address,t_bool)"
+      }
+    ],
+    "types": {
+      "t_address": {
+        "encoding": "inplace",
+        "label": "address",
+        "numberOfBytes": "20"
+      },
+      "t_array(t_address)dyn_storage": {
+        "base": "t_address",
+        "encoding": "dynamic_array",
+        "label": "address[]",
+        "numberOfBytes": "32"
+      },
+      "t_bool": {
+        "encoding": "inplace",
+        "label": "bool",
+        "numberOfBytes": "1"
+      },
+      "t_mapping(t_address,t_bool)": {
+        "encoding": "mapping",
+        "key": "t_address",
+        "label": "mapping(address => bool)",
+        "numberOfBytes": "32",
+        "value": "t_bool"
+      },
+      "t_mapping(t_address,t_struct(Strategy)10394_storage)": {
+        "encoding": "mapping",
+        "key": "t_address",
+        "label": "mapping(address => struct Harvester.Strategy)",
+        "numberOfBytes": "32",
+        "value": "t_struct(Strategy)10394_storage"
+      },
+      "t_struct(Strategy)10394_storage": {
+        "encoding": "inplace",
+        "label": "struct Harvester.Strategy",
+        "members": [
+          {
+            "astId": 10388,
+            "contract": "contracts/v3/Harvester.sol:Harvester",
+            "label": "timeout",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_uint256"
+          },
+          {
+            "astId": 10390,
+            "contract": "contracts/v3/Harvester.sol:Harvester",
+            "label": "lastCalled",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_uint256"
+          },
+          {
+            "astId": 10393,
+            "contract": "contracts/v3/Harvester.sol:Harvester",
+            "label": "addresses",
+            "offset": 0,
+            "slot": "2",
+            "type": "t_array(t_address)dyn_storage"
+          }
+        ],
+        "numberOfBytes": "96"
+      },
+      "t_uint256": {
+        "encoding": "inplace",
+        "label": "uint256",
+        "numberOfBytes": "32"
+      }
+    }
+  }
+}

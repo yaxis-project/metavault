@@ -12,13 +12,14 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
         deployer,
         convexBoost,
         stableSwapMIMPool,
-        unirouter
+        unirouter,
+        sushirouter
     } = await getNamedAccounts();
     const chainId = await getChainId();
     const Controller = await deployments.get('Controller');
     const Manager = await deployments.get('Manager');
     const Vault = await deployments.get('VaultMIM3CRV');
-    const name = 'Convex: MIMCRV';
+    const name = 'yAxis Convex Strategy: MIMCRV';
     let pid = 40;
 
     if (chainId != '1') {
@@ -87,10 +88,13 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
         const mockStableSwap2Pool = await deployments.get('MockStableSwap2Pool');
         stableSwapMIMPool = mockStableSwap2Pool.address;
         const router = await deployments.get('MockUniswapRouter');
-        unirouter = [router.address, router.address];
+        sushirouter = router.address;
+        unirouter = router.address;
 
         pid = 0;
     }
+
+    const routers = [sushirouter, unirouter];
 
     const Strategy = await deploy('MIMConvexStrategy', {
         from: deployer,
@@ -109,7 +113,7 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
             stableSwapMIMPool,
             Controller.address,
             Manager.address,
-            unirouter
+            routers
         ]
     });
 

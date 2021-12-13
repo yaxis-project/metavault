@@ -21,7 +21,6 @@ contract MIMConvexStrategy is BaseStrategy {
 
     uint256 public immutable pid;
     IConvexVault public immutable convexVault;
-    address public immutable mimCvxDepositLP;
     IConvexRewards public immutable crvRewards;
     IStableSwap2Pool public immutable stableSwap2Pool;
     IStableSwap3Pool public immutable stableSwap3Pool;
@@ -66,14 +65,13 @@ contract MIMConvexStrategy is BaseStrategy {
         require(address(_stableSwap2Pool) != address(0), '!_stableSwap2Pool');
         require(address(_stableSwap3Pool) != address(0), '!_stableSwap3Pool');
 
-        (, address _token, , address _crvRewards, , ) = _convexVault.poolInfo(_pid);
+        (, , , address _crvRewards, , ) = _convexVault.poolInfo(_pid);
         crv = _crv;
         cvx = _cvx;
         mim = _mim;
         crv3 = _crv3;
         pid = _pid;
         convexVault = _convexVault;
-        mimCvxDepositLP = _token;
         crvRewards = IConvexRewards(_crvRewards);
         stableSwap2Pool = _stableSwap2Pool;
         stableSwap3Pool = _stableSwap3Pool;
@@ -88,13 +86,23 @@ contract MIMConvexStrategy is BaseStrategy {
             address(_stableSwap2Pool),
             _routerArray
         );
-        _setApprovals3crv(address(_stableSwap3Pool));
+        _setMoreApprovals(address(_stableSwap3Pool), _crvRewards, _routerArray);
     }
     
-    function _setApprovals3crv(address _stableSwap3Pool) internal {
+    function _setMoreApprovals(address _stableSwap3Pool, address _crvRewards, address[] memory _routerArray) internal {
         IERC20(IStableSwap3Pool(_stableSwap3Pool).coins(0)).safeApprove(_stableSwap3Pool, type(uint256).max);
         IERC20(IStableSwap3Pool(_stableSwap3Pool).coins(1)).safeApprove(_stableSwap3Pool, type(uint256).max);
-        IERC20(IStableSwap3Pool(_stableSwap3Pool).coins(2)).safeApprove(_stableSwap3Pool, type(uint256).max);    	
+        IERC20(IStableSwap3Pool(_stableSwap3Pool).coins(2)).safeApprove(_stableSwap3Pool, type(uint256).max);   
+        uint _routerArrayLength = _routerArray.length;
+        for(uint i=0; i<_routerArrayLength; i++) {
+            address _router = _routerArray[i];
+            uint rewardsLength = IConvexRewards(_crvRewards).extraRewardsLength();
+            if (rewardsLength > 0) {
+                for(uint j=0; j<rewardsLength; j++) {
+                    IERC20(IConvexRewards(IConvexRewards(_crvRewards).extraRewards(j)).rewardToken()).safeApprove(_router, type(uint256).max);
+                }
+            }
+        }	 	
     }
 
     function _setApprovals(
@@ -204,7 +212,7 @@ contract MIMConvexStrategy is BaseStrategy {
         _amounts = router.getAmountsOut(
             // Calculating CVX minted
             (crvRewards.earned(address(this)))
-            .mul(ICVXMinter(cvx).totalCliffs().sub(ICVXMinter(cvx).maxSupply().div(ICVXMinter(cvx).reductionPerCliff())))
+            .mul(ICVXMinter(cvx).totalCliffs().sub(ICVXMinter(cvx).totalSupply().div(ICVXMinter(cvx).reductionPerCliff())))
             .div(ICVXMinter(cvx).totalCliffs()),
             _path
         );
@@ -257,21 +265,21 @@ contract MIMConvexStrategy is BaseStrategy {
         _estimates[rewardsLength + 3] = _amounts[1].mul(_notSlippage).div(ONE_HUNDRED_PERCENT);
 
         // Estimates for Stablecoin -> 3CRV
-        _estimates[rewardsLength + 4] = (_amounts[1].mul(10**(18-ExtendedIERC20(_targetCoin).decimals())).div(stableSwap3Pool.get_virtual_price())).mul(_notSlippage).div(ONE_HUNDRED_PERCENT);
+        _estimates[rewardsLength + 4] = (_amounts[1].mul(10**(18-ExtendedIERC20(_targetCoin).decimals())).mul(10**18).div(stableSwap3Pool.get_virtual_price())).mul(_notSlippage).div(ONE_HUNDRED_PERCENT);
         // Estimates for 3CRV -> MIM-3CRV is the same 3CRV estimate
         
         return _estimates;
     }
 
     function _withdrawAll() internal override {
-        convexVault.withdrawAll(pid);
+        crvRewards.withdrawAllAndUnwrap(false);
     }
 
     function _withdraw(uint256 _amount) internal override {
-        convexVault.withdraw(pid, _amount);
+        crvRewards.withdrawAndUnwrap(_amount, false);
     }
 
     function balanceOfPool() public view override returns (uint256) {
-        return IERC20(mimCvxDepositLP).balanceOf(address(this));
+        return IERC20(address(crvRewards)).balanceOf(address(this));
     }
 }
