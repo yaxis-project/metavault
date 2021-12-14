@@ -4,6 +4,7 @@ require('hardhat-deploy-ethers');
 require('solidity-coverage');
 require('@nomiclabs/hardhat-vyper');
 require('@nomiclabs/hardhat-etherscan');
+require('dotenv').config();
 
 const ethers = require('ethers');
 // Prevents the "Duplicate definition of Transfer" logs when running tests/scripts
@@ -41,7 +42,7 @@ module.exports = {
         }
     },
     etherscan: {
-        apiKey: process.env.ETHERSCAN_APIKEY
+        apiKey: process.env.ETHERSCAN_API_KEY
     },
     namedAccounts: {
         COMP: {

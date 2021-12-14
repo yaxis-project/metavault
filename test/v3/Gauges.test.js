@@ -20,7 +20,8 @@ describe('Gauges', () => {
         vault3CrvGauge,
         vault3CrvToken,
         votingEscrow,
-        yaxis;
+        yaxis,
+        feeDistributor;
 
     before(async () => {
         await deployments.fixture('v3');
@@ -52,6 +53,8 @@ describe('Gauges', () => {
             'LiquidityGaugeV2',
             Vault3CRVGauge.address
         );
+        const FeeDistributor = await deployments.get('FeeDistributor');
+        feeDistributor = await ethers.getContractAt('FeeDistributor', FeeDistributor.address);
     });
 
     it('should deploy with expected state', async () => {
@@ -70,6 +73,7 @@ describe('Gauges', () => {
         expect(await vault3CrvGauge.admin()).to.be.equal(gaugeProxy.address);
         expect(await vault3CrvGauge.minter()).to.be.equal(minter.address);
         expect(await vault3Crv.getPricePerFullShare()).to.equal(0);
+        expect(await feeDistributor.votingEscrow()).to.be.equal(votingEscrow.address);
     });
 
     it('should fund the minterWrapper with YAXIS', async () => {
@@ -87,6 +91,38 @@ describe('Gauges', () => {
         expect(await votingEscrow['balanceOf(address)'](deployer.address)).to.be.above(
             ether('0.98')
         );
+    });
+
+    it('should earn fees after locking', async () => {
+        // locking as user
+        const block = await ethers.provider.getBlockNumber();
+        const { timestamp } = await ethers.provider.getBlock(block);
+        await yaxis.connect(deployer).transfer(user.address, ether('1'));
+        await yaxis.connect(user).approve(votingEscrow.address, ethers.constants.MaxUint256);
+        await votingEscrow.connect(user).create_lock(ether('1'), timestamp + MAXTIME);
+        //add reward
+        await yaxis.approve(feeDistributor.address, ethers.constants.MaxUint256);
+        await feeDistributor.addReward(yaxis.address, ether('1'));
+        expect(await yaxis.balanceOf(feeDistributor.address)).to.be.equal(ether('1'));
+        expect(await feeDistributor.numberOfRewards()).to.be.equal(1);
+        //claim user1
+        const toClaim1 = await feeDistributor.getRewardAmount(yaxis.address, deployer.address);
+        expect(toClaim1).to.be.above(0);
+        const balanceBefore1 = await yaxis.balanceOf(deployer.address);
+        await feeDistributor.connect(deployer).claimRewards(yaxis.address);
+        expect(await yaxis.balanceOf(feeDistributor.address)).to.be.above(0);
+        expect(await yaxis.balanceOf(deployer.address)).to.be.equal(
+            toClaim1.add(balanceBefore1)
+        );
+        //claim user2
+        const toClaim2 = await feeDistributor.getRewardAmount(yaxis.address, user.address);
+        expect(toClaim2).to.be.above(0);
+        const balanceBefore2 = await yaxis.balanceOf(user.address);
+        await feeDistributor.connect(user).claimRewards(yaxis.address);
+        expect(await yaxis.balanceOf(feeDistributor.address)).to.be.equal(0);
+        expect(await yaxis.balanceOf(user.address)).to.be.equal(toClaim2.add(balanceBefore2));
+        //check total
+        expect(toClaim1.add(toClaim2)).to.be.equal(ether('1'));
     });
 
     it('should allow users to stake vault tokens in a gauge', async () => {
