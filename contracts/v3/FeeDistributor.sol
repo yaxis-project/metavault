@@ -188,7 +188,7 @@ contract FeeDistributor {
     {
         uint addressLastClaimed = lastClaimed[_address];
 
-        while(addressLastClaimed < numberOfRewards) {
+        while(addressLastClaimed <= numberOfRewards) {
             if(!isClaimed[_address][addressLastClaimed]) {
                 lastClaimed[_address] = addressLastClaimed;
                 break;
