@@ -275,6 +275,27 @@ module.exports = {
         },
         ALETH: {
             1: '0x0100546F2cD4C9D97f798fFC9755E47865FF7Ee6'
+        },
+        CVXETHStableSwap: {
+            1: '0xb576491f1e6e5e62f1d8f26062ee822b40b0e0d4'
+        },
+        CVXETH: {
+            1: '0x3A283D9c08E8b55966afb64C515f5143cf907611'
+        },
+        TRICRYPTO2StableSwap: {
+            1: '0x3993d34e7e99Abf6B6f367309975d1360222D446'
+        },
+        TRICRYPTO2: {
+            1: '0xc4AD29ba4B3c580e6D59105FFf484999997675Ff'
+        },
+        FRAXCRV: {
+            1: '0xd632f22692FaC7611d2AA1C0D552930D43CAEd3B'
+        },
+        FRAXStableSwap: {
+            1: '0xa79828df1850e8a3a3064576f380d90aecdd3359'
+        },
+        FRAXPOOL: {
+            1: '0xd632f22692FaC7611d2AA1C0D552930D43CAEd3B'
         }
     },
     solidity: {

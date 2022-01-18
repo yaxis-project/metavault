@@ -314,8 +314,7 @@ abstract contract BaseStrategy is IStrategy {
             if (treasuryFee > 0 && treasury != address(0)) {
                 _fee = _wethBal.mul(treasuryFee).div(ONE_HUNDRED_PERCENT);
 
-                _swapTokensWithRouterIndex(weth, yaxis, _fee, _estimatedYAXIS, _routerIndex);
-                IERC20(yaxis).safeTransfer(treasury, IERC20(yaxis).balanceOf(address(this)));
+                IERC20(weth).safeTransfer(treasury, _fee);
             }
 
             // return the remaining WETH balance
