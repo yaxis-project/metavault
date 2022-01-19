@@ -158,7 +158,77 @@ contract TRICRYPTO2ConvexStrategy is BaseStrategy {
     }
 
     function getEstimates() external view returns (uint256[] memory _estimates) {
-    	
+    	uint rewardsLength = crvRewards.extraRewardsLength();
+        uint256[] memory _estimates = new uint256[](rewardsLength.add(4));
+        address[] memory _path = new address[](2);
+        uint256[] memory _amounts = new uint256[](2);
+        uint256 _notSlippage = ONE_HUNDRED_PERCENT.sub(IHarvester(manager.harvester()).slippage());
+        uint256 wethAmount;
+
+        // Estimates for CVX -> WETH
+        _path[0] = cvx;
+        _path[1] = weth;
+        uint256 cvxEarned = (crvRewards.earned(address(this)))
+            .mul(ICVXMinter(cvx).totalCliffs().sub(ICVXMinter(cvx).totalSupply().div(ICVXMinter(cvx).reductionPerCliff())))
+            .div(ICVXMinter(cvx).totalCliffs());
+
+        // Prevent revert without pending rewards
+        if (cvxEarned > 0) {
+            _estimates[0]= router.getAmountsOut(cvxEarned, _path)[1].mul(_notSlippage).div(ONE_HUNDRED_PERCENT);
+        } else {
+            _estimates[0] = 0;
+        }
+
+        wethAmount += _estimates[0];
+
+        // Estimates for extra rewards -> WETH
+        
+        if (rewardsLength > 0) {
+            for (uint256 i = 0; i < rewardsLength; i++) {
+                _path[0] = IConvexRewards(crvRewards.extraRewards(i)).rewardToken();
+                _path[1] = weth;
+                if (IConvexRewards(crvRewards.extraRewards(i)).earned(address(this)) > 0) {
+                    _amounts = router.getAmountsOut(
+                        IConvexRewards(crvRewards.extraRewards(i)).earned(address(this)),
+                        _path
+                    );
+                } else {
+                    _amounts[1] = 0;
+                }
+                _estimates[i + 1] = _amounts[1].mul(_notSlippage).div(ONE_HUNDRED_PERCENT);
+                wethAmount += _estimates[i + 1];
+            }
+        }
+
+        // Estimates for CRV -> WETH
+        _path[0] = crv;
+        _path[1] = weth;
+        if (crvRewards.earned(address(this)) > 0) {
+            _amounts = router.getAmountsOut(
+                crvRewards.earned(address(this)),
+                _path
+            );
+        } else {
+            _amounts[1] = 0;
+        }
+        _estimates[rewardsLength + 1] = _amounts[1].mul(_notSlippage).div(ONE_HUNDRED_PERCENT);
+        wethAmount += _estimates[rewardsLength + 1];
+
+        // Estimates WETH -> YAXIS
+        _path[0] = weth;
+        _path[1] = manager.yaxis();
+        // Set to UniswapV2 to calculate output for YAXIS
+        if (wethAmount > 0) {
+            _amounts = ISwap(routerArray[1]).getAmountsOut(wethAmount.mul(manager.treasuryFee()).div(ONE_HUNDRED_PERCENT), _path);
+        } else {
+            _amounts[1] = 0;
+        }
+        _estimates[rewardsLength + 2] = _amounts[1].mul(_notSlippage).div(ONE_HUNDRED_PERCENT);
+    
+
+        // Estimates for WETH-> LP
+        _estimates[rewardsLength + 3] = (_amounts[1].mul(IStableSwapPool(stableSwapPool).price_oracle(1)).div(IStableSwapPool(stableSwapPool).get_virtual_price())).mul(_notSlippage).div(ONE_HUNDRED_PERCENT);
+        // Estimates for 3CRV -> MIM-3CRV is the same 3CRV estimate
         return _estimates;
     }
 
