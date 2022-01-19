@@ -159,7 +159,7 @@ contract TRICRYPTO2ConvexStrategy is BaseStrategy {
 
     function getEstimates() external view returns (uint256[] memory _estimates) {
     	uint rewardsLength = crvRewards.extraRewardsLength();
-        uint256[] memory _estimates = new uint256[](rewardsLength.add(4));
+        uint256[] memory _estimates = new uint256[](rewardsLength.add(3));
         address[] memory _path = new address[](2);
         uint256[] memory _amounts = new uint256[](2);
         uint256 _notSlippage = ONE_HUNDRED_PERCENT.sub(IHarvester(manager.harvester()).slippage());
@@ -213,22 +213,11 @@ contract TRICRYPTO2ConvexStrategy is BaseStrategy {
         }
         _estimates[rewardsLength + 1] = _amounts[1].mul(_notSlippage).div(ONE_HUNDRED_PERCENT);
         wethAmount += _estimates[rewardsLength + 1];
-
-        // Estimates WETH -> YAXIS
-        _path[0] = weth;
-        _path[1] = manager.yaxis();
-        // Set to UniswapV2 to calculate output for YAXIS
-        if (wethAmount > 0) {
-            _amounts = ISwap(routerArray[1]).getAmountsOut(wethAmount.mul(manager.treasuryFee()).div(ONE_HUNDRED_PERCENT), _path);
-        } else {
-            _amounts[1] = 0;
-        }
-        _estimates[rewardsLength + 2] = _amounts[1].mul(_notSlippage).div(ONE_HUNDRED_PERCENT);
+        // Remove harvest fees
+        wethAmount = wethAmount.sub(wethAmount.mul(manager.treasuryFee()).div(ONE_HUNDRED_PERCENT));
     
-
         // Estimates for WETH-> LP
-        _estimates[rewardsLength + 3] = (_amounts[1].mul(IStableSwapPool(stableSwapPool).price_oracle(1)).div(IStableSwapPool(stableSwapPool).get_virtual_price())).mul(_notSlippage).div(ONE_HUNDRED_PERCENT);
-        // Estimates for 3CRV -> MIM-3CRV is the same 3CRV estimate
+        _estimates[rewardsLength + 2] = (_amounts[1].mul(IStableSwapPool(stableSwapPool).price_oracle(1)).div(IStableSwapPool(stableSwapPool).get_virtual_price())).mul(_notSlippage).div(ONE_HUNDRED_PERCENT);
         return _estimates;
     }
 
