@@ -8,9 +8,13 @@ module.exports = async ({ getChainId, getNamedAccounts, deployments }) => {
     const GaugeProxy = await deployments.get('GaugeProxy');
 
     if (chainId != '1') {
-        const linkcrv = await deployments.get('LINKCRV');
-
-        LINKCRV = linkcrv.address;
+        const frax = await deployments.deploy('FRAXCRV', {
+            from: deployer,
+            contract: 'MockERC20',
+            args: ['FRAXCRV', 'FRAXCRV', 18]
+        });
+        
+        FRAXCRV = frax.address;
     }
 
     const VaultToken = await deploy('FRAXCRVVaultToken', {
@@ -41,7 +45,7 @@ module.exports = async ({ getChainId, getNamedAccounts, deployments }) => {
             'add_gauge(address,int128,uint256)',
             Gauge.address,
             0,
-            ethers.utils.parseEther('1')
+            ethers.utils.parseEther('1046475')
         );
         await execute(
             'Manager',
@@ -67,4 +71,4 @@ module.exports = async ({ getChainId, getNamedAccounts, deployments }) => {
     }
 };
 
-module.exports.tags = ['v3', 'gauges'];
+module.exports.tags = ['v3', 'gauges', 'now'];

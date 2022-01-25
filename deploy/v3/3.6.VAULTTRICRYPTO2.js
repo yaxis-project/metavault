@@ -8,9 +8,14 @@ module.exports = async ({ getChainId, getNamedAccounts, deployments }) => {
     const GaugeProxy = await deployments.get('GaugeProxy');
 
     if (chainId != '1') {
-        const linkcrv = await deployments.get('LINKCRV');
+        const tri = await deployments.deploy('TRICRYPTO2', {
+            from: deployer,
+            contract: 'MockERC20',
+            args: ['TRICRYPTO2', 'TRICRYPTO2', 18]
+        });
 
-        LINKCRV = linkcrv.address;
+
+        TRICRYPTO2 = tri.address;
     }
 
     const VaultToken = await deploy('TRICRYPTO2VaultToken', {
@@ -41,7 +46,7 @@ module.exports = async ({ getChainId, getNamedAccounts, deployments }) => {
             'add_gauge(address,int128,uint256)',
             Gauge.address,
             0,
-            ethers.utils.parseEther('1')
+            ethers.utils.parseEther('1346475')
         );
         await execute(
             'Manager',
