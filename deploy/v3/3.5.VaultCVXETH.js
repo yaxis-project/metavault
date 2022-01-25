@@ -62,12 +62,7 @@ module.exports = async ({ getChainId, getNamedAccounts, deployments }) => {
             Vault.address,
             Controller.address
         );
-        await execute(
-            'CVXETHVault',
-            { from: deployer, log: true },
-            'setGauge',
-            Gauge.address
-        );
+        await execute('CVXETHVault', { from: deployer, log: true }, 'setGauge', Gauge.address);
     }
 };
 

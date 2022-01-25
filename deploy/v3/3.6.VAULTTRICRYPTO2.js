@@ -14,7 +14,6 @@ module.exports = async ({ getChainId, getNamedAccounts, deployments }) => {
             args: ['TRICRYPTO2', 'TRICRYPTO2', 18]
         });
 
-
         TRICRYPTO2 = tri.address;
     }
 

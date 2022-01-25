@@ -13,7 +13,7 @@ module.exports = async ({ getChainId, getNamedAccounts, deployments }) => {
             contract: 'MockERC20',
             args: ['FRAXCRV', 'FRAXCRV', 18]
         });
-        
+
         FRAXCRV = frax.address;
     }
 
