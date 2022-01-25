@@ -637,16 +637,11 @@ describe('Controller', () => {
 
             it('should harvest', async () => {
                 await expect(
-                    harvester.harvest(controller.address, strategyCrv.address, [
-                        0,
-                        0,
-                        0,
-                        0,
-                        0,
-                        0,
-                        0,
-                        0
-                    ])
+                    harvester.harvest(
+                        controller.address,
+                        strategyCrv.address,
+                        [0, 0, 0, 0, 0, 0, 0, 0]
+                    )
                 )
                     .to.emit(controller, 'Harvest')
                     .withArgs(strategyCrv.address);
@@ -655,16 +650,11 @@ describe('Controller', () => {
             it('should revert if the system is halted', async () => {
                 await manager.setHalted();
                 await expect(
-                    harvester.harvest(controller.address, strategyCrv.address, [
-                        0,
-                        0,
-                        0,
-                        0,
-                        0,
-                        0,
-                        0,
-                        0
-                    ])
+                    harvester.harvest(
+                        controller.address,
+                        strategyCrv.address,
+                        [0, 0, 0, 0, 0, 0, 0, 0]
+                    )
                 ).to.be.revertedWith('halted');
             });
         });
