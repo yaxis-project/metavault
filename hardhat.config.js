@@ -4,6 +4,7 @@ require('hardhat-deploy-ethers');
 require('solidity-coverage');
 require('@nomiclabs/hardhat-vyper');
 require('@nomiclabs/hardhat-etherscan');
+require('dotenv').config();
 
 const ethers = require('ethers');
 // Prevents the "Duplicate definition of Transfer" logs when running tests/scripts
@@ -12,8 +13,12 @@ ethers.utils.Logger.setLogLevel(ethers.utils.Logger.levels.ERROR);
 // If not set, we only need to default these with something to get hardhat to run
 const kovanRpcUrl = process.env.KOVAN_RPC_URL || 'http://localhost:8545';
 const mainnetRpcUrl = process.env.MAINNET_RPC_URL || 'http://localhost:8545';
-const kovanPrivateKey = process.env.KOVAN_PRIVATE_KEY || '0x00';
-const mainnetPrivateKey = process.env.MAINNET_PRIVATE_KEY || '0x00';
+const kovanPrivateKey =
+    process.env.KOVAN_PRIVATE_KEY ||
+    '0000000000000000000000000000000000000000000000000000000000000000';
+const mainnetPrivateKey =
+    process.env.MAINNET_PRIVATE_KEY ||
+    '0000000000000000000000000000000000000000000000000000000000000000';
 const mainnetAccounts = process.env.FORK ? undefined : [mainnetPrivateKey];
 const chainId = process.env.LIVE ? 1 : 31337;
 
@@ -41,7 +46,7 @@ module.exports = {
         }
     },
     etherscan: {
-        apiKey: process.env.ETHERSCAN_APIKEY
+        apiKey: process.env.ETHERSCAN_API_KEY
     },
     namedAccounts: {
         COMP: {

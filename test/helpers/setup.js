@@ -54,13 +54,8 @@ exports.setupTestToken = deployments.createFixture(
 exports.setupTestMetavault = deployments.createFixture(
     async ({ deployments, getNamedAccounts, ethers }) => {
         await deployments.fixture('metavault');
-        const {
-            deployer,
-            user,
-            stakingPool,
-            treasury,
-            insurancePool
-        } = await getNamedAccounts();
+        const { deployer, user, stakingPool, treasury, insurancePool } =
+            await getNamedAccounts();
         const YAX = await deployments.get('YAX');
         const yax = await ethers.getContractAt('MockERC20', YAX.address, user);
         const DAI = await deployments.get('DAI');
