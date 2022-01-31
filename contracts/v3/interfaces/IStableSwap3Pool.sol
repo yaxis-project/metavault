@@ -11,6 +11,7 @@ interface IStableSwap3Pool {
     function get_dy(int128 i, int128 j, uint dx) external view returns (uint dy);
     function exchange(int128 i, int128 j, uint dx, uint min_dy) external;
     function add_liquidity(uint[3] calldata amounts, uint min_mint_amount) external;
+    function add_liquidity(uint[3] calldata amounts, uint min_mint_amount, bool _use_underlying) external;
     function remove_liquidity(uint _amount, uint[3] calldata amounts) external;
     function remove_liquidity_one_coin(uint _token_amount, int128 i, uint min_amount) external;
     function calc_token_amount(uint[3] calldata amounts, bool deposit) external view returns (uint);

@@ -17,11 +17,8 @@ interface IStrategy {
     function skim() external;
     function want() external view returns (address);
     function weth() external view returns (address);
+    function wavax() external view returns (address);
     function withdraw(address) external;
     function withdraw(uint256) external;
     function withdrawAll() external;
-}
-
-interface IStrategyExtended {
-    function getEstimates() external view returns (uint256[] memory);
 }

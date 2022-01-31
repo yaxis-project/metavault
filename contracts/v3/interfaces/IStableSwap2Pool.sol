@@ -23,6 +23,7 @@ interface IStableSwap2Pool {
     ) external;
 
     function add_liquidity(uint256[2] calldata amounts, uint256 min_mint_amount) external payable;
+    function add_liquidity(uint[2] calldata amounts, uint min_mint_amount, bool _use_underlying) external;
 
     function remove_liquidity(uint256 _amount, uint256[2] calldata amounts) external;
 
