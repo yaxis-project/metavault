@@ -71,4 +71,4 @@ module.exports = async ({ getChainId, getNamedAccounts, deployments }) => {
     }
 };
 
-module.exports.tags = ['v3', 'gauges', 'now'];
+module.exports.tags = ['v3', 'gauges'];
