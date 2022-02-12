@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+ // SPDX-License-Identifier: MIT
 
 pragma solidity 0.6.12;
 
@@ -46,7 +46,7 @@ contract AvaxGenericAaveStrategy is AvaxBaseStrategy {
     function _claimReward()
         internal
     {
-        address[] memory assets;
+        address[] memory assets = new address[](1);
         assets[0] = address(avtoken);
         rewards.claimRewards(assets, type(uint256).max, address(this));
     }
