@@ -23,6 +23,9 @@ contract Rewards {
     uint256 public emission; // Token being emitted per second
     uint256 public lastUpdate; // Last time updatePool() was called
 
+    uint256 public totalClaimed;
+    uint256 public totalEmitted;
+
     address public admin;
 
     constructor(address _lp, address _reward) {
@@ -59,12 +62,15 @@ contract Rewards {
         uint256 amount = (userStaked[user]*accRewardsPerLP/1e18)-userPaid[user];
         userPaid[user] += amount;
         reward.mint(user, amount);
+        totalClaimed += amount;
     }
 
     function updatePool() private {
         uint256 time = block.timestamp;
         if (totalStaked > 0) {
-           accRewardsPerLP += emission*(time-lastUpdate)*1e18/totalStaked; 
+            uint256 totalEmission = emission*(time-lastUpdate);
+            accRewardsPerLP += totalEmission*1e18/totalStaked;
+            totalEmitted += totalEmission;
         }
         lastUpdate = time;
     }
@@ -84,5 +90,13 @@ contract Rewards {
     function pending(address user) external view returns (uint256) {
         if (totalStaked == 0) return 0;
         return (userStaked[user]*(accRewardsPerLP+(emission*(block.timestamp-lastUpdate)*1e18/totalStaked))/1e18)-userPaid[user];
+    }
+
+    function totalEmittedAndPending() public view returns (uint256) {
+        return totalEmitted + emission*(block.timestamp-lastUpdate);
+    }
+
+    function totalUnclaimed() external view returns (uint256) {
+        return totalEmittedAndPending() - totalClaimed;
     }
 }
