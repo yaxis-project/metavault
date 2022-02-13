@@ -12,8 +12,10 @@ import '../interfaces/IWETH.sol';
 contract GenericTraderjoeFarmStrategy is AvaxBaseStrategy {
 
     IERC20 public immutable joe;
+    IERC20 public bonus;
     IMasterchef public immutable masterchef;
     uint256 public immutable pid;
+    address[] public rewardPath; // bonus->...->wavax->joe
 
     constructor(
         string memory _name,
@@ -24,7 +26,8 @@ contract GenericTraderjoeFarmStrategy is AvaxBaseStrategy {
         uint256 _pid,
         address _controller,
         address _manager,
-        address[] memory _routerArray
+        address[] memory _routerArray,
+        address[] memory _rewardPath // Needed only for swapping bonus
     )
         public
         AvaxBaseStrategy(_name, _controller, _manager, _want, _wavax, _routerArray)
@@ -34,6 +37,16 @@ contract GenericTraderjoeFarmStrategy is AvaxBaseStrategy {
         pid = _pid;
         IERC20(_joe).approve(_routerArray[0], type(uint256).max);
         IERC20(_want).approve(_masterchef, type(uint256).max);
+        for (uint i=0; i<_rewardPath.length; i++) {
+            IERC20(_rewardPath[i]).approve(_routerArray[0], type(uint256).max);
+        }
+        address _bonus = IBonusRewards(IMasterchef(_masterchef).poolInfo(_pid).rewarder).rewardToken();
+        if (
+            _bonus != _wavax &&
+            _bonus != address(0)
+        ) {
+            bonus = IERC20(_bonus);
+        }
     }
 
     function _deposit()
@@ -58,7 +71,7 @@ contract GenericTraderjoeFarmStrategy is AvaxBaseStrategy {
             joe.balanceOf(address(this)).mul(995).div(1000),
             IERC20(wavax).balanceOf(address(this)).mul(995).div(1000),
             address(this),
-            block.timestamp
+            1e10
         );
     }
 
@@ -75,10 +88,21 @@ contract GenericTraderjoeFarmStrategy is AvaxBaseStrategy {
         override
     {
         _claimReward();
-        uint256 _remainingJoe = _payHarvestFees(address(joe), joe.balanceOf(address(this)), _estimates[0], 0);
+        if (address(bonus) != address(0)) {
+            if (bonus.balanceOf(address(this)) > 0) {
+                router.swapExactTokensForTokens(
+                    bonus.balanceOf(address(this)),
+                    _estimates[0],
+                    rewardPath,
+                    address(this),
+                    1e10
+                );
+            }
+        }
+        uint256 _remainingJoe = _payHarvestFees(address(joe), joe.balanceOf(address(this)), _estimates[1], 0);
 
         if (_remainingJoe > 0) {
-            _swapTokens(address(joe), want, _remainingJoe.div(2), _estimates[1]);
+            _swapTokens(address(joe), want, _remainingJoe.div(2), _estimates[2]);
             _addLiquidity();
             _deposit();
         }
