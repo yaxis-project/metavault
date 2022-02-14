@@ -42,6 +42,11 @@ contract GenericTraderjoeFarmStrategy is AvaxBaseStrategy {
         token0 = IERC20(_tokenPath0[_tokenPath0.length-1]);
         token1 = IERC20(_tokenPath1[_tokenPath1.length-1]);
         joe = IERC20(_tokenPath0[0]);
+        IERC20(_tokenPath0[0]).approve(address(router), type(uint256).max);
+        IERC20(_tokenPath0[_tokenPath0.length-1]).approve(address(router), type(uint256).max);
+        IERC20(_tokenPath1[_tokenPath1.length-1]).approve(address(router), type(uint256).max);
+        tokenPath0 = _tokenPath0;
+        tokenPath1 = _tokenPath1;
         IERC20(_want).approve(_masterchef, type(uint256).max);
         rewardPath = _rewardPath;
         for (uint i=0; i<_rewardPath.length; i++) {
@@ -50,12 +55,6 @@ contract GenericTraderjoeFarmStrategy is AvaxBaseStrategy {
         if (_rewardPath.length > 0) {
             bonus = IERC20(_rewardPath[0]);
         }
-    }
-
-    function _setApprovals() internal {
-        joe.approve(address(router), type(uint256).max);
-        token0.approve(address(router), type(uint256).max);
-        token1.approve(address(router), type(uint256).max);
     }
 
     function _deposit()
@@ -122,7 +121,7 @@ contract GenericTraderjoeFarmStrategy is AvaxBaseStrategy {
             if (address(joe) != address(token1)) {
                 router.swapExactTokensForTokens(
                     _remainingJoe.div(2),
-                    _estimates[2],
+                    _estimates[3],
                     tokenPath1,
                     address(this),
                     1e10
