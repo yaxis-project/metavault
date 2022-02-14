@@ -13,6 +13,10 @@ contract GenericTraderjoeFarmStrategy is AvaxBaseStrategy {
 
     IERC20 public immutable joe;
     IERC20 public bonus;
+    IERC20 public immutable token0;
+    IERC20 public immutable token1;
+    address[] public tokenPath0; // joe->...->token0
+    address[] public tokenPath1; // joe->...->token1
     IMasterchef public immutable masterchef;
     uint256 public immutable pid;
     address[] public rewardPath; // bonus->...->wavax->joe
@@ -21,7 +25,8 @@ contract GenericTraderjoeFarmStrategy is AvaxBaseStrategy {
         string memory _name,
         address _wavax,
         address _want,
-        address _joe,
+        address[] memory _tokenPath0,
+        address[] memory _tokenPath1,
         address _masterchef,
         uint256 _pid,
         address _controller,
@@ -32,21 +37,25 @@ contract GenericTraderjoeFarmStrategy is AvaxBaseStrategy {
         public
         AvaxBaseStrategy(_name, _controller, _manager, _want, _wavax, _routerArray)
     {
-        joe = IERC20(_joe);
         masterchef = IMasterchef(_masterchef);
         pid = _pid;
-        IERC20(_joe).approve(_routerArray[0], type(uint256).max);
+        token0 = IERC20(_tokenPath0[_tokenPath0.length-1]);
+        token1 = IERC20(_tokenPath1[_tokenPath1.length-1]);
+        joe = IERC20(_tokenPath0[0]);
         IERC20(_want).approve(_masterchef, type(uint256).max);
+        rewardPath = _rewardPath;
         for (uint i=0; i<_rewardPath.length; i++) {
             IERC20(_rewardPath[i]).approve(_routerArray[0], type(uint256).max);
         }
-        address _bonus = IBonusRewards(IMasterchef(_masterchef).poolInfo(_pid).rewarder).rewardToken();
-        if (
-            _bonus != _wavax &&
-            _bonus != address(0)
-        ) {
-            bonus = IERC20(_bonus);
+        if (_rewardPath.length > 0) {
+            bonus = IERC20(_rewardPath[0]);
         }
+    }
+
+    function _setApprovals() internal {
+        joe.approve(address(router), type(uint256).max);
+        token0.approve(address(router), type(uint256).max);
+        token1.approve(address(router), type(uint256).max);
     }
 
     function _deposit()
@@ -64,12 +73,12 @@ contract GenericTraderjoeFarmStrategy is AvaxBaseStrategy {
     {
         // Allows 0.5% slippage
         router.addLiquidity(
-            address(joe),
-            wavax,
-            joe.balanceOf(address(this)),
-            IERC20(wavax).balanceOf(address(this)),
-            joe.balanceOf(address(this)).mul(995).div(1000),
-            IERC20(wavax).balanceOf(address(this)).mul(995).div(1000),
+            address(token0),
+            address(token1),
+            token0.balanceOf(address(this)),
+            token1.balanceOf(address(this)),
+            token0.balanceOf(address(this)).mul(995).div(1000),
+            token1.balanceOf(address(this)).mul(995).div(1000),
             address(this),
             1e10
         );
@@ -100,9 +109,25 @@ contract GenericTraderjoeFarmStrategy is AvaxBaseStrategy {
             }
         }
         uint256 _remainingJoe = _payHarvestFees(address(joe), joe.balanceOf(address(this)), _estimates[1], 0);
-
         if (_remainingJoe > 0) {
-            _swapTokens(address(joe), want, _remainingJoe.div(2), _estimates[2]);
+            if (address(joe) != address(token0)) {
+                router.swapExactTokensForTokens(
+                    _remainingJoe.div(2),
+                    _estimates[2],
+                    tokenPath0,
+                    address(this),
+                    1e10
+                );
+            }
+            if (address(joe) != address(token1)) {
+                router.swapExactTokensForTokens(
+                    _remainingJoe.div(2),
+                    _estimates[2],
+                    tokenPath1,
+                    address(this),
+                    1e10
+                );
+            }
             _addLiquidity();
             _deposit();
         }
@@ -146,6 +171,10 @@ contract GenericTraderjoeFarmStrategy is AvaxBaseStrategy {
         internal
         override
     {
+        withdraw_(_amount);
+    }
+
+    function withdraw_(uint256 _amount) public {
         masterchef.withdraw(pid, _amount);
     }
 
