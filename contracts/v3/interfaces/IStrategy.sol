@@ -22,3 +22,7 @@ interface IStrategy {
     function withdraw(uint256) external;
     function withdrawAll() external;
 }
+
+interface IStrategyExtended {
+    function getEstimates() external view returns (uint256[] memory);
+}
